@@ -8,19 +8,12 @@ from typing import Any
 def validate_australian_phone(value: str) -> None:
     if not value:
         return
-
+ 
     cleaned = re.sub(r"[^\d+]", "", value)
-
-    patterns = [r"^\+61[2-9]\d{8}$", r"^0[2-9]\d{8}$", r"^\+614\d{8}$", r"^04\d{8}$"]
-
-    if not any(re.match(pattern, cleaned) for pattern in patterns):
+    if len(cleaned) < 8 or len(cleaned) > 15:
         raise ValidationError(
-            _(
-                "Enter a valid Australian phone number. Format: +61 4XX XXX XXX or 04XX XXX XXX"
-            ),
-            code="invalid_phone",
+            _("Phone number must be 8-15 digits"), code="invalid_phone"
         )
-
 
 def validate_postcode(value: str) -> None:
     if not value:
