@@ -947,13 +947,3 @@ def quote_bulk_operations_view(request):
 
     return render(request, "admin/quotes/bulk_operations.html", context)
 
-
-admin.site.register_view(
-    "quotes/analytics/", view=quote_analytics_view, name="Quote Analytics"
-)
-admin.site.register_view(
-    "quotes/reports/", view=quote_reports_view, name="Quote Reports"
-)
-admin.site.register_view(
-    "quotes/bulk-operations/", view=quote_bulk_operations_view, name="Bulk Operations"
-)
