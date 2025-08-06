@@ -1,0 +1,52 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+EMAIL VERIFICATION REQUIRED
+============================
+
+Hi {{ user.first_name }},
+
+Thank you for registering with {{ site_name }}! To complete your account setup and ensure the security of your account, we need to verify your email address.
+
+VERIFY YOUR EMAIL ADDRESS
+==========================
+Click the link below to verify your email and activate your account:
+
+{{ verification_url }}
+
+IMPORTANT INFORMATION
+=====================
+⏰ This verification link will expire in {{ expiry_hours }} hours for security reasons.
+
+SECURITY NOTICE
+===============
+🛡️ Please note:
+- This email was sent to {{ user.email }}
+- If you didn't create this account, please ignore this email
+- Never share this verification link with others
+- The link can only be used once
+
+AFTER VERIFICATION, YOU CAN:
+============================
+- Access your full account dashboard
+- {% if user.is_client %}Book cleaning services{% else %}Manage your account{% endif %}
+- Update your profile and preferences
+- Receive important account notifications
+{% if user.is_ndis_client %}
+- Access specialized NDIS services
+{% endif %}
+
+HAVING TROUBLE?
+===============
+If the link above doesn't work, copy and paste this URL into your browser:
+{{ verification_url }}
+
+NEED HELP?
+==========
+Contact our support team at {{ support_email }}
+
+{{ site_name }} Team
+
+---
+This is an automated email. Please do not reply to this message.
+

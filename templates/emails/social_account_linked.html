@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ provider }} Account Linked - NSWCC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #17a2b8;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #17a2b8;
+            margin-bottom: 10px;
+        }
+        .link-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #17a2b8;
+        }
+        .title {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .success-section {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .provider-info {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .provider-logo {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .timestamp-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .benefits-section {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .manage-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #17a2b8;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .google { color: #db4437; }
+        .facebook { color: #4267B2; }
+        .apple { color: #000000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">NSWCC</div>
+            <p>NSW Cleaning & Care Services</p>
+            <div class="link-icon">🔗</div>
+        </div>
+
+        <h1 class="title">{{ provider }} Account Linked Successfully</h1>
+
+        <div class="content">
+            <p>Hi <strong>{{ user.first_name }}</strong>,</p>
+            
+            <p>Great news! Your <strong>{{ provider }}</strong> account has been successfully linked to your <strong>{{ site_name }}</strong> account.</p>
+
+            <div class="success-section">
+                <h3>✅ Account Integration Complete</h3>
+                <p>You can now use your {{ provider }} account to sign in to NSWCC</p>
+            </div>
+
+            <div class="provider-info">
+                <div class="provider-logo {{ provider|lower }}">
+                    {% if provider == "Google" %}🔍
+                    {% elif provider == "Facebook" %}📘
+                    {% elif provider == "Apple" %}🍎
+                    {% else %}🔗{% endif %}
+                </div>
+                <h4>{{ provider }} Integration Active</h4>
+                <p>Your {{ provider }} account is now connected to {{ user.email }}</p>
+            </div>
+
+            <div class="timestamp-info">
+                <p><strong>📅 Linked on:</strong> {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}</p>
+            </div>
+
+            <div class="benefits-section">
+                <h4>🚀 Benefits of Social Account Linking:</h4>
+                <ul>
+                    <li><strong>Quick Sign-In:</strong> Use your {{ provider }} account to log in instantly</li>
+                    <li><strong>Enhanced Security:</strong> Leverage {{ provider }}'s security features</li>
+                    <li><strong>Seamless Experience:</strong> No need to remember another password</li>
+                    <li><strong>Profile Sync:</strong> Keep your information up to date automatically</li>
+                    <li><strong>Single Sign-On:</strong> Access NSWCC services more efficiently</li>
+                </ul>
+            </div>
+
+            <div class="security-notice">
+                <p><strong>🛡️ Security Information:</strong></p>
+                <ul>
+                    <li>Your NSWCC password remains active and can still be used</li>
+                    <li>You can unlink this account anytime from your profile settings</li>
+                    <li>{{ provider }} will only share basic profile information</li>
+                    <li>Your {{ provider }} password is never stored by NSWCC</li>
+                </ul>
+            </div>
+
+            <div class="manage-section">
+                <h4>⚙️ Manage Your Connected Accounts</h4>
+                <p>You can view and manage all your connected social accounts in your profile settings.</p>
+                <a href="{{ site_name }}/profile/social-accounts" class="btn">Manage Social Accounts</a>
+            </div>
+
+            <h3>🎯 What's Next?</h3>
+            <ul>
+                <li>Try signing in with your {{ provider }} account</li>
+                <li>Update your profile preferences if needed</li>
+                <li>Explore enhanced features available through social integration</li>
+                <li>Consider linking additional social accounts for more options</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Questions about social account linking? Contact us at {{ support_email }}</p>
+            <p><strong>{{ site_name }} Team</strong></p>
+            <p><small>This is an automated notification. Please do not reply to this message.</small></p>
+        </div>
+    </div>
+</body>
+</html>

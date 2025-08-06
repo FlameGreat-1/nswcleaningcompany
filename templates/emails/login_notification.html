@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Login to Your Account - NSWCC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #20c997;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #20c997;
+            margin-bottom: 10px;
+        }
+        .login-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #20c997;
+        }
+        .title {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .notification-section {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .login-details {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .detail-value {
+            color: #6c757d;
+            text-align: right;
+            max-width: 60%;
+            word-break: break-word;
+        }
+        .security-notice {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .unauthorized-section {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #dc3545;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 10px 5px;
+        }
+        .location-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        .method-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .method-email {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .method-google {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .method-facebook {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+        .tips-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">NSWCC</div>
+            <p>NSW Cleaning & Care Services</p>
+            <div class="login-icon">🔔</div>
+        </div>
+
+        <h1 class="title">New Login to Your Account</h1>
+
+        <div class="content">
+            <p>Hi <strong>{{ user.first_name }}</strong>,</p>
+            
+            <p>We're notifying you about a recent login to your <strong>{{ site_name }}</strong> account for your security awareness.</p>
+
+            <div class="notification-section">
+                <h3>🔐 Login Detected</h3>
+                <p>A new session was started on your account</p>
+            </div>
+
+            <div class="login-details">
+                <h4>📋 Login Details:</h4>
+                <div class="detail-row">
+                    <span class="detail-label">📅 Date & Time:</span>
+                    <span class="detail-value">{{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">🔑 Login Method:</span>
+                    <span class="detail-value">
+                        <span class="method-badge method-{{ login_method }}">{{ login_method|title }}</span>
+                    </span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">🌐 IP Address:</span>
+                    <span class="detail-value">{{ ip_address }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">💻 Device/Browser:</span>
+                    <span class="detail-value">{{ user_agent|truncatechars:50 }}</span>
+                </div>
+            </div>
+
+            <div class="location-info">
+                <p><strong>📍 Approximate Location:</strong> Based on IP address analysis</p>
+                <p><small>Note: Location accuracy may vary depending on your internet connection and VPN usage.</small></p>
+            </div>
+
+            <div class="security-notice">
+                <h4>✅ If This Was You:</h4>
+                <ul>
+                    <li>No action is required - your account is secure</li>
+                    <li>You can safely ignore this notification</li>
+                    <li>Consider this a confirmation of successful login</li>
+                    <li>Your session is now active and ready to use</li>
+                </ul>
+            </div>
+
+            <div class="unauthorized-section">
+                <h4>🚨 If This Wasn't You:</h4>
+                <p><strong>Take immediate action to secure your account:</strong></p>
+                <ul>
+                    <li><strong>Change your password immediately</strong></li>
+                    <li>Review your account activity and settings</li>
+                    <li>Check for any unauthorized changes</li>
+                    <li>Log out all active sessions</li>
+                    <li>Contact our security team</li>
+                </ul>
+                <div style="text-align: center; margin: 15px 0;">
+                    <a href="{{ site_name }}/account/security" class="btn">Secure My Account</a>
+                </div>
+                <p><strong>Emergency Support:</strong> {{ support_email }}</p>
+            </div>
+
+            <div class="tips-section">
+                <h4>💡 Account Security Tips:</h4>
+                <ul>
+                    <li><strong>Monitor Login Notifications:</strong> Always review these emails</li>
+                    <li><strong>Use Strong Passwords:</strong> Unique and complex passwords</li>
+                    <li><strong>Enable 2FA:</strong> Add extra security layers when available</li>
+                    <li><strong>Secure Networks:</strong> Avoid public Wi-Fi for sensitive activities</li>
+                    <li><strong>Regular Reviews:</strong> Check account activity periodically</li>
+                    <li><strong>Update Devices:</strong> Keep browsers and devices current</li>
+                </ul>
+            </div>
+
+            <h3>🔍 Recent Account Activity:</h3>
+            <p>You can view your complete login history and manage active sessions in your account security settings.</p>
+            
+            <p><strong>Stay Secure:</strong> We recommend reviewing your account activity regularly and reporting any suspicious behavior immediately.</p>
+        </div>
+
+        <div class="footer">
+            <p>Questions about account security? Contact us at {{ support_email }}</p>
+            <p><strong>{{ site_name }} Security Team</strong></p>
+            <p><small>This is an automated security notification. You can manage notification preferences in your account settings.</small></p>
+        </div>
+    </div>
+</body>
+</html>
+ 

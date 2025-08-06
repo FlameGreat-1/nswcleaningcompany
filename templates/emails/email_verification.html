@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email - NSWCC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #28a745;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .verification-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .title {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .verification-section {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            background-color: #ffffff;
+            color: #28a745;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 15px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .security-notice .icon {
+            color: #856404;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .expiry-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .manual-link {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">NSWCC</div>
+            <p>NSW Cleaning & Care Services</p>
+            <div class="verification-icon">📧</div>
+        </div>
+
+        <h1 class="title">Email Verification Required</h1>
+
+        <div class="content">
+            <p>Hi <strong>{{ user.first_name }}</strong>,</p>
+            
+            <p>Thank you for registering with <strong>{{ site_name }}</strong>! To complete your account setup and ensure the security of your account, we need to verify your email address.</p>
+
+            <div class="verification-section">
+                <h3>🔐 Verify Your Email Address</h3>
+                <p>Click the button below to verify your email and activate your account:</p>
+                <a href="{{ verification_url }}" class="btn">Verify Email Address</a>
+            </div>
+
+            <div class="expiry-info">
+                <p><strong>⏰ Important:</strong> This verification link will expire in <strong>{{ expiry_hours }} hours</strong> for security reasons.</p>
+            </div>
+
+            <div class="security-notice">
+                <p><span class="icon">🛡️</span> <strong>Security Notice:</strong></p>
+                <ul>
+                    <li>This email was sent to {{ user.email }}</li>
+                    <li>If you didn't create this account, please ignore this email</li>
+                    <li>Never share this verification link with others</li>
+                    <li>The link can only be used once</li>
+                </ul>
+            </div>
+
+            <h3>🚀 After Verification, You Can:</h3>
+            <ul>
+                <li>Access your full account dashboard</li>
+                <li>{% if user.is_client %}Book cleaning services{% else %}Manage your account{% endif %}</li>
+                <li>Update your profile and preferences</li>
+                <li>Receive important account notifications</li>
+                {% if user.is_ndis_client %}
+                <li>Access specialized NDIS services</li>
+                {% endif %}
+            </ul>
+
+            <div class="manual-link">
+                <p><strong>Having trouble with the button?</strong> Copy and paste this link into your browser:</p>
+                <p>{{ verification_url }}</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Need help? Contact our support team at {{ support_email }}</p>
+            <p><strong>{{ site_name }} Team</strong></p>
+            <p><small>This is an automated email. Please do not reply to this message.</small></p>
+        </div>
+    </div>
+</body>
+</html>

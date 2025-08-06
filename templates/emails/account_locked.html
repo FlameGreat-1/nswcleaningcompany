@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Security Alert - NSWCC</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dc3545;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 10px;
+        }
+        .alert-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #dc3545;
+        }
+        .title {
+            color: #2c3e50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .alert-section {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .reason-section {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .timestamp-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .unlock-section {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .security-tips {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .emergency-contact {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 14px;
+            color: #6c757d;
+            text-align: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 35px;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .google-user-note {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .prevention-tips {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">NSWCC</div>
+            <p>NSW Cleaning & Care Services</p>
+            <div class="alert-icon">🚨</div>
+        </div>
+
+        <h1 class="title">Account Security Alert</h1>
+
+        <div class="content">
+            <p>Hi <strong>{{ user.first_name }}</strong>,</p>
+            
+            <p>We're writing to inform you that your <strong>{{ site_name }}</strong> account has been temporarily locked for security reasons.</p>
+
+            <div class="alert-section">
+                <h3>🔒 Account Locked</h3>
+                <p>Your account access has been temporarily suspended</p>
+            </div>
+
+            <div class="timestamp-info">
+                <p><strong>📅 Locked on:</strong> {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}</p>
+            </div>
+
+            <div class="reason-section">
+                <h4>🛡️ Reason for Lock:</h4>
+                <p><strong>{{ reason }}</strong></p>
+                
+                {% if reason == "Multiple failed login attempts" %}
+                <p>We detected several unsuccessful login attempts to your account. This security measure protects your account from unauthorized access.</p>
+                {% elif reason == "Suspicious activity detected" %}
+                <p>Our security systems identified unusual activity patterns that may indicate unauthorized access attempts.</p>
+                {% elif reason == "Password security breach" %}
+                <p>Your password may have been compromised. We've locked your account to prevent unauthorized access.</p>
+                {% else %}
+                <p>This is a precautionary measure to protect your account and personal information.</p>
+                {% endif %}
+            </div>
+
+            {% if is_google_user %}
+            <div class="google-user-note">
+                <h4>🔍 Google Account Users</h4>
+                <p>Since you use Google to sign in, please also check your Google account security settings and recent activity.</p>
+                <p>Consider enabling 2-factor authentication on your Google account for enhanced security.</p>
+            </div>
+            {% endif %}
+
+            <div class="unlock-section">
+                <h4>🔓 How to Unlock Your Account</h4>
+                <p>To regain access to your account, please contact our security team:</p>
+                <div class="emergency-contact">
+                    <p><strong>🆘 Security Support</strong></p>
+                    <p>📧 Email: {{ support_email }}</p>
+                    <p>📞 Phone: Available 24/7 for security issues</p>
+                    <p><strong>Reference ID:</strong> SEC-{{ user.id }}-{{ timestamp|date:"Ymd" }}</p>
+                </div>
+                <p>Our team will verify your identity and help you regain secure access.</p>
+            </div>
+
+            <div class="security-tips">
+                <h4>🛡️ Account Security Best Practices:</h4>
+                <ul>
+                    <li><strong>Strong Passwords:</strong> Use unique, complex passwords</li>
+                    <li><strong>Regular Updates:</strong> Change passwords periodically</li>
+                    <li><strong>Secure Networks:</strong> Avoid public Wi-Fi for account access</li>
+                    <li><strong>Device Security:</strong> Keep your devices updated and secure</li>
+                    <li><strong>Suspicious Activity:</strong> Report any unusual account behavior</li>
+                    <li><strong>Email Security:</strong> Don't click suspicious links or attachments</li>
+                </ul>
+            </div>
+
+            <div class="prevention-tips">
+                <h4>🔍 Preventing Future Lockouts:</h4>
+                <ul>
+                    <li>Ensure you're using the correct login credentials</li>
+                    <li>Clear browser cache and cookies if experiencing issues</li>
+                    <li>Use trusted devices and networks</li>
+                    <li>Keep your contact information updated</li>
+                    <li>Enable account notifications for security alerts</li>
+                </ul>
+            </div>
+
+            <h3>⚠️ Important Security Reminders:</h3>
+            <ul>
+                <li>NSWCC will never ask for your password via email</li>
+                <li>Always verify the sender of security-related emails</li>
+                <li>Contact us directly if you receive suspicious communications</li>
+                <li>Your account data remains secure during the lock period</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p><strong>Immediate assistance needed?</strong> Contact {{ support_email }}</p>
+            <p><strong>{{ site_name }} Security Team</strong></p>
+            <p><small>This is a critical security notification. Please take immediate action to secure your account.</small></p>
+        </div>
+    </div>
+</body>
+</html>
+

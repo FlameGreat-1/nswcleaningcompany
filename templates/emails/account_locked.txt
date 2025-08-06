@@ -1,0 +1,89 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+ACCOUNT SECURITY ALERT
+=======================
+
+Hi {{ user.first_name }},
+
+We're writing to inform you that your {{ site_name }} account has been temporarily locked for security reasons.
+
+ACCOUNT LOCKED
+==============
+🔒 Your account access has been temporarily suspended
+
+LOCK DETAILS
+============
+📅 Locked on: {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}
+
+REASON FOR LOCK
+===============
+🛡️ {{ reason }}
+
+{% if reason == "Multiple failed login attempts" %}
+We detected several unsuccessful login attempts to your account. This security measure protects your account from unauthorized access.
+{% elif reason == "Suspicious activity detected" %}
+Our security systems identified unusual activity patterns that may indicate unauthorized access attempts.
+{% elif reason == "Password security breach" %}
+Your password may have been compromised. We've locked your account to prevent unauthorized access.
+{% else %}
+This is a precautionary measure to protect your account and personal information.
+{% endif %}
+
+{% if is_google_user %}
+GOOGLE ACCOUNT USERS
+====================
+🔍 Since you use Google to sign in, please also check your Google account security settings and recent activity.
+
+Consider enabling 2-factor authentication on your Google account for enhanced security.
+{% endif %}
+
+HOW TO UNLOCK YOUR ACCOUNT
+===========================
+🔓 To regain access to your account, please contact our security team:
+
+SECURITY SUPPORT
+================
+🆘 Available 24/7 for security issues
+📧 Email: {{ support_email }}
+📞 Phone: Available 24/7 for security issues
+Reference ID: SEC-{{ user.id }}-{{ timestamp|date:"Ymd" }}
+
+Our team will verify your identity and help you regain secure access.
+
+ACCOUNT SECURITY BEST PRACTICES
+================================
+🛡️ Protect your account:
+- Strong Passwords: Use unique, complex passwords
+- Regular Updates: Change passwords periodically
+- Secure Networks: Avoid public Wi-Fi for account access
+- Device Security: Keep your devices updated and secure
+- Suspicious Activity: Report any unusual account behavior
+- Email Security: Don't click suspicious links or attachments
+
+PREVENTING FUTURE LOCKOUTS
+===========================
+🔍 Tips to avoid account locks:
+- Ensure you're using the correct login credentials
+- Clear browser cache and cookies if experiencing issues
+- Use trusted devices and networks
+- Keep your contact information updated
+- Enable account notifications for security alerts
+
+IMPORTANT SECURITY REMINDERS
+=============================
+⚠️ Please remember:
+- NSWCC will never ask for your password via email
+- Always verify the sender of security-related emails
+- Contact us directly if you receive suspicious communications
+- Your account data remains secure during the lock period
+
+IMMEDIATE ASSISTANCE
+====================
+Immediate assistance needed? Contact {{ support_email }}
+
+{{ site_name }} Security Team
+
+---
+This is a critical security notification. Please take immediate action to secure your account.
+ 

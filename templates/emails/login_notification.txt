@@ -1,0 +1,74 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+NEW LOGIN TO YOUR ACCOUNT
+==========================
+
+Hi {{ user.first_name }},
+
+We're notifying you about a recent login to your {{ site_name }} account for your security awareness.
+
+LOGIN DETECTED
+==============
+🔐 A new session was started on your account
+
+LOGIN DETAILS
+=============
+📋 Session Information:
+📅 Date & Time: {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}
+🔑 Login Method: {{ login_method|title }}
+🌐 IP Address: {{ ip_address }}
+💻 Device/Browser: {{ user_agent|truncatechars:80 }}
+
+APPROXIMATE LOCATION
+====================
+📍 Based on IP address analysis
+Note: Location accuracy may vary depending on your internet connection and VPN usage.
+
+IF THIS WAS YOU
+===============
+✅ No action required:
+- Your account is secure
+- You can safely ignore this notification
+- Consider this a confirmation of successful login
+- Your session is now active and ready to use
+
+IF THIS WASN'T YOU
+==================
+🚨 Take immediate action to secure your account:
+- Change your password immediately
+- Review your account activity and settings
+- Check for any unauthorized changes
+- Log out all active sessions
+- Contact our security team
+
+Secure your account: {{ site_name }}/account/security
+Emergency Support: {{ support_email }}
+
+ACCOUNT SECURITY TIPS
+=====================
+💡 Stay protected:
+- Monitor Login Notifications: Always review these emails
+- Use Strong Passwords: Unique and complex passwords
+- Enable 2FA: Add extra security layers when available
+- Secure Networks: Avoid public Wi-Fi for sensitive activities
+- Regular Reviews: Check account activity periodically
+- Update Devices: Keep browsers and devices current
+
+RECENT ACCOUNT ACTIVITY
+=======================
+🔍 You can view your complete login history and manage active sessions in your account security settings.
+
+STAY SECURE
+===========
+We recommend reviewing your account activity regularly and reporting any suspicious behavior immediately.
+
+NEED HELP?
+==========
+Questions about account security? Contact us at {{ support_email }}
+
+{{ site_name }} Security Team
+
+---
+This is an automated security notification. You can manage notification preferences in your account settings.
+

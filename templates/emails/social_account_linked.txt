@@ -1,0 +1,60 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+{{ provider|upper }} ACCOUNT LINKED SUCCESSFULLY
+================================================
+
+Hi {{ user.first_name }},
+
+Great news! Your {{ provider }} account has been successfully linked to your {{ site_name }} account.
+
+ACCOUNT INTEGRATION COMPLETE
+=============================
+✅ You can now use your {{ provider }} account to sign in to NSWCC
+
+INTEGRATION DETAILS
+===================
+🔗 {{ provider }} Integration Active
+📧 Connected to: {{ user.email }}
+📅 Linked on: {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}
+
+BENEFITS OF SOCIAL ACCOUNT LINKING
+===================================
+🚀 Enjoy these advantages:
+- Quick Sign-In: Use your {{ provider }} account to log in instantly
+- Enhanced Security: Leverage {{ provider }}'s security features
+- Seamless Experience: No need to remember another password
+- Profile Sync: Keep your information up to date automatically
+- Single Sign-On: Access NSWCC services more efficiently
+
+SECURITY INFORMATION
+====================
+🛡️ Important notes:
+- Your NSWCC password remains active and can still be used
+- You can unlink this account anytime from your profile settings
+- {{ provider }} will only share basic profile information
+- Your {{ provider }} password is never stored by NSWCC
+
+MANAGE YOUR CONNECTED ACCOUNTS
+===============================
+⚙️ You can view and manage all your connected social accounts in your profile settings.
+
+Visit: {{ site_name }}/profile/social-accounts
+
+WHAT'S NEXT?
+============
+🎯 Recommended actions:
+- Try signing in with your {{ provider }} account
+- Update your profile preferences if needed
+- Explore enhanced features available through social integration
+- Consider linking additional social accounts for more options
+
+NEED HELP?
+==========
+Questions about social account linking? Contact us at {{ support_email }}
+
+{{ site_name }} Team
+
+---
+This is an automated notification. Please do not reply to this message.
+ 

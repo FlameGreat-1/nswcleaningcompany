@@ -1,0 +1,53 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+Welcome to NSWCC, {{ user.first_name }}!
+
+Thank you for joining {{ site_name }}. We're excited to have you as part of our community!
+
+Your account has been successfully created with the following details:
+- Email: {{ user.email }}
+- Name: {{ user.full_name }}
+- Account Type: {{ user.get_user_type_display }}
+{% if user.client_type %}
+- Client Type: {{ user.get_client_type_display }}
+{% endif %}
+
+{% if verification_url and not is_google_user %}
+EMAIL VERIFICATION REQUIRED
+============================
+To complete your registration and access all features, please verify your email address by visiting:
+
+{{ verification_url }}
+
+This verification link will expire in 24 hours.
+
+{% elif is_google_user %}
+ACCOUNT VERIFIED
+================
+Your Google account is automatically verified. You can start using all features immediately!
+
+{% endif %}
+
+WHAT'S NEXT?
+============
+- Complete your profile information
+- {% if user.is_client %}Browse our cleaning services{% else %}Access your dashboard{% endif %}
+- Set up your preferences
+{% if user.is_ndis_client %}
+- Add your NDIS details for specialized services
+{% endif %}
+
+NEED HELP?
+==========
+If you have any questions or need assistance, don't hesitate to contact our support team:
+
+Email: {{ support_email }}
+Website: {{ site_name }}
+
+Thank you for choosing NSWCC!
+
+{{ site_name }} Team
+
+---
+This email was sent to {{ user.email }}. If you didn't create this account, please contact our support team immediately.

@@ -1,0 +1,87 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+COMPLETE YOUR PROFILE
+======================
+
+Hi {{ user.first_name }},
+
+We noticed your {{ site_name }} profile is almost complete! Just one more step to unlock all the features and get the best experience.
+
+PROFILE COMPLETION STATUS
+==========================
+📝 Your profile is 85% complete
+
+MISSING INFORMATION
+===================
+📋 {{ missing_field|title }}: 
+{% if missing_field == "ndis_number" %}
+Your NDIS participant number is required to access specialized services
+{% elif missing_field == "phone_number" %}
+A contact phone number helps us provide better support
+{% elif missing_field == "address" %}
+Your service address is needed for booking appointments
+{% elif missing_field == "emergency_contact" %}
+Emergency contact information ensures your safety during services
+{% elif missing_field == "accessibility_needs" %}
+Accessibility information helps us provide appropriate care
+{% else %}
+This information helps us provide personalized services
+{% endif %}
+
+{% if missing_field == "ndis_number" %}
+NDIS INFORMATION REQUIRED
+==========================
+🏥 As an NDIS client, please provide:
+- Your NDIS participant number
+- Plan manager details (if applicable)
+- Support coordinator information
+- Specific accessibility needs
+
+This information is kept confidential and used only to provide appropriate services.
+{% endif %}
+
+BENEFITS OF COMPLETING YOUR PROFILE
+====================================
+🚀 Enjoy these advantages:
+- Personalized Services: Get recommendations tailored to your needs
+- Faster Booking: Pre-filled information speeds up appointments
+- Better Support: Our team can assist you more effectively
+- Safety First: Emergency contacts ensure your wellbeing
+{% if user.is_ndis_client %}
+- NDIS Compliance: Access specialized disability services
+- Plan Management: Streamlined billing and reporting
+{% endif %}
+- Priority Access: Get first access to new features
+
+{% if is_google_user %}
+GOOGLE USER TIP
+===============
+💡 Some information may be automatically filled from your Google account. You can review and update any details as needed.
+{% endif %}
+
+COMPLETE YOUR PROFILE NOW
+==========================
+✨ It only takes 2-3 minutes to finish your profile setup.
+
+Visit: {{ profile_url }}
+
+WHAT HAPPENS NEXT?
+==================
+🎯 Simple steps:
+1. Click the link above to access your profile
+2. Fill in the missing {{ missing_field|title }} information
+3. Review and update any other details
+4. Start enjoying all NSWCC features
+
+NEED HELP?
+==========
+Our support team is here to assist you with profile completion.
+
+Contact us at {{ support_email }}
+
+{{ site_name }} Team
+
+---
+You're receiving this because your profile needs completion. You can update your email preferences in your account settings.
+ 

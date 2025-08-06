@@ -1,0 +1,68 @@
+# Django Framework
+Django==4.2.7
+django-environ==0.11.2
+
+# Database
+dj-database-url==2.1.0
+
+# Django REST Framework
+djangorestframework==3.14.0
+django-filter==23.3
+django-cors-headers==4.3.1
+django-extensions
+
+# Authentication & Permissions
+djangorestframework-simplejwt==5.3.0
+django-allauth==0.57.0
+
+# File Handling & Media
+Pillow
+
+# PDF Generation
+reportlab==4.0.7
+
+# Excel Export
+openpyxl==3.1.2
+
+# Email
+django-anymail==10.2
+
+# Forms & Validation
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
+
+# API Documentation
+drf-spectacular==0.26.5
+
+# Utilities
+python-decouple==3.8
+requests==2.31.0
+python-dateutil==2.8.2
+
+# Development & Testing
+pytest==7.4.3
+pytest-django==4.7.0
+django-debug-toolbar==4.2.0
+
+# QR Code Generation
+qrcode==7.4.2
+
+# Argon library
+argon2-cffi
+
+# Phone Number Validation
+django-phonenumber-field==7.2.0
+phonenumbers==8.13.25
+
+# Timezone Support
+pytz==2023.3
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Model Utilities
+django-model-utils==4.3.1
+
+# Production Server (if needed)
+gunicorn==21.2.0
+whitenoise==6.6.0

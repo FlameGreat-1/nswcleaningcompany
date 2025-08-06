@@ -1,0 +1,70 @@
+NSWCC - NSW Cleaning & Care Services
+=====================================
+
+{{ provider|upper }} ACCOUNT UNLINKED
+=====================================
+
+Hi {{ user.first_name }},
+
+This email confirms that your {{ provider }} account has been successfully unlinked from your {{ site_name }} account.
+
+ACCOUNT DISCONNECTION COMPLETE
+===============================
+🔓 Your {{ provider }} account is no longer connected to NSWCC
+
+DISCONNECTION DETAILS
+======================
+🔗 {{ provider }} Integration Removed
+📧 Previously connected to: {{ user.email }}
+📅 Unlinked on: {{ timestamp|date:"F d, Y" }} at {{ timestamp|time:"g:i A T" }}
+
+WHAT THIS MEANS
+===============
+📋 Impact of unlinking:
+- No {{ provider }} Sign-In: You can no longer use {{ provider }} to log in
+- Use Email/Password: Log in with your NSWCC email and password
+- Profile Data: Your NSWCC profile remains unchanged
+- Account Security: Your account remains fully secure
+- Data Privacy: No more data sharing with {{ provider }}
+
+SECURITY INFORMATION
+====================
+🛡️ Important notes:
+- Your NSWCC account password is still active
+- All your account data and preferences are preserved
+- You can still link other social accounts if desired
+- This action does not affect your {{ provider }} account
+
+DIDN'T UNLINK THIS ACCOUNT?
+===========================
+🚨 If you did not request this unlinking, please take immediate action:
+- Change your NSWCC password immediately
+- Review your account activity
+- Contact our support team
+- Check for any unauthorized changes
+
+Emergency Support: {{ support_email }}
+
+WANT TO RECONNECT?
+==================
+🔗 You can link your {{ provider }} account again anytime from your profile settings.
+
+Visit: {{ site_name }}/profile/social-accounts
+
+NEXT STEPS
+==========
+🎯 Recommended actions:
+- Use your email and password to log in to NSWCC
+- Update your browser's saved passwords if needed
+- Consider linking other social accounts for convenience
+- Review your account security settings
+
+NEED HELP?
+==========
+Questions about account management? Contact us at {{ support_email }}
+
+{{ site_name }} Team
+
+---
+This is an automated notification. Please do not reply to this message.
+ 
