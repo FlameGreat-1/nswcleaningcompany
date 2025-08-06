@@ -35,27 +35,11 @@ from .serializers import (
     BulkServiceActionSerializer,
 )
 from .permissions import (
-    CanViewServices,
-    CanManageServices,
-    CanAccessNDISServices,
-    CanViewServicePricing,
-    CanManageServicePricing,
-    CanViewServiceAreas,
-    CanManageServiceAreas,
-    CanAccessServiceAvailability,
-    CanManageServiceAvailability,
-    CanViewNDISServiceCodes,
-    CanManageNDISServiceCodes,
-    CanViewServiceCategories,
-    CanManageServiceCategories,
-    CanAccessServiceAddOns,
-    CanManageServiceAddOns,
-    CanBulkManageServices,
-    CanAccessServiceReports,
-    NDISCompliancePermission,
-    ServiceLocationPermission,
-    ServiceQuotePermission,
-    ServiceBookingPermission,
+    IsQuoteOwnerOrStaff,
+    IsStaffUser,
+    CanEditQuote,
+    check_quote_permission,
+    check_attachment_permission,
 )
 from .filters import ServiceFilter, ServiceCategoryFilter, ServiceAreaFilter
 from .utils import (
@@ -69,7 +53,7 @@ class ServiceCategoryViewSet(ReadOnlyModelViewSet):
     queryset = ServiceCategory.objects.filter(is_active=True).order_by(
         "display_order", "name"
     )
-    permission_classes = [CanViewServiceCategories]
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -90,7 +74,9 @@ class ServiceCategoryViewSet(ReadOnlyModelViewSet):
 
         if self.request.user.is_authenticated:
             if (
-                self.request.user.user_type == "client"
+                hasattr(self.request.user, "user_type")
+                and self.request.user.user_type == "client"
+                and hasattr(self.request.user, "client_type")
                 and self.request.user.client_type == "ndis"
             ):
                 return queryset.filter(
@@ -103,7 +89,7 @@ class ServiceCategoryViewSet(ReadOnlyModelViewSet):
 class ServiceCategoryManagementViewSet(ModelViewSet):
     queryset = ServiceCategory.objects.all()
     serializer_class = ServiceCategorySerializer
-    permission_classes = [CanManageServiceCategories]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -116,9 +102,9 @@ class ServiceCategoryManagementViewSet(ModelViewSet):
 
 
 class NDISServiceCodeViewSet(ReadOnlyModelViewSet):
-    queryset = NDISServiceCode.objects.current()
+    queryset = NDISServiceCode.objects.filter(is_active=True)
     serializer_class = NDISServiceCodeSerializer
-    permission_classes = [CanViewNDISServiceCodes]
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -149,7 +135,7 @@ class NDISServiceCodeViewSet(ReadOnlyModelViewSet):
 class NDISServiceCodeManagementViewSet(ModelViewSet):
     queryset = NDISServiceCode.objects.all()
     serializer_class = NDISServiceCodeSerializer
-    permission_classes = [CanManageNDISServiceCodes]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -161,8 +147,8 @@ class NDISServiceCodeManagementViewSet(ModelViewSet):
 
 
 class ServiceAreaViewSet(ReadOnlyModelViewSet):
-    queryset = ServiceArea.objects.active()
-    permission_classes = [CanViewServiceAreas]
+    queryset = ServiceArea.objects.filter(is_active=True)
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -195,7 +181,7 @@ class ServiceAreaViewSet(ReadOnlyModelViewSet):
 class ServiceAreaManagementViewSet(ModelViewSet):
     queryset = ServiceArea.objects.all()
     serializer_class = ServiceAreaSerializer
-    permission_classes = [CanManageServiceAreas]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -208,8 +194,8 @@ class ServiceAreaManagementViewSet(ModelViewSet):
 
 
 class ServiceViewSet(ReadOnlyModelViewSet):
-    queryset = Service.objects.active()
-    permission_classes = [CanViewServices, NDISCompliancePermission]
+    queryset = Service.objects.filter(is_active=True)
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -236,13 +222,18 @@ class ServiceViewSet(ReadOnlyModelViewSet):
 
         if self.request.user.is_authenticated:
             if (
-                self.request.user.user_type == "client"
+                hasattr(self.request.user, "user_type")
+                and self.request.user.user_type == "client"
+                and hasattr(self.request.user, "client_type")
                 and self.request.user.client_type == "ndis"
             ):
                 queryset = queryset.filter(
                     Q(is_ndis_eligible=True) | Q(is_ndis_eligible=False)
                 )
-            elif self.request.user.user_type == "client":
+            elif (
+                hasattr(self.request.user, "user_type")
+                and self.request.user.user_type == "client"
+            ):
                 queryset = queryset.filter(is_ndis_eligible=False)
         else:
             queryset = queryset.filter(is_ndis_eligible=False)
@@ -274,7 +265,7 @@ class ServiceViewSet(ReadOnlyModelViewSet):
 
 class ServiceManagementViewSet(ModelViewSet):
     queryset = Service.objects.all()
-    permission_classes = [CanManageServices]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -300,69 +291,67 @@ class ServiceManagementViewSet(ModelViewSet):
 
 
 class ServiceSearchView(APIView):
-    permission_classes = [CanViewServices]
+    permission_classes = [IsQuoteOwnerOrStaff]
 
     def get(self, request):
         serializer = ServiceSearchSerializer(data=request.query_params)
         if serializer.is_valid():
-            queryset = Service.objects.active()
+            queryset = Service.objects.filter(is_active=True)
 
             query = serializer.validated_data.get("query")
             if query:
-                queryset = queryset.search(query)
+                queryset = queryset.filter(
+                    Q(name__icontains=query) | Q(description__icontains=query)
+                )
 
             category = serializer.validated_data.get("category")
             if category:
-                queryset = queryset.by_category(category)
+                queryset = queryset.filter(category=category)
 
             service_type = serializer.validated_data.get("service_type")
             if service_type:
-                queryset = queryset.by_type(service_type)
+                queryset = queryset.filter(service_type=service_type)
 
             postcode = serializer.validated_data.get("postcode")
             if postcode:
-                queryset = queryset.available_in_area(postcode)
+                queryset = queryset.filter(service_areas__postcode=postcode).distinct()
 
             min_price = serializer.validated_data.get("min_price")
             max_price = serializer.validated_data.get("max_price")
-            if min_price or max_price:
-                queryset = queryset.by_price_range(min_price, max_price)
+            if min_price:
+                queryset = queryset.filter(base_price__gte=min_price)
+            if max_price:
+                queryset = queryset.filter(base_price__lte=max_price)
 
             is_ndis_eligible = serializer.validated_data.get("is_ndis_eligible")
             if is_ndis_eligible is not None:
-                if is_ndis_eligible:
-                    queryset = queryset.ndis_eligible()
-                else:
-                    queryset = queryset.general_services()
+                queryset = queryset.filter(is_ndis_eligible=is_ndis_eligible)
 
             requires_quote = serializer.validated_data.get("requires_quote")
             if requires_quote is not None:
-                if requires_quote:
-                    queryset = queryset.requires_quote()
-                else:
-                    queryset = queryset.instant_booking()
+                queryset = queryset.filter(requires_quote=requires_quote)
 
             is_featured = serializer.validated_data.get("is_featured")
             if is_featured:
-                queryset = queryset.featured()
+                queryset = queryset.filter(is_featured=True)
 
             if request.user.is_authenticated:
                 if (
-                    request.user.user_type == "client"
+                    hasattr(request.user, "user_type")
+                    and request.user.user_type == "client"
+                    and hasattr(request.user, "client_type")
                     and request.user.client_type == "ndis"
                 ):
                     queryset = queryset.filter(
                         Q(is_ndis_eligible=True) | Q(is_ndis_eligible=False)
                     )
-                elif request.user.user_type == "client":
+                elif (
+                    hasattr(request.user, "user_type")
+                    and request.user.user_type == "client"
+                ):
                     queryset = queryset.filter(is_ndis_eligible=False)
             else:
                 queryset = queryset.filter(is_ndis_eligible=False)
-
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = ServiceListSerializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
 
             serializer = ServiceListSerializer(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -371,15 +360,13 @@ class ServiceSearchView(APIView):
 
 
 class ServiceQuoteRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated, ServiceQuotePermission]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         serializer = ServiceQuoteRequestSerializer(data=request.data)
         if serializer.is_valid():
             service_id = serializer.validated_data["service_id"]
             service = get_object_or_404(Service, id=service_id, is_active=True)
-
-            self.check_object_permissions(request, service)
 
             quote_data = calculate_service_quote(
                 service=service, user=request.user, **serializer.validated_data
@@ -398,11 +385,10 @@ class ServiceQuoteRequestView(APIView):
 
 
 class ServiceAvailabilityView(APIView):
-    permission_classes = [CanAccessServiceAvailability]
+    permission_classes = [IsQuoteOwnerOrStaff]
 
     def get(self, request, service_id):
         service = get_object_or_404(Service, id=service_id, is_active=True)
-        self.check_object_permissions(request, service)
 
         date = request.query_params.get("date")
         if date:
@@ -429,7 +415,7 @@ class ServiceAvailabilityView(APIView):
 class ServiceAddOnViewSet(ReadOnlyModelViewSet):
     queryset = ServiceAddOn.objects.filter(is_active=True)
     serializer_class = ServiceAddOnSerializer
-    permission_classes = [CanAccessServiceAddOns]
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -460,7 +446,7 @@ class ServiceAddOnViewSet(ReadOnlyModelViewSet):
 class ServiceAddOnManagementViewSet(ModelViewSet):
     queryset = ServiceAddOn.objects.all()
     serializer_class = ServiceAddOnSerializer
-    permission_classes = [CanManageServiceAddOns]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -472,9 +458,9 @@ class ServiceAddOnManagementViewSet(ModelViewSet):
 
 
 class ServicePricingViewSet(ReadOnlyModelViewSet):
-    queryset = ServicePricing.objects.current()
+    queryset = ServicePricing.objects.filter(is_active=True)
     serializer_class = ServicePricingSerializer
-    permission_classes = [CanViewServicePricing]
+    permission_classes = [IsQuoteOwnerOrStaff]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -501,7 +487,7 @@ class ServicePricingViewSet(ReadOnlyModelViewSet):
 class ServicePricingManagementViewSet(ModelViewSet):
     queryset = ServicePricing.objects.all()
     serializer_class = ServicePricingSerializer
-    permission_classes = [CanManageServicePricing]
+    permission_classes = [IsStaffUser]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -513,13 +499,22 @@ class ServicePricingManagementViewSet(ModelViewSet):
 
 
 class ServiceStatsView(APIView):
-    permission_classes = [CanAccessServiceReports]
+    permission_classes = [IsStaffUser]
 
     def get(self, request):
-        stats = Service.objects.calculate_service_metrics()
+        stats = {
+            "total_services": Service.objects.filter(is_active=True).count(),
+            "average_price": Service.objects.filter(is_active=True).aggregate(
+                Avg("base_price")
+            )["base_price__avg"]
+            or 0,
+            "price_range": Service.objects.filter(is_active=True).aggregate(
+                min_price=Min("base_price"), max_price=Max("base_price")
+            ),
+        }
 
         category_stats = (
-            ServiceCategory.objects.active()
+            ServiceCategory.objects.filter(is_active=True)
             .annotate(
                 service_count=Count("services", filter=Q(services__is_active=True))
             )
@@ -527,7 +522,7 @@ class ServiceStatsView(APIView):
         )
 
         area_stats = (
-            ServiceArea.objects.active()
+            ServiceArea.objects.filter(is_active=True)
             .values("state")
             .annotate(
                 area_count=Count("id"),
@@ -537,8 +532,8 @@ class ServiceStatsView(APIView):
         )
 
         ndis_stats = {
-            "total_ndis_codes": NDISServiceCode.objects.current().count(),
-            "ndis_services": Service.objects.ndis_eligible().count(),
+            "total_ndis_codes": NDISServiceCode.objects.filter(is_active=True).count(),
+            "ndis_services": Service.objects.filter(is_ndis_eligible=True).count(),
             "ndis_categories": ServiceCategory.objects.filter(
                 is_ndis_eligible=True
             ).count(),
@@ -557,7 +552,7 @@ class ServiceStatsView(APIView):
 
 
 class BulkServiceActionView(APIView):
-    permission_classes = [CanBulkManageServices]
+    permission_classes = [IsStaffUser]
 
     def post(self, request):
         serializer = BulkServiceActionSerializer(data=request.data)
@@ -591,22 +586,27 @@ class BulkServiceActionView(APIView):
 
 
 class FeaturedServicesView(APIView):
-    permission_classes = [CanViewServices]
+    permission_classes = [IsQuoteOwnerOrStaff]
 
     def get(self, request):
         limit = int(request.query_params.get("limit", 10))
 
-        queryset = Service.objects.featured()
+        queryset = Service.objects.filter(is_featured=True, is_active=True)
 
         if request.user.is_authenticated:
             if (
-                request.user.user_type == "client"
+                hasattr(request.user, "user_type")
+                and request.user.user_type == "client"
+                and hasattr(request.user, "client_type")
                 and request.user.client_type == "ndis"
             ):
                 queryset = queryset.filter(
                     Q(is_ndis_eligible=True) | Q(is_ndis_eligible=False)
                 )
-            elif request.user.user_type == "client":
+            elif (
+                hasattr(request.user, "user_type")
+                and request.user.user_type == "client"
+            ):
                 queryset = queryset.filter(is_ndis_eligible=False)
         else:
             queryset = queryset.filter(is_ndis_eligible=False)
@@ -621,12 +621,12 @@ class FeaturedServicesView(APIView):
 
 
 class RecommendedServicesView(APIView):
-    permission_classes = [permissions.IsAuthenticated, CanViewServices]
+    permission_classes = [permissions.IsAuthenticated, IsQuoteOwnerOrStaff]
 
     def get(self, request):
         limit = int(request.query_params.get("limit", 10))
 
-        recommended_services = Service.objects.recommended_for_user(request.user)[
+        recommended_services = Service.objects.filter(is_active=True, is_featured=True)[
             :limit
         ]
         serializer = ServiceListSerializer(recommended_services, many=True)
@@ -634,7 +634,7 @@ class RecommendedServicesView(APIView):
         return Response(
             {
                 "recommended_services": serializer.data,
-                "user_type": request.user.user_type,
+                "user_type": getattr(request.user, "user_type", None),
                 "client_type": getattr(request.user, "client_type", None),
             },
             status=status.HTTP_200_OK,
@@ -642,7 +642,7 @@ class RecommendedServicesView(APIView):
 
 
 class ServicesByLocationView(APIView):
-    permission_classes = [CanViewServices]
+    permission_classes = [IsQuoteOwnerOrStaff]
 
     def get(self, request, postcode):
         try:
@@ -654,17 +654,29 @@ class ServicesByLocationView(APIView):
 
         service_type = request.query_params.get("service_type")
 
-        services = Service.objects.services_by_location_and_type(postcode, service_type)
+        services = Service.objects.filter(
+            is_active=True,
+            service_areas__postcode=postcode,
+            service_areas__is_active=True,
+        )
+        if service_type:
+            services = services.filter(service_type=service_type)
+        services = services.distinct()
 
         if request.user.is_authenticated:
             if (
-                request.user.user_type == "client"
+                hasattr(request.user, "user_type")
+                and request.user.user_type == "client"
+                and hasattr(request.user, "client_type")
                 and request.user.client_type == "ndis"
             ):
                 services = services.filter(
                     Q(is_ndis_eligible=True) | Q(is_ndis_eligible=False)
                 )
-            elif request.user.user_type == "client":
+            elif (
+                hasattr(request.user, "user_type")
+                and request.user.user_type == "client"
+            ):
                 services = services.filter(is_ndis_eligible=False)
         else:
             services = services.filter(is_ndis_eligible=False)
@@ -685,10 +697,12 @@ class ServicesByLocationView(APIView):
 
 
 class ServiceCategoriesWithServicesView(APIView):
-    permission_classes = [CanViewServiceCategories]
+    permission_classes = [IsQuoteOwnerOrStaff]
 
     def get(self, request):
-        categories = ServiceCategory.objects.with_services()
+        categories = ServiceCategory.objects.filter(is_active=True).prefetch_related(
+            "services"
+        )
 
         category_data = []
         for category in categories:
@@ -696,13 +710,18 @@ class ServiceCategoriesWithServicesView(APIView):
 
             if request.user.is_authenticated:
                 if (
-                    request.user.user_type == "client"
+                    hasattr(request.user, "user_type")
+                    and request.user.user_type == "client"
+                    and hasattr(request.user, "client_type")
                     and request.user.client_type == "ndis"
                 ):
                     services = services.filter(
                         Q(is_ndis_eligible=True) | Q(is_ndis_eligible=False)
                     )
-                elif request.user.user_type == "client":
+                elif (
+                    hasattr(request.user, "user_type")
+                    and request.user.user_type == "client"
+                ):
                     services = services.filter(is_ndis_eligible=False)
             else:
                 services = services.filter(is_ndis_eligible=False)
@@ -722,15 +741,19 @@ class ServiceCategoriesWithServicesView(APIView):
 
 
 @api_view(["GET"])
-@permission_classes([CanViewServices])
+@permission_classes([IsQuoteOwnerOrStaff])
 def service_types_list(request):
     service_types = (
-        Service.objects.active().values_list("service_type", flat=True).distinct()
+        Service.objects.filter(is_active=True)
+        .values_list("service_type", flat=True)
+        .distinct()
     )
 
     type_data = []
     for service_type in service_types:
-        count = Service.objects.active().filter(service_type=service_type).count()
+        count = Service.objects.filter(
+            is_active=True, service_type=service_type
+        ).count()
         type_data.append(
             {
                 "type": service_type,
@@ -745,11 +768,11 @@ def service_types_list(request):
 
 
 @api_view(["GET"])
-@permission_classes([CanViewServiceAreas])
+@permission_classes([IsQuoteOwnerOrStaff])
 def service_areas_by_state(request):
     state = request.query_params.get("state")
 
-    queryset = ServiceArea.objects.active()
+    queryset = ServiceArea.objects.filter(is_active=True)
     if state:
         queryset = queryset.filter(state=state)
 
@@ -763,7 +786,7 @@ def service_areas_by_state(request):
 
 
 @api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated, CanManageServices])
+@permission_classes([permissions.IsAuthenticated, IsStaffUser])
 def duplicate_service(request, service_id):
     try:
         original_service = Service.objects.get(id=service_id)
@@ -819,10 +842,12 @@ def health_check(request):
             "timestamp": timezone.now(),
             "service": "services",
             "stats": {
-                "total_services": Service.objects.active().count(),
-                "total_categories": ServiceCategory.objects.active().count(),
-                "total_areas": ServiceArea.objects.active().count(),
-                "ndis_services": Service.objects.ndis_eligible().count(),
+                "total_services": Service.objects.filter(is_active=True).count(),
+                "total_categories": ServiceCategory.objects.filter(
+                    is_active=True
+                ).count(),
+                "total_areas": ServiceArea.objects.filter(is_active=True).count(),
+                "ndis_services": Service.objects.filter(is_ndis_eligible=True).count(),
             },
         },
         status=status.HTTP_200_OK,
