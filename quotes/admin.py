@@ -794,6 +794,25 @@ class QuoteInlineForUserAdmin(admin.TabularInline):
         return False
 
 
+class QuoteInlineForUserAdmin(admin.TabularInline):
+    model = Quote
+    fk_name = "client"
+    extra = 0
+    fields = [
+        "quote_number",
+        "cleaning_type",
+        "status",
+        "final_price",
+        "created_at",
+        "expires_at",
+    ]
+    readonly_fields = ["quote_number", "created_at"]
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 class QuoteInlineForServiceAdmin(admin.TabularInline):
     model = Quote
     fk_name = "service"
