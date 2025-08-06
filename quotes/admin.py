@@ -774,9 +774,9 @@ quote_admin_site.register(QuoteAttachment, QuoteAttachmentAdmin)
 quote_admin_site.register(QuoteRevision, QuoteRevisionAdmin)
 quote_admin_site.register(QuoteTemplate, QuoteTemplateAdmin)
 
-
 class QuoteInlineAdmin(admin.TabularInline):
     model = Quote
+    fk_name = 'client'
     extra = 0
     fields = [
         "quote_number",
