@@ -376,4 +376,3 @@ class ServiceBookingPermission(permissions.BasePermission):
         return request.user.user_type == "client"
 
 
-R
