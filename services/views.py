@@ -35,11 +35,27 @@ from .serializers import (
     BulkServiceActionSerializer,
 )
 from .permissions import (
-    IsQuoteOwnerOrStaff,
-    IsStaffUser,
-    CanEditQuote,
-    check_quote_permission,
-    check_attachment_permission,
+    CanViewServices,
+    CanManageServices,
+    CanAccessNDISServices,
+    CanViewServicePricing,
+    CanManageServicePricing,
+    CanViewServiceAreas,
+    CanManageServiceAreas,
+    CanAccessServiceAvailability,
+    CanManageServiceAvailability,
+    CanViewNDISServiceCodes,
+    CanManageNDISServiceCodes,
+    CanViewServiceCategories,
+    CanManageServiceCategories,
+    CanAccessServiceAddOns,
+    CanManageServiceAddOns,
+    CanBulkManageServices,
+    CanAccessServiceReports,
+    NDISCompliancePermission,
+    ServiceLocationPermission,
+    ServiceQuotePermission,
+    ServiceBookingPermission,
 )
 from .filters import ServiceFilter, ServiceCategoryFilter, ServiceAreaFilter
 from .utils import (
@@ -53,7 +69,7 @@ class ServiceCategoryViewSet(ReadOnlyModelViewSet):
     queryset = ServiceCategory.objects.filter(is_active=True).order_by(
         "display_order", "name"
     )
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServiceCategories]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -89,7 +105,7 @@ class ServiceCategoryViewSet(ReadOnlyModelViewSet):
 class ServiceCategoryManagementViewSet(ModelViewSet):
     queryset = ServiceCategory.objects.all()
     serializer_class = ServiceCategorySerializer
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageServiceCategories]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -104,7 +120,7 @@ class ServiceCategoryManagementViewSet(ModelViewSet):
 class NDISServiceCodeViewSet(ReadOnlyModelViewSet):
     queryset = NDISServiceCode.objects.filter(is_active=True)
     serializer_class = NDISServiceCodeSerializer
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewNDISServiceCodes]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -135,7 +151,7 @@ class NDISServiceCodeViewSet(ReadOnlyModelViewSet):
 class NDISServiceCodeManagementViewSet(ModelViewSet):
     queryset = NDISServiceCode.objects.all()
     serializer_class = NDISServiceCodeSerializer
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageNDISServiceCodes]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -148,7 +164,7 @@ class NDISServiceCodeManagementViewSet(ModelViewSet):
 
 class ServiceAreaViewSet(ReadOnlyModelViewSet):
     queryset = ServiceArea.objects.filter(is_active=True)
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServiceAreas]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -181,7 +197,7 @@ class ServiceAreaViewSet(ReadOnlyModelViewSet):
 class ServiceAreaManagementViewSet(ModelViewSet):
     queryset = ServiceArea.objects.all()
     serializer_class = ServiceAreaSerializer
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageServiceAreas]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -195,7 +211,7 @@ class ServiceAreaManagementViewSet(ModelViewSet):
 
 class ServiceViewSet(ReadOnlyModelViewSet):
     queryset = Service.objects.filter(is_active=True)
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServices, NDISCompliancePermission]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -265,7 +281,7 @@ class ServiceViewSet(ReadOnlyModelViewSet):
 
 class ServiceManagementViewSet(ModelViewSet):
     queryset = Service.objects.all()
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageServices]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -291,7 +307,7 @@ class ServiceManagementViewSet(ModelViewSet):
 
 
 class ServiceSearchView(APIView):
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServices]
 
     def get(self, request):
         serializer = ServiceSearchSerializer(data=request.query_params)
@@ -360,13 +376,15 @@ class ServiceSearchView(APIView):
 
 
 class ServiceQuoteRequestView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, ServiceQuotePermission]
 
     def post(self, request):
         serializer = ServiceQuoteRequestSerializer(data=request.data)
         if serializer.is_valid():
             service_id = serializer.validated_data["service_id"]
             service = get_object_or_404(Service, id=service_id, is_active=True)
+
+            self.check_object_permissions(request, service)
 
             quote_data = calculate_service_quote(
                 service=service, user=request.user, **serializer.validated_data
@@ -385,10 +403,11 @@ class ServiceQuoteRequestView(APIView):
 
 
 class ServiceAvailabilityView(APIView):
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanAccessServiceAvailability]
 
     def get(self, request, service_id):
         service = get_object_or_404(Service, id=service_id, is_active=True)
+        self.check_object_permissions(request, service)
 
         date = request.query_params.get("date")
         if date:
@@ -415,7 +434,7 @@ class ServiceAvailabilityView(APIView):
 class ServiceAddOnViewSet(ReadOnlyModelViewSet):
     queryset = ServiceAddOn.objects.filter(is_active=True)
     serializer_class = ServiceAddOnSerializer
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanAccessServiceAddOns]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -446,7 +465,7 @@ class ServiceAddOnViewSet(ReadOnlyModelViewSet):
 class ServiceAddOnManagementViewSet(ModelViewSet):
     queryset = ServiceAddOn.objects.all()
     serializer_class = ServiceAddOnSerializer
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageServiceAddOns]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -460,7 +479,7 @@ class ServiceAddOnManagementViewSet(ModelViewSet):
 class ServicePricingViewSet(ReadOnlyModelViewSet):
     queryset = ServicePricing.objects.filter(is_active=True)
     serializer_class = ServicePricingSerializer
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServicePricing]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -487,7 +506,7 @@ class ServicePricingViewSet(ReadOnlyModelViewSet):
 class ServicePricingManagementViewSet(ModelViewSet):
     queryset = ServicePricing.objects.all()
     serializer_class = ServicePricingSerializer
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanManageServicePricing]
     filter_backends = [
         DjangoFilterBackend,
         filters.SearchFilter,
@@ -499,7 +518,7 @@ class ServicePricingManagementViewSet(ModelViewSet):
 
 
 class ServiceStatsView(APIView):
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanAccessServiceReports]
 
     def get(self, request):
         stats = {
@@ -552,7 +571,7 @@ class ServiceStatsView(APIView):
 
 
 class BulkServiceActionView(APIView):
-    permission_classes = [IsStaffUser]
+    permission_classes = [CanBulkManageServices]
 
     def post(self, request):
         serializer = BulkServiceActionSerializer(data=request.data)
@@ -586,7 +605,7 @@ class BulkServiceActionView(APIView):
 
 
 class FeaturedServicesView(APIView):
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServices]
 
     def get(self, request):
         limit = int(request.query_params.get("limit", 10))
@@ -621,7 +640,7 @@ class FeaturedServicesView(APIView):
 
 
 class RecommendedServicesView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsQuoteOwnerOrStaff]
+    permission_classes = [permissions.IsAuthenticated, CanViewServices]
 
     def get(self, request):
         limit = int(request.query_params.get("limit", 10))
@@ -642,7 +661,7 @@ class RecommendedServicesView(APIView):
 
 
 class ServicesByLocationView(APIView):
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServices]
 
     def get(self, request, postcode):
         try:
@@ -697,7 +716,7 @@ class ServicesByLocationView(APIView):
 
 
 class ServiceCategoriesWithServicesView(APIView):
-    permission_classes = [IsQuoteOwnerOrStaff]
+    permission_classes = [CanViewServiceCategories]
 
     def get(self, request):
         categories = ServiceCategory.objects.filter(is_active=True).prefetch_related(
@@ -741,7 +760,7 @@ class ServiceCategoriesWithServicesView(APIView):
 
 
 @api_view(["GET"])
-@permission_classes([IsQuoteOwnerOrStaff])
+@permission_classes([CanViewServices])
 def service_types_list(request):
     service_types = (
         Service.objects.filter(is_active=True)
@@ -768,7 +787,7 @@ def service_types_list(request):
 
 
 @api_view(["GET"])
-@permission_classes([IsQuoteOwnerOrStaff])
+@permission_classes([CanViewServiceAreas])
 def service_areas_by_state(request):
     state = request.query_params.get("state")
 
@@ -786,7 +805,7 @@ def service_areas_by_state(request):
 
 
 @api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated, IsStaffUser])
+@permission_classes([permissions.IsAuthenticated, CanManageServices])
 def duplicate_service(request, service_id):
     try:
         original_service = Service.objects.get(id=service_id)
