@@ -69,7 +69,16 @@ class QuoteFilter(django_filters.FilterSet):
     )
 
     state = django_filters.ChoiceFilter(
-        choices=Quote.STATE_CHOICES,
+        choices=[
+            ("NSW", "New South Wales"),
+            ("VIC", "Victoria"),
+            ("QLD", "Queensland"),
+            ("WA", "Western Australia"),
+            ("SA", "South Australia"),
+            ("TAS", "Tasmania"),
+            ("ACT", "Australian Capital Territory"),
+            ("NT", "Northern Territory"),
+        ],
         empty_label="All States",
         widget=forms.Select(attrs={"class": "form-control"}),
     )
@@ -738,58 +747,57 @@ class QuoteAnalyticsFilter(django_filters.FilterSet):
         model = Quote
         fields = []
 
-
 class QuoteReportFilter(django_filters.FilterSet):
     report_type = django_filters.ChoiceFilter(
-        method="filter_report_type",
+        method='filter_report_type',
         choices=[
-            ("summary", "Summary Report"),
-            ("detailed", "Detailed Report"),
-            ("analytics", "Analytics Report"),
-            ("conversion", "Conversion Report"),
-            ("performance", "Performance Report"),
+            ('summary', 'Summary Report'),
+            ('detailed', 'Detailed Report'),
+            ('analytics', 'Analytics Report'),
+            ('conversion', 'Conversion Report'),
+            ('performance', 'Performance Report')
         ],
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     time_period = django_filters.ChoiceFilter(
-        method="filter_time_period",
+        method='filter_time_period',
         choices=[
-            ("daily", "Daily"),
-            ("weekly", "Weekly"),
-            ("monthly", "Monthly"),
-            ("quarterly", "Quarterly"),
-            ("yearly", "Yearly"),
+            ('daily', 'Daily'),
+            ('weekly', 'Weekly'),
+            ('monthly', 'Monthly'),
+            ('quarterly', 'Quarterly'),
+            ('yearly', 'Yearly')
         ],
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     include_ndis = django_filters.BooleanFilter(
-        method="filter_include_ndis",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        method='filter_include_ndis',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
+    
     include_general = django_filters.BooleanFilter(
-        method="filter_include_general",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        method='filter_include_general',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
+    
     def filter_report_type(self, queryset, name, value):
         return queryset
-
+    
     def filter_time_period(self, queryset, name, value):
         return queryset
-
+    
     def filter_include_ndis(self, queryset, name, value):
         if value is True:
             return queryset.filter(is_ndis_client=True)
         return queryset
-
+    
     def filter_include_general(self, queryset, name, value):
         if value is True:
             return queryset.filter(is_ndis_client=False)
         return queryset
-
+    
     class Meta:
         model = Quote
         fields = []
@@ -797,83 +805,74 @@ class QuoteReportFilter(django_filters.FilterSet):
 
 class QuoteDashboardFilter(django_filters.FilterSet):
     dashboard_view = django_filters.ChoiceFilter(
-        method="filter_dashboard_view",
+        method='filter_dashboard_view',
         choices=[
-            ("overview", "Overview"),
-            ("pending", "Pending Quotes"),
-            ("urgent", "Urgent Quotes"),
-            ("expiring", "Expiring Soon"),
-            ("high_value", "High Value"),
-            ("ndis", "NDIS Quotes"),
-            ("recent", "Recent Activity"),
+            ('overview', 'Overview'),
+            ('pending', 'Pending Quotes'),
+            ('urgent', 'Urgent Quotes'),
+            ('expiring', 'Expiring Soon'),
+            ('high_value', 'High Value'),
+            ('ndis', 'NDIS Quotes'),
+            ('recent', 'Recent Activity')
         ],
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     time_frame = django_filters.ChoiceFilter(
-        method="filter_time_frame",
+        method='filter_time_frame',
         choices=[
-            ("today", "Today"),
-            ("week", "This Week"),
-            ("month", "This Month"),
-            ("quarter", "This Quarter"),
-            ("year", "This Year"),
+            ('today', 'Today'),
+            ('week', 'This Week'),
+            ('month', 'This Month'),
+            ('quarter', 'This Quarter'),
+            ('year', 'This Year')
         ],
-        widget=forms.Select(attrs={"class": "form-control"}),
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     def filter_dashboard_view(self, queryset, name, value):
         now = timezone.now()
-
-        if value == "pending":
-            return queryset.filter(status__in=["submitted", "under_review"])
-        elif value == "urgent":
+        
+        if value == 'pending':
+            return queryset.filter(status__in=['submitted', 'under_review'])
+        elif value == 'urgent':
             return queryset.filter(urgency_level__gte=4)
-        elif value == "expiring":
+        elif value == 'expiring':
             soon = now + timedelta(days=7)
             return queryset.filter(expires_at__lte=soon, expires_at__gt=now)
-        elif value == "high_value":
+        elif value == 'high_value':
             return queryset.filter(final_price__gte=1000)
-        elif value == "ndis":
+        elif value == 'ndis':
             return queryset.filter(is_ndis_client=True)
-        elif value == "recent":
+        elif value == 'recent':
             recent = now - timedelta(days=7)
             return queryset.filter(created_at__gte=recent)
-
+        
         return queryset
-
+    
     def filter_time_frame(self, queryset, name, value):
         now = timezone.now()
-
-        if value == "today":
+        
+        if value == 'today':
             start_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
             return queryset.filter(created_at__gte=start_date)
-        elif value == "week":
+        elif value == 'week':
             start_date = now - timedelta(days=now.weekday())
             start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
             return queryset.filter(created_at__gte=start_date)
-        elif value == "month":
+        elif value == 'month':
             start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             return queryset.filter(created_at__gte=start_date)
-        elif value == "quarter":
+        elif value == 'quarter':
             quarter_start_month = ((now.month - 1) // 3) * 3 + 1
-            start_date = now.replace(
-                month=quarter_start_month,
-                day=1,
-                hour=0,
-                minute=0,
-                second=0,
-                microsecond=0,
-            )
+            start_date = now.replace(month=quarter_start_month, day=1, hour=0, minute=0, second=0, microsecond=0)
             return queryset.filter(created_at__gte=start_date)
-        elif value == "year":
-            start_date = now.replace(
-                month=1, day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+        elif value == 'year':
+            start_date = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
             return queryset.filter(created_at__gte=start_date)
-
+        
         return queryset
-
+    
     class Meta:
         model = Quote
         fields = []
@@ -881,145 +880,149 @@ class QuoteDashboardFilter(django_filters.FilterSet):
 
 class QuoteExportFilter(django_filters.FilterSet):
     export_format = django_filters.ChoiceFilter(
-        method="filter_export_format",
-        choices=[("csv", "CSV"), ("excel", "Excel"), ("pdf", "PDF"), ("json", "JSON")],
-        widget=forms.Select(attrs={"class": "form-control"}),
+        method='filter_export_format',
+        choices=[
+            ('csv', 'CSV'),
+            ('excel', 'Excel'),
+            ('pdf', 'PDF'),
+            ('json', 'JSON')
+        ],
+        widget=forms.Select(attrs={'class': 'form-control'})
     )
-
+    
     include_items = django_filters.BooleanFilter(
-        method="filter_include_items",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        method='filter_include_items',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
+    
     include_attachments = django_filters.BooleanFilter(
-        method="filter_include_attachments",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        method='filter_include_attachments',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
+    
     include_revisions = django_filters.BooleanFilter(
-        method="filter_include_revisions",
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        method='filter_include_revisions',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
-
+    
     def filter_export_format(self, queryset, name, value):
         return queryset
-
+    
     def filter_include_items(self, queryset, name, value):
         return queryset
-
+    
     def filter_include_attachments(self, queryset, name, value):
         return queryset
-
+    
     def filter_include_revisions(self, queryset, name, value):
         return queryset
-
+    
     class Meta:
         model = Quote
         fields = []
 
 
-def get_quote_filter_class(filter_type="basic", user=None):
+def get_quote_filter_class(filter_type='basic', user=None):
     filter_classes = {
-        "basic": QuoteFilter,
-        "advanced": AdvancedQuoteFilter,
-        "analytics": QuoteAnalyticsFilter,
-        "report": QuoteReportFilter,
-        "dashboard": QuoteDashboardFilter,
-        "export": QuoteExportFilter,
-        "item": QuoteItemFilter,
-        "attachment": QuoteAttachmentFilter,
-        "revision": QuoteRevisionFilter,
-        "template": QuoteTemplateFilter,
+        'basic': QuoteFilter,
+        'advanced': AdvancedQuoteFilter,
+        'analytics': QuoteAnalyticsFilter,
+        'report': QuoteReportFilter,
+        'dashboard': QuoteDashboardFilter,
+        'export': QuoteExportFilter,
+        'item': QuoteItemFilter,
+        'attachment': QuoteAttachmentFilter,
+        'revision': QuoteRevisionFilter,
+        'template': QuoteTemplateFilter
     }
-
+    
     return filter_classes.get(filter_type, QuoteFilter)
 
 
 def apply_user_permissions_to_filter(filter_instance, user):
     if not user.is_staff:
-        if hasattr(filter_instance, "form"):
-            if "assigned_to" in filter_instance.form.fields:
-                del filter_instance.form.fields["assigned_to"]
-
-            if "admin_notes" in filter_instance.form.fields:
-                del filter_instance.form.fields["admin_notes"]
-
+        if hasattr(filter_instance, 'form'):
+            if 'assigned_to' in filter_instance.form.fields:
+                del filter_instance.form.fields['assigned_to']
+            
+            if 'admin_notes' in filter_instance.form.fields:
+                del filter_instance.form.fields['admin_notes']
+    
     return filter_instance
 
 
 def get_filter_choices_for_user(user):
     base_choices = {
-        "status": Quote.QUOTE_STATUS_CHOICES,
-        "cleaning_type": Quote.CLEANING_TYPE_CHOICES,
-        "urgency_level": Quote.URGENCY_LEVEL_CHOICES,
-        "state": Quote.STATE_CHOICES,
+        'status': Quote.QUOTE_STATUS_CHOICES,
+        'cleaning_type': Quote.CLEANING_TYPE_CHOICES,
+        'urgency_level': Quote.URGENCY_LEVEL_CHOICES,
+        'state': Quote.STATE_CHOICES
     }
-
+    
     if user.is_staff:
-        base_choices["assigned_to"] = [
-            (u.id, u.get_full_name())
+        base_choices['assigned_to'] = [
+            (u.id, u.get_full_name()) 
             for u in User.objects.filter(is_staff=True, is_active=True)
         ]
-
+    
     return base_choices
 
 
 def build_dynamic_filter(filter_params, user=None):
-    filter_class = get_quote_filter_class("advanced", user)
-
+    filter_class = get_quote_filter_class('advanced', user)
+    
     class DynamicQuoteFilter(filter_class):
         pass
-
+    
     if user and not user.is_staff:
         DynamicQuoteFilter.base_filters = {
-            k: v
-            for k, v in DynamicQuoteFilter.base_filters.items()
-            if k not in ["assigned_to", "admin_notes"]
+            k: v for k, v in DynamicQuoteFilter.base_filters.items()
+            if k not in ['assigned_to', 'admin_notes']
         }
-
+    
     return DynamicQuoteFilter
 
 
 class QuoteFilterMixin:
     def get_filtered_queryset(self, queryset, filter_params, user=None):
-        filter_class = get_quote_filter_class("basic", user)
+        filter_class = get_quote_filter_class('basic', user)
         filter_instance = filter_class(filter_params, queryset=queryset)
-
+        
         if user:
             filter_instance = apply_user_permissions_to_filter(filter_instance, user)
-
+        
         return filter_instance.qs
-
-    def get_filter_form(self, filter_type="basic", user=None):
+    
+    def get_filter_form(self, filter_type='basic', user=None):
         filter_class = get_quote_filter_class(filter_type, user)
         filter_instance = filter_class()
-
+        
         if user:
             filter_instance = apply_user_permissions_to_filter(filter_instance, user)
-
+        
         return filter_instance.form
-
+    
     def validate_filter_params(self, filter_params, user=None):
         errors = []
-
-        if "final_price" in filter_params:
+        
+        if 'final_price' in filter_params:
             try:
-                price_range = filter_params["final_price"]
+                price_range = filter_params['final_price']
                 if price_range and any(float(p) < 0 for p in price_range if p):
                     errors.append("Price values cannot be negative")
             except (ValueError, TypeError):
                 errors.append("Invalid price range format")
-
-        if "created_at" in filter_params:
+        
+        if 'created_at' in filter_params:
             try:
-                date_range = filter_params["created_at"]
+                date_range = filter_params['created_at']
                 if date_range and len(date_range) == 2:
                     start_date, end_date = date_range
                     if start_date and end_date and start_date > end_date:
                         errors.append("Start date cannot be later than end date")
             except (ValueError, TypeError):
                 errors.append("Invalid date range format")
-
+        
         return errors
 
 
@@ -1028,57 +1031,54 @@ quote_filter_mixin = QuoteFilterMixin()
 
 def get_default_quote_filters():
     return {
-        "status": ["submitted", "under_review", "approved"],
-        "is_active": True,
-        "ordering": ["-created_at"],
+        'status': ['submitted', 'under_review', 'approved'],
+        'is_active': True,
+        'ordering': ['-created_at']
     }
 
 
 def get_user_specific_filters(user):
     filters = get_default_quote_filters()
-
+    
     if not user.is_staff:
-        filters["client"] = user
-
+        filters['client'] = user
+    
     return filters
 
 
 def optimize_filter_queryset(queryset, filter_params):
-    if "status" in filter_params:
-        queryset = queryset.select_related("client", "service", "assigned_to")
-
-    if any(
-        param in filter_params
-        for param in ["has_items", "has_attachments", "has_revisions"]
-    ):
-        queryset = queryset.prefetch_related("items", "attachments", "revisions")
-
+    if 'status' in filter_params:
+        queryset = queryset.select_related('client', 'service', 'assigned_to')
+    
+    if any(param in filter_params for param in ['has_items', 'has_attachments', 'has_revisions']):
+        queryset = queryset.prefetch_related('items', 'attachments', 'revisions')
+    
     return queryset
 
 
 class QuoteFilterRegistry:
     _filters = {}
-
+    
     @classmethod
     def register(cls, name, filter_class):
         cls._filters[name] = filter_class
-
+    
     @classmethod
     def get(cls, name):
         return cls._filters.get(name)
-
+    
     @classmethod
     def get_all(cls):
         return cls._filters.copy()
 
 
-QuoteFilterRegistry.register("basic", QuoteFilter)
-QuoteFilterRegistry.register("advanced", AdvancedQuoteFilter)
-QuoteFilterRegistry.register("analytics", QuoteAnalyticsFilter)
-QuoteFilterRegistry.register("report", QuoteReportFilter)
-QuoteFilterRegistry.register("dashboard", QuoteDashboardFilter)
-QuoteFilterRegistry.register("export", QuoteExportFilter)
-QuoteFilterRegistry.register("item", QuoteItemFilter)
-QuoteFilterRegistry.register("attachment", QuoteAttachmentFilter)
-QuoteFilterRegistry.register("revision", QuoteRevisionFilter)
-QuoteFilterRegistry.register("template", QuoteTemplateFilter)
+QuoteFilterRegistry.register('basic', QuoteFilter)
+QuoteFilterRegistry.register('advanced', AdvancedQuoteFilter)
+QuoteFilterRegistry.register('analytics', QuoteAnalyticsFilter)
+QuoteFilterRegistry.register('report', QuoteReportFilter)
+QuoteFilterRegistry.register('dashboard', QuoteDashboardFilter)
+QuoteFilterRegistry.register('export', QuoteExportFilter)
+QuoteFilterRegistry.register('item', QuoteItemFilter)
+QuoteFilterRegistry.register('attachment', QuoteAttachmentFilter)
+QuoteFilterRegistry.register('revision', QuoteRevisionFilter)
+QuoteFilterRegistry.register('template', QuoteTemplateFilter)
