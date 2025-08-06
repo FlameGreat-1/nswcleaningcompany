@@ -4,19 +4,20 @@ django-environ==0.11.2
 
 # Database
 dj-database-url==2.1.0
+psycopg2-binary==2.9.9
 
 # Django REST Framework
 djangorestframework==3.14.0
 django-filter==23.3
 django-cors-headers==4.3.1
-django-extensions
+django-extensions==4.1
 
 # Authentication & Permissions
 djangorestframework-simplejwt==5.3.0
 django-allauth==0.57.0
 
 # File Handling & Media
-Pillow
+Pillow==11.3.0
 
 # PDF Generation
 reportlab==4.0.7
@@ -48,7 +49,7 @@ django-debug-toolbar==4.2.0
 qrcode==7.4.2
 
 # Argon library
-argon2-cffi
+argon2-cffi==25.1.0
 
 # Phone Number Validation
 django-phonenumber-field==7.2.0
@@ -63,6 +64,6 @@ python-dotenv==1.0.0
 # Model Utilities
 django-model-utils==4.3.1
 
-# Production Server (if needed)
+# Production Server
 gunicorn==21.2.0
 whitenoise==6.6.0
