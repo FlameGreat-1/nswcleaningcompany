@@ -66,7 +66,9 @@ from .utils import (
 
 
 class ServiceCategoryViewSet(ReadOnlyModelViewSet):
-    queryset = ServiceCategory.objects.active().ordered()
+    queryset = ServiceCategory.objects.filter(is_active=True).order_by(
+        "display_order", "name"
+    )
     permission_classes = [CanViewServiceCategories]
     filter_backends = [
         DjangoFilterBackend,
