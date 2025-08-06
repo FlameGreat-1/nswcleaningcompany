@@ -19,7 +19,6 @@ from .validators import (
     QuoteValidator,
 )
 from services.serializers import ServiceSerializer, ServiceAddOnSerializer
-from accounts.serializers import UserSerializer
 
 User = get_user_model()
 
@@ -68,7 +67,10 @@ class QuoteItemSerializer(serializers.ModelSerializer):
         validate_price_amount(value)
         return value
 
-
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
 class QuoteAttachmentSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.CharField(
         source="uploaded_by.get_full_name", read_only=True
