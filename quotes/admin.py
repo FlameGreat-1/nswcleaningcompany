@@ -774,12 +774,33 @@ quote_admin_site.register(QuoteAttachment, QuoteAttachmentAdmin)
 quote_admin_site.register(QuoteRevision, QuoteRevisionAdmin)
 quote_admin_site.register(QuoteTemplate, QuoteTemplateAdmin)
 
-class QuoteInlineAdmin(admin.TabularInline):
+
+class QuoteInlineForUserAdmin(admin.TabularInline):
     model = Quote
-    fk_name = 'client'
+    fk_name = "client"
     extra = 0
     fields = [
         "quote_number",
+        "cleaning_type",
+        "status",
+        "final_price",
+        "created_at",
+        "expires_at",
+    ]
+    readonly_fields = ["quote_number", "created_at"]
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class QuoteInlineForServiceAdmin(admin.TabularInline):
+    model = Quote
+    fk_name = "service"
+    extra = 0
+    fields = [
+        "quote_number",
+        "client",
         "cleaning_type",
         "status",
         "final_price",
@@ -802,27 +823,27 @@ def register_quote_admin_extensions():
     try:
         user_admin = admin.site._registry[User]
         if hasattr(user_admin, "inlines"):
-            user_admin.inlines = list(user_admin.inlines) + [QuoteInlineAdmin]
+            user_admin.inlines = list(user_admin.inlines) + [QuoteInlineForUserAdmin]
         else:
-            user_admin.inlines = [QuoteInlineAdmin]
+            user_admin.inlines = [QuoteInlineForUserAdmin]
     except KeyError:
         pass
 
     try:
         service_admin = admin.site._registry[Service]
         if hasattr(service_admin, "inlines"):
-            service_admin.inlines = list(service_admin.inlines) + [QuoteInlineAdmin]
+            service_admin.inlines = list(service_admin.inlines) + [
+                QuoteInlineForServiceAdmin
+            ]
         else:
-            service_admin.inlines = [QuoteInlineAdmin]
+            service_admin.inlines = [QuoteInlineForServiceAdmin]
     except KeyError:
         pass
 
 
 register_quote_admin_extensions()
 
-
 admin.site.add_action(lambda modeladmin, request, queryset: None, "quote_bulk_actions")
-
 
 class QuoteAdminMixin:
 
@@ -946,4 +967,3 @@ def quote_bulk_operations_view(request):
     }
 
     return render(request, "admin/quotes/bulk_operations.html", context)
-
