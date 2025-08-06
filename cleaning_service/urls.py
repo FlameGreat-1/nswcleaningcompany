@@ -47,6 +47,8 @@ urlpatterns = [
     path("api/health/", api_health_check, name="api_health_check"),
     path("api/", api_root, name="api_root"),
     path("api/v1/accounts/", include("accounts.urls")),
+    path("api/v1/services/", include("services.urls")),
+    path("api/v1/quotes/", include("quotes.urls")),
     path("", RedirectView.as_view(url="/api/", permanent=False), name="root_redirect"),
 ]
 
