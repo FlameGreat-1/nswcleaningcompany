@@ -407,13 +407,25 @@ class AccountUnlinkingView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
     def post(self, request):
+        # Add debug logging here
+        logger.error(f"=== REGISTRATION DEBUG ===")
+        logger.error(f"Request data: {request.data}")
+        logger.error(f"Content-Type: {request.content_type}")
+
         serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
+            logger.error("Serializer is valid, proceeding with user creation")
             with transaction.atomic():
                 user = serializer.save()
 
@@ -434,9 +446,14 @@ class UserRegistrationView(APIView):
                     },
                     status=status.HTTP_201_CREATED,
                 )
+        else:
+            # Add detailed error logging
+            logger.error(f"Serializer validation failed!")
+            logger.error(f"Validation errors: {serializer.errors}")
+            for field, errors in serializer.errors.items():
+                logger.error(f"Field '{field}' errors: {errors}")
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
