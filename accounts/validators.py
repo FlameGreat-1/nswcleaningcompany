@@ -6,44 +6,61 @@ from typing import Any
 
 
 def validate_australian_phone(value: str) -> None:
-    if not value:
-        return
- 
-    cleaned = re.sub(r"[^\d+]", "", value)
-    if len(cleaned) < 8 or len(cleaned) > 15:
-        raise ValidationError(
-            _("Phone number must be 8-15 digits"), code="invalid_phone"
-        )
+    # Temporarily disabled for registration issues
+    return
+
+    # if not value:
+    #     return
+
+    # cleaned = re.sub(r"[^\d+]", "", value)
+
+    # patterns = [
+    #     r"^\+61[2-9]\d{8}$",
+    #     r"^0[2-9]\d{8}$",
+    #     r"^\+614\d{8}$",
+    #     r"^04\d{8}$"
+    # ]
+
+    # if not any(re.match(pattern, cleaned) for pattern in patterns):
+    #     raise ValidationError(
+    #         _(
+    #             "Enter a valid Australian phone number. Format: +61 4XX XXX XXX or 04XX XXX XXX"
+    #         ),
+    #         code="invalid_phone",
+    #     )
+
 
 def validate_postcode(value: str) -> None:
-    if not value:
-        return
+    # Temporarily disabled for registration issues
+    return
 
-    if not re.match(r"^\d{4}$", value):
-        raise ValidationError(
-            _("Enter a valid Australian postcode (4 digits)"), code="invalid_postcode"
-        )
+    # if not value:
+    #     return
 
-    postcode_int = int(value)
-    valid_ranges = [
-        (1000, 2599),
-        (2600, 2618),
-        (2620, 2899),
-        (2900, 2920),
-        (3000, 3999),
-        (4000, 4999),
-        (5000, 5999),
-        (6000, 6797),
-        (6800, 6999),
-        (7000, 7999),
-        (800, 999),
-    ]
+    # if not re.match(r"^\d{4}$", value):
+    #     raise ValidationError(
+    #         _("Enter a valid Australian postcode (4 digits)"), code="invalid_postcode"
+    #     )
 
-    if not any(start <= postcode_int <= end for start, end in valid_ranges):
-        raise ValidationError(
-            _("Enter a valid Australian postcode"), code="invalid_postcode_range"
-        )
+    # postcode_int = int(value)
+    # valid_ranges = [
+    #     (1000, 2599),
+    #     (2600, 2618),
+    #     (2620, 2899),
+    #     (2900, 2920),
+    #     (3000, 3999),
+    #     (4000, 4999),
+    #     (5000, 5999),
+    #     (6000, 6797),
+    #     (6800, 6999),
+    #     (7000, 7999),
+    #     (800, 999),
+    # ]
 
+    # if not any(start <= postcode_int <= end for start, end in valid_ranges):
+    #     raise ValidationError(
+    #         _("Enter a valid Australian postcode"), code="invalid_postcode_range"
+    #     )
 
 def validate_ndis_number(value: str) -> None:
     if not value:

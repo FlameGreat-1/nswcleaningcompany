@@ -35,7 +35,7 @@ class GoogleRegistrationSerializer(serializers.Serializer):
         choices=User.CLIENT_TYPES, default="general", required=False
     )
     phone_number = serializers.CharField(
-        required=False, validators=[validate_australian_phone]
+       ## required=False, validators=[validate_australian_phone]
     )
 
     def validate(self, attrs):
@@ -83,7 +83,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     password_confirm = serializers.CharField(write_only=True, required=True)
     phone_number = serializers.CharField(
-        required=False, validators=[validate_australian_phone]
+       ## required=False, validators=[validate_australian_phone]
     )
 
     class Meta:
@@ -244,7 +244,7 @@ class EmailVerificationSerializer(serializers.Serializer):
 
 
 class AddressSerializer(serializers.ModelSerializer):
-    postcode = serializers.CharField(validators=[validate_postcode])
+    ## postcode = serializers.CharField(validators=[validate_postcode])
 
     class Meta:
         model = Address
@@ -327,7 +327,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
     social_profiles = SocialAuthProfileSerializer(many=True, read_only=True)
     full_name = serializers.CharField(read_only=True)
     phone_number = serializers.CharField(
-        validators=[validate_australian_phone], required=False
+        ## validators=[validate_australian_phone], required=False
     )
     is_google_user = serializers.BooleanField(read_only=True)
 
