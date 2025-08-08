@@ -881,7 +881,6 @@ class QuotesByServiceView(ListAPIView):
             .prefetch_related("items", "attachments")
         )
 
-
 class QuotesByClientView(ListAPIView):
     serializer_class = QuoteListSerializer
     permission_classes = [IsStaffUser]
@@ -895,7 +894,6 @@ class QuotesByClientView(ListAPIView):
             .select_related("client", "service", "assigned_to")
             .prefetch_related("items", "attachments")
         )
-
 
 class QuoteConversionRateView(APIView):
     permission_classes = [CanViewQuoteAnalytics]
@@ -915,7 +913,6 @@ class QuoteConversionRateView(APIView):
                 "conversion_rate": round(conversion_rate, 2),
             }
         )
-
 
 class QuoteStatusDistributionView(APIView):
     permission_classes = [CanViewQuoteAnalytics]

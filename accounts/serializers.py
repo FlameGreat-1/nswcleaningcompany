@@ -228,8 +228,22 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
                 {"new_password": "Password fields didn't match."}
             )
         return attrs
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(read_only=True)
 
-
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name",
+            "full_name",
+            "user_type",
+            "client_type",
+            "is_active",
+        )
+        read_only_fields = ("id", "full_name", "user_type", "client_type")
 class EmailVerificationSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
 
@@ -530,5 +544,3 @@ class AccountUnlinkingSerializer(serializers.Serializer):
             )
 
         return value
-
-

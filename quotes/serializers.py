@@ -23,6 +23,40 @@ from services.serializers import ServiceSerializer, ServiceAddOnSerializer
 User = get_user_model()
 
 
+class QuoteSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source="client.full_name", read_only=True)
+    service_name = serializers.CharField(source="service.name", read_only=True)
+
+    class Meta:
+        model = Quote
+        fields = [
+            "id",
+            "quote_number",
+            "client",
+            "client_name",
+            "service",
+            "service_name",
+            "status",
+            "cleaning_type",
+            "property_address",
+            "suburb",
+            "state",
+            "postcode",
+            "number_of_rooms",
+            "urgency_level",
+            "final_price",
+            "is_ndis_client",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = (
+            "id",
+            "quote_number",
+            "client_name",
+            "service_name",
+            "created_at",
+            "updated_at",
+        )
 class QuoteItemSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source="service.name", read_only=True)
     addon_name = serializers.CharField(source="addon.name", read_only=True)
