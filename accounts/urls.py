@@ -26,16 +26,11 @@ from .views import (
     SocialProfileListView,
     SocialProfileDetailView,
     user_dashboard,
-    cleanup_expired_tokens,
-    refresh_social_tokens,
-    social_auth_stats,
-    health_check,
 )
 
 app_name = "accounts"
 
 urlpatterns = [
-    path("health/", health_check, name="health_check"),
     path("auth/register/", UserRegistrationView.as_view(), name="register"),
     path("auth/login/", UserLoginView.as_view(), name="login"),
     path("auth/logout/", UserLogoutView.as_view(), name="logout"),
@@ -93,15 +88,6 @@ urlpatterns = [
         BulkUserActionView.as_view(),
         name="bulk_user_action",
     ),
-    path("admin/cleanup/", cleanup_expired_tokens, name="cleanup_expired_tokens"),
-    path(
-        "admin/social/refresh-tokens/",
-        refresh_social_tokens,
-        name="refresh_social_tokens",
-    ),
-    path("admin/social/stats/", social_auth_stats, name="social_auth_stats"),
+    
 ]
 
-api_v1_patterns = [
-    path("v1/accounts/", include(urlpatterns)),
-]
