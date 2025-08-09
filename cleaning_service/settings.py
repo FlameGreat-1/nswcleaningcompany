@@ -69,6 +69,31 @@ DATABASES = {
     )
 }
 
+# TODO: REMOVE AFTER DEVELOPMENT - Database clearing for testing
+CLEAR_DATABASE_ON_STARTUP = config(
+    "CLEAR_DATABASE_ON_STARTUP", default=False, cast=bool
+)
+
+if CLEAR_DATABASE_ON_STARTUP and DEBUG:
+    import django
+    import sys
+
+    def clear_database():
+        try:
+            django.setup()
+            from accounts.models import User, EmailVerification
+            from django.contrib.auth.models import Token
+
+            User.objects.all().delete()
+            EmailVerification.objects.all().delete()
+            Token.objects.all().delete()
+            print("✅ Database cleared for testing!")
+        except Exception as e:
+            print(f"⚠️ Could not clear database: {e}")
+
+    if len(sys.argv) > 1 and sys.argv[1] == "runserver":
+        clear_database()
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
