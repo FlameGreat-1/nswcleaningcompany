@@ -73,7 +73,6 @@ class SocialAuthProfileSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-
 class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True, validators=[UniqueValidator(queryset=User.objects.all())]
@@ -81,7 +80,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
     )
-    password_confirm = serializers.CharField(write_only=True, required=True)
+    password_confirm = serializers.CharField(
+        write_only=True, required=False
+    )  
+    confirm_password = serializers.CharField(
+        write_only=True, required=False
+    )  
     phone_number = serializers.CharField(
         required=False
         ## required=False, validators=[validate_australian_phone]
@@ -93,6 +97,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "email",
             "password",
             "password_confirm",
+            "confirm_password", 
             "first_name",
             "last_name",
             "phone_number",
@@ -105,7 +110,19 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
-        if attrs["password"] != attrs["password_confirm"]:
+        password = attrs.get("password")
+
+
+        password_confirm = attrs.get("password_confirm") or attrs.get(
+            "confirm_password"
+        )
+
+        if not password_confirm:
+            raise serializers.ValidationError(
+                {"password_confirm": "Password confirmation is required."}
+            )
+
+        if password != password_confirm:
             raise serializers.ValidationError(
                 {"password": "Password fields didn't match."}
             )
@@ -117,13 +134,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data.pop("password_confirm", None)
+        validated_data.pop("confirm_password", None)
         password = validated_data.pop("password")
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
         user.save()
         return user
-
-
 class UserLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True, write_only=True)
