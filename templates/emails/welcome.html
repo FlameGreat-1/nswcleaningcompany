@@ -24,12 +24,12 @@
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
-            border-bottom: 2px solid #007bff;
+            border-bottom: 2px solid #006da6;
         }
         .logo {
             font-size: 28px;
             font-weight: bold;
-            color: #007bff;
+            color: #006da6;
             margin-bottom: 10px;
         }
         .welcome-title {
@@ -41,7 +41,16 @@
             margin-bottom: 30px;
         }
         .verification-section {
-            background-color: #e3f2fd;
+            background: linear-gradient(135deg, #006da6, #0080c7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .info-section {
+            background-color: #e8f4fd;
+            border: 1px solid #006da6;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
@@ -50,15 +59,17 @@
         .btn {
             display: inline-block;
             padding: 12px 30px;
-            background-color: #007bff;
+            background-color: #006da6;
             color: #ffffff;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
             margin: 10px 0;
+            transition: all 0.3s ease;
         }
         .btn:hover {
-            background-color: #0056b3;
+            background-color: #005a8a;
+            transform: translateY(-2px);
         }
         .footer {
             margin-top: 30px;
@@ -98,15 +109,15 @@
                 {% endif %}
             </ul>
 
-            {% if verification_url and not is_google_user %}
+            {% if not is_google_user %}
             <div class="verification-section">
-                <h3>📧 Email Verification Required</h3>
-                <p>To complete your registration and access all features, please verify your email address:</p>
-                <a href="{{ verification_url }}" class="btn">Verify Email Address</a>
-                <p><small>This verification link will expire in 24 hours.</small></p>
+                <h3>📧 Check Your Email</h3>
+                <p>We've sent a verification email to <strong>{{ user.email }}</strong></p>
+                <p>Please check your inbox and click the verification link to activate your account.</p>
+                <p><small>⏰ The verification link will expire in 24 hours.</small></p>
             </div>
-            {% elif is_google_user %}
-            <div class="verification-section">
+            {% else %}
+            <div class="info-section">
                 <h3>✅ Account Verified</h3>
                 <p>Your Google account is automatically verified. You can start using all features immediately!</p>
             </div>
@@ -114,7 +125,7 @@
 
             <h3>🚀 What's Next?</h3>
             <ul>
-                <li>Complete your profile information</li>
+                <li>{% if not is_google_user %}Verify your email address{% else %}Complete your profile information{% endif %}</li>
                 <li>{% if user.is_client %}Browse our cleaning services{% else %}Access your dashboard{% endif %}</li>
                 <li>Set up your preferences</li>
                 {% if user.is_ndis_client %}

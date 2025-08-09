@@ -410,7 +410,6 @@ class AccountUnlinkingView(APIView):
 import logging
 
 logger = logging.getLogger(__name__)
-
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
@@ -423,8 +422,10 @@ class UserRegistrationView(APIView):
                 user = serializer.save()
 
                 verification = EmailVerification.objects.create_verification(user)
-                send_verification_email(user, verification.token)
-                send_welcome_email(user, verification.token)
+                send_verification_email(
+                    user, verification.token
+                )  
+                send_welcome_email(user) 
 
                 token, created = Token.objects.get_or_create(user=user)
 
@@ -660,7 +661,6 @@ class PasswordResetConfirmView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class EmailVerificationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = EmailVerificationSerializer
@@ -672,6 +672,8 @@ class EmailVerificationView(APIView):
             user = EmailVerification.objects.verify_token(token)
 
             if user:
+                send_welcome_email(user)
+                
                 return Response(
                     {
                         "message": "Email verified successfully",
@@ -690,8 +692,6 @@ class EmailVerificationView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class ResendVerificationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = ResendVerificationSerializer
