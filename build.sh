@@ -48,3 +48,5 @@ echo "🔥 Warming up application..."
 python manage.py check --deploy
 
 echo "✅ Build completed successfully!"
+
+#####################################################~~~~~~~~~~~~~~~~~ FLAME GREAT ~~~~~~~~~~~~~~~~~~~~~~~~~~#########################################################
