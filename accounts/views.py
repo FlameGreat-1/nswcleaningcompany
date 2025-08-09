@@ -437,12 +437,18 @@ class UserRegistrationView(APIView):
 
                 return Response(
                     {
-                        "message": "Registration successful. Please check your email for verification.",
-                        "user_id": user.id,
-                        "email": user.email,
-                        "token": token.key,
-                        "user_type": user.user_type,
-                        "requires_verification": True,
+                        "success": True,  # ✅ Added this field
+                        "data": {  # ✅ Wrapped everything in 'data'
+                            "message": "Registration successful. Please check your email for verification.",
+                            "user": {
+                                "id": user.id,
+                                "email": user.email,
+                                "user_type": user.user_type,
+                                "is_verified": user.is_verified,
+                            },
+                            "token": token.key,
+                            "requires_verification": True,
+                        },
                     },
                     status=status.HTTP_201_CREATED,
                 )
