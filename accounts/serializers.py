@@ -83,7 +83,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     )
     password_confirm = serializers.CharField(write_only=True, required=True)
     phone_number = serializers.CharField(
-       ## required=False, validators=[validate_australian_phone]
+        required=False
+        ## required=False, validators=[validate_australian_phone]
     )
 
     class Meta:
