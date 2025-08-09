@@ -435,23 +435,25 @@ class UserRegistrationView(APIView):
 
                 token, created = Token.objects.get_or_create(user=user)
 
-                return Response(
-                    {
-                        "success": True,  # ✅ Added this field
-                        "data": {  # ✅ Wrapped everything in 'data'
-                            "message": "Registration successful. Please check your email for verification.",
-                            "user": {
-                                "id": user.id,
-                                "email": user.email,
-                                "user_type": user.user_type,
-                                "is_verified": user.is_verified,
-                            },
-                            "token": token.key,
-                            "requires_verification": True,
+                response_data = {
+                    "success": True,  # ✅ Added this field
+                    "data": {  # ✅ Wrapped everything in 'data'
+                        "message": "Registration successful. Please check your email for verification.",
+                        "user": {
+                            "id": user.id,
+                            "email": user.email,
+                            "user_type": user.user_type,
+                            "is_verified": user.is_verified,
                         },
+                        "token": token.key,
+                        "requires_verification": True,
                     },
-                    status=status.HTTP_201_CREATED,
-                )
+                }
+
+                # 🔍 DEBUG: Log the exact response being sent
+                logger.error(f"🔍 RESPONSE DEBUG - Sending response: {response_data}")
+
+                return Response(response_data, status=status.HTTP_201_CREATED)
         else:
             # Add detailed error logging
             logger.error(f"Serializer validation failed!")
@@ -460,6 +462,7 @@ class UserRegistrationView(APIView):
                 logger.error(f"Field '{field}' errors: {errors}")
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
