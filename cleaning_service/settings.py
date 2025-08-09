@@ -141,6 +141,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "100/hour", "user": "1000/hour"},
 }
 
+# EMAIL CONFIGURATION
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
 )
@@ -154,15 +155,18 @@ DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@nswcc.com.au"
 SERVER_EMAIL = config("SERVER_EMAIL", default="server@nswcc.com.au")
 SUPPORT_EMAIL = config("SUPPORT_EMAIL", default="support@nswcc.com.au")
 
+# GOOGLE OAUTH CONFIGURATION
 GOOGLE_OAUTH2_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 GOOGLE_OAUTH2_CLIENT_SECRET = config("GOOGLE_CLIENT_SECRET")
 GOOGLE_OAUTH2_REDIRECT_URI = config("GOOGLE_OAUTH2_REDIRECT_URI", default="")
 
+# FRONTEND/BACKEND URLS
 FRONTEND_URL = config("FRONTEND_URL", default="http://localhost:3000")
 BACKEND_URL = config("BACKEND_URL", default="http://localhost:8000")
 SITE_NAME = config("SITE_NAME", default="NSWCC")
 COMPANY_NAME = config("COMPANY_NAME", default="NSWCC")
 
+# CORS CONFIGURATION - Updated with hardcoded headers and methods
 CORS_ALLOWED_ORIGINS = config(
     "CORS_ALLOWED_ORIGINS",
     cast=lambda v: [s.strip() for s in v.split(",")],
@@ -170,11 +174,35 @@ CORS_ALLOWED_ORIGINS = config(
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = config("CORS_ALLOW_ALL_ORIGINS", default=False, cast=bool)
 
+# Hardcoded CORS headers and methods (no environment variables needed)
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# CSRF CONFIGURATION
 CSRF_TRUSTED_ORIGINS = config(
     "CSRF_TRUSTED_ORIGINS",
     cast=lambda v: [s.strip() for s in v.split(",")],
 )
 
+# SECURITY SETTINGS
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
@@ -188,6 +216,7 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# SESSION CONFIGURATION
 SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_COOKIE_AGE = 86400
 SESSION_COOKIE_HTTPONLY = True
@@ -195,6 +224,7 @@ SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
+# CACHE CONFIGURATION
 CACHES = {
     "default": {
         "BACKEND": config(
@@ -208,6 +238,7 @@ CACHES = {
     }
 }
 
+# LOGGING CONFIGURATION
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -242,26 +273,31 @@ LOGGING = {
     },
 }
 
+# ADMIN CONFIGURATION
 ADMINS = [
     ("Admin", config("ADMIN_EMAIL", default="admin@nswcleaningcompany.com.au")),
 ]
 MANAGERS = ADMINS
 
+# FILE UPLOAD SETTINGS
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 1000
 
+# DEFAULT ADMIN SETTINGS
 DEFAULT_ADMIN_EMAIL = config(
     "DEFAULT_ADMIN_EMAIL", default="admin@nswcleaningcompany.com.au"
 )
 DEFAULT_ADMIN_PASSWORD = config("DEFAULT_ADMIN_PASSWORD", default="admin123")
 
+# USER SESSION AND SECURITY TIMEOUTS
 MAX_USER_SESSIONS = config("MAX_USER_SESSIONS", default=5, cast=int)
 PASSWORD_RESET_TIMEOUT = config("PASSWORD_RESET_TIMEOUT", default=3600, cast=int)
 EMAIL_VERIFICATION_TIMEOUT = config(
     "EMAIL_VERIFICATION_TIMEOUT", default=86400, cast=int
 )
 
+# FEATURE FLAGS
 NDIS_COMPLIANCE_ENABLED = config("NDIS_COMPLIANCE_ENABLED", default=True, cast=bool)
 ACCESSIBILITY_FEATURES_ENABLED = config(
     "ACCESSIBILITY_FEATURES_ENABLED", default=True, cast=bool
@@ -288,6 +324,7 @@ FEATURE_FLAGS = {
     "bulk_operations": config("FEATURE_BULK_OPERATIONS", default=True, cast=bool),
 }
 
+# DEBUG TOOLBAR (Development only)
 if DEBUG:
     INTERNAL_IPS = ["127.0.0.1", "localhost"]
     try:
@@ -298,9 +335,11 @@ if DEBUG:
     except ImportError:
         pass
 
+# ENSURE DIRECTORIES EXIST
 os.makedirs(BASE_DIR / "media", exist_ok=True)
 os.makedirs(BASE_DIR / "staticfiles", exist_ok=True)
 
+# DJANGO SETTINGS
 APPEND_SLASH = True
 PREPEND_WWW = False
 USE_THOUSAND_SEPARATOR = True
@@ -313,6 +352,7 @@ THOUSAND_SEPARATOR = ","
 DEFAULT_CHARSET = "utf-8"
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
+# PASSWORD HASHERS
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
     "django.contrib.auth.hashers.PBKDF2PasswordHasher",

@@ -1,5 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from .views import (
     UserRegistrationView,
     UserLoginView,
@@ -28,9 +30,16 @@ from .views import (
     user_dashboard,
 )
 
+
 app_name = "accounts"
 
+@csrf_exempt
+def accounts_health_check(request):
+    return JsonResponse({"status": "healthy", "service": "accounts"})
+
+
 urlpatterns = [
+    path("health/", accounts_health_check, name="accounts_health_check"),
     path("auth/register/", UserRegistrationView.as_view(), name="register"),
     path("auth/login/", UserLoginView.as_view(), name="login"),
     path("auth/logout/", UserLogoutView.as_view(), name="logout"),
@@ -88,6 +97,4 @@ urlpatterns = [
         BulkUserActionView.as_view(),
         name="bulk_user_action",
     ),
-    
 ]
-
