@@ -247,7 +247,7 @@ def send_welcome_email(user, verification_token: str = None) -> bool:
 
         if verification_token and not user.is_google_user:
             context["verification_url"] = (
-                f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
+                f"{settings.FRONTEND_URL}/accounts/email-verification?token={verification_token}"
             )
 
         subject = f"Welcome to {context['site_name']}"
@@ -265,22 +265,22 @@ def send_welcome_email(user, verification_token: str = None) -> bool:
         logger.error(f"Failed to send welcome email to {user.email}: {str(e)}")
         return False
 
-
 def send_verification_email(user, verification_token: str) -> bool:
     try:
         if user.is_google_user:
             logger.info(f"Skipping verification email for Google user: {user.email}")
             return True
 
-        verification_url = (
-            f"{settings.FRONTEND_URL}/verify-email?token={verification_token}"
-        )
+        verification_url = f"{settings.FRONTEND_URL}/accounts/email-verification?token={verification_token}"
 
         context = {
             "user": user,
             "verification_url": verification_url,
             "site_name": getattr(settings, "SITE_NAME", "Cleaning Service"),
             "expiry_hours": 24,
+            "support_email": getattr(
+                settings, "SUPPORT_EMAIL", settings.DEFAULT_FROM_EMAIL
+            ),
         }
 
         subject = "Please verify your email address"
@@ -303,13 +303,18 @@ def send_password_reset_email(user, reset_token: str) -> bool:
             logger.info(f"Skipping password reset email for Google user: {user.email}")
             return False
 
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+        reset_url = (
+            f"{settings.FRONTEND_URL}/accounts/reset-password?token={reset_token}"
+        )
 
         context = {
             "user": user,
             "reset_url": reset_url,
             "site_name": getattr(settings, "SITE_NAME", "Cleaning Service"),
             "expiry_hours": 1,
+            "support_email": getattr(
+                settings, "SUPPORT_EMAIL", settings.DEFAULT_FROM_EMAIL
+            ),
         }
 
         subject = "Password Reset Request"
@@ -324,7 +329,6 @@ def send_password_reset_email(user, reset_token: str) -> bool:
     except Exception as e:
         logger.error(f"Failed to send password reset email to {user.email}: {str(e)}")
         return False
-
 
 def send_social_account_linked_email(user, provider: str) -> bool:
     try:
@@ -811,4 +815,3 @@ def get_google_login_url(redirect_uri: str = None) -> Optional[str]:
     except Exception as e:
         logger.error(f"Error generating Google login URL: {str(e)}")
         return None
-

@@ -411,21 +411,14 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
 
     def post(self, request):
-        # Add debug logging here
-        logger.error(f"=== REGISTRATION DEBUG ===")
-        logger.error(f"Request data: {request.data}")
-        logger.error(f"Content-Type: {request.content_type}")
-
         serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
-            logger.error("Serializer is valid, proceeding with user creation")
             with transaction.atomic():
                 user = serializer.save()
 
@@ -435,35 +428,25 @@ class UserRegistrationView(APIView):
 
                 token, created = Token.objects.get_or_create(user=user)
 
-                response_data = {
-                    "success": True,  # ✅ Added this field
-                    "data": {  # ✅ Wrapped everything in 'data'
-                        "message": "Registration successful. Please check your email for verification.",
-                        "user": {
-                            "id": user.id,
-                            "email": user.email,
-                            "user_type": user.user_type,
-                            "is_verified": user.is_verified,
+                return Response(
+                    {
+                        "success": True,
+                        "data": {
+                            "message": "Registration successful. Please check your email for verification.",
+                            "user": {
+                                "id": user.id,
+                                "email": user.email,
+                                "user_type": user.user_type,
+                                "is_verified": user.is_verified,
+                            },
+                            "token": token.key,
+                            "requires_verification": True,
                         },
-                        "token": token.key,
-                        "requires_verification": True,
                     },
-                }
-
-                # 🔍 DEBUG: Log the exact response being sent
-                logger.error(f"🔍 RESPONSE DEBUG - Sending response: {response_data}")
-
-                return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            # Add detailed error logging
-            logger.error(f"Serializer validation failed!")
-            logger.error(f"Validation errors: {serializer.errors}")
-            for field, errors in serializer.errors.items():
-                logger.error(f"Field '{field}' errors: {errors}")
+                    status=status.HTTP_201_CREATED,
+                )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserLoginSerializer
