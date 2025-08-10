@@ -27,21 +27,6 @@ urlpatterns = [
         name="invoice-regenerate-pdf",
     ),
     path(
-        "invoices/my-invoices/",
-        InvoiceViewSet.as_view({"get": "my_invoices"}),
-        name="my-invoices",
-    ),
-    path(
-        "invoices/ndis-invoices/",
-        InvoiceViewSet.as_view({"get": "ndis_invoices"}),
-        name="ndis-invoices",
-    ),
-    path(
-        "invoices/dashboard-stats/",
-        InvoiceViewSet.as_view({"get": "dashboard_stats"}),
-        name="dashboard-stats",
-    ),
-    path(
         "ndis-invoices/<uuid:pk>/compliance-check/",
         NDISInvoiceViewSet.as_view({"get": "compliance_check"}),
         name="ndis-compliance-check",
