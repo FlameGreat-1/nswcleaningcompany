@@ -17,7 +17,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 class InvoiceNumberGenerator:
     
     @staticmethod
@@ -40,7 +39,6 @@ class InvoiceNumberGenerator:
             next_number = 1
             
         return f"{prefix}{next_number:04d}"
-
 
 class NDISComplianceValidator:
     
@@ -68,7 +66,6 @@ class NDISComplianceValidator:
         if len(cleaned) == 9:
             return f"{cleaned[:2]} {cleaned[2:5]} {cleaned[5:8]} {cleaned[8:]}"
         return ndis_number
-
 
 class PricingCalculator:
     
@@ -98,8 +95,6 @@ class PricingCalculator:
             'gst_amount': gst_total,
             'total_amount': subtotal + gst_total
         }
-
-
 class PDFInvoiceGenerator:
     
     def __init__(self):
@@ -328,8 +323,6 @@ class PDFInvoiceGenerator:
         elements.append(Paragraph(footer_text, self.styles['Normal']))
         
         return elements
-
-
 class InvoiceEmailService:
     
     @staticmethod
@@ -365,8 +358,6 @@ class InvoiceEmailService:
         except Exception as e:
             logger.error(f"Failed to send invoice email for {invoice.invoice_number}: {str(e)}")
             return False
-
-
 class DateTimeUtils:
     
     @staticmethod

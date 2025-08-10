@@ -23,7 +23,6 @@ def validate_quote_number(value):
     if int(year_part) > current_year + 1:
         raise ValidationError("Quote number year cannot be more than one year in the future.")
 
-
 def validate_urgency_level(value):
     if not isinstance(value, int):
         raise ValidationError("Urgency level must be an integer.")

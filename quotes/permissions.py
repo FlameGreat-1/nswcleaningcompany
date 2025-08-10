@@ -250,13 +250,16 @@ class CanViewQuoteRevision(permissions.BasePermission):
 class CanManageQuoteTemplate(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return (
-            request.user
-            and request.user.is_authenticated
-            and request.user.is_staff
-            and request.user.has_perm("quotes.change_quotetemplate")
-        )
+        return request.user and request.user.is_authenticated
 
+    def has_object_permission(self, request, view, obj):
+        if request.user.is_staff:
+            return True
+
+        if hasattr(obj, "created_by"):
+            return obj.created_by == request.user
+
+        return False
 
 class CanViewQuoteAnalytics(permissions.BasePermission):
 

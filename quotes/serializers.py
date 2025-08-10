@@ -183,8 +183,6 @@ class QuoteRevisionSerializer(serializers.ModelSerializer):
         if obj.previous_price > 0:
             return ((obj.new_price - obj.previous_price) / obj.previous_price) * 100
         return 0
-
-
 class QuoteTemplateSerializer(serializers.ModelSerializer):
     default_service_name = serializers.CharField(
         source="default_service.name", read_only=True
@@ -202,6 +200,10 @@ class QuoteTemplateSerializer(serializers.ModelSerializer):
             "cleaning_type",
             "default_service",
             "default_urgency_level",
+            "number_of_rooms",
+            "square_meters",
+            "special_requirements",
+            "access_instructions",
             "is_active",
             "is_ndis_template",
             "usage_count",
@@ -217,8 +219,6 @@ class QuoteTemplateSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
-
 class QuoteListSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.get_full_name", read_only=True)
     service_name = serializers.CharField(source="service.name", read_only=True)

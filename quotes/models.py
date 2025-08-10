@@ -12,6 +12,7 @@ from .validators import (
     validate_image_file,
     validate_room_count,
     validate_square_meters,
+    validate_template_name,
 )
 
 User = get_user_model()
@@ -467,8 +468,6 @@ class Quote(models.Model):
             )
             return True
         return False
-
-
 class QuoteItem(models.Model):
     """Individual items/services within a quote"""
 
@@ -737,66 +736,79 @@ class QuoteRevision(models.Model):
 class QuoteTemplate(models.Model):
     """Reusable quote templates for common services"""
 
-    # Template details
-    name = models.CharField(max_length=200, unique=True, help_text="Template name")
-
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(
+        max_length=200, validators=[validate_template_name], help_text="Template name"
+    )
     description = models.TextField(help_text="Template description")
-
     cleaning_type = models.CharField(
         max_length=20,
         choices=Quote.CLEANING_TYPE_CHOICES,
         help_text="Default cleaning type",
     )
-
-    # Default values
     default_service = models.ForeignKey(
         "services.Service",
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         help_text="Default service for this template",
     )
-
     default_urgency_level = models.PositiveIntegerField(
         choices=Quote.URGENCY_LEVEL_CHOICES,
         default=2,
         help_text="Default urgency level",
     )
-
-    # Template settings
+    number_of_rooms = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[validate_room_count],
+        help_text="Default number of rooms",
+    )
+    square_meters = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[validate_square_meters],
+        help_text="Default property size",
+    )
+    special_requirements = models.TextField(
+        blank=True, help_text="Default special requirements"
+    )
+    access_instructions = models.TextField(
+        blank=True, help_text="Default access instructions"
+    )
     is_active = models.BooleanField(
         default=True, help_text="Whether template is active"
     )
-
     is_ndis_template = models.BooleanField(
         default=False, help_text="Whether this is an NDIS-specific template"
     )
-
-    # Usage tracking
     usage_count = models.PositiveIntegerField(
         default=0, help_text="Number of times template has been used"
     )
-
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        limit_choices_to={"is_staff": True},
-        help_text="Staff member who created the template",
+        help_text="User who created the template",
     )
 
     class Meta:
         db_table = "quotes_quote_template"
         verbose_name = "Quote Template"
         verbose_name_plural = "Quote Templates"
-        ordering = ["name"]
+        ordering = ["-updated_at"]
+        unique_together = ["created_by", "name"]
         indexes = [
+            models.Index(fields=["created_by", "is_active"]),
             models.Index(fields=["cleaning_type", "is_active"]),
             models.Index(fields=["is_ndis_template"]),
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.created_by.get_full_name()}"
 
     def increment_usage(self):
         """Increment usage count"""

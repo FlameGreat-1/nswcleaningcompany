@@ -577,21 +577,25 @@ class QuoteRevisionViewSet(viewsets.ModelViewSet):
 
         serializer.save(revised_by=self.request.user, revision_number=revision_number)
 
-
 class QuoteTemplateViewSet(viewsets.ModelViewSet):
-    queryset = QuoteTemplate.objects.all()
     serializer_class = QuoteTemplateSerializer
     permission_classes = [CanManageQuoteTemplate]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = ["name", "description"]
-    ordering_fields = ["name", "usage_count", "created_at"]
-    ordering = ["name"]
+    ordering_fields = ["name", "usage_count", "created_at", "updated_at"]
+    ordering = ["-updated_at"]
 
     def get_queryset(self):
-        queryset = QuoteTemplate.objects.select_related("default_service", "created_by")
+        user_templates = QuoteTemplate.objects.filter(created_by=self.request.user)
+        system_templates = QuoteTemplate.objects.filter(
+            created_by__is_staff=True, is_active=True
+        )
 
-        if self.action == "list":
-            queryset = queryset.filter(is_active=True)
+        queryset = (
+            (user_templates | system_templates)
+            .select_related("default_service", "created_by")
+            .distinct()
+        )
 
         cleaning_type = self.request.query_params.get("cleaning_type")
         if cleaning_type:
@@ -601,19 +605,39 @@ class QuoteTemplateViewSet(viewsets.ModelViewSet):
         if is_ndis is not None:
             queryset = queryset.filter(is_ndis_template=is_ndis.lower() == "true")
 
+        if self.action == "list":
+            queryset = queryset.filter(is_active=True)
+
         return queryset
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        if serializer.instance.created_by != self.request.user:
+            raise PermissionDenied("You can only update your own templates")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if instance.created_by != self.request.user:
+            raise PermissionDenied("You can only delete your own templates")
+        instance.delete()
 
     @action(detail=True, methods=["post"])
     def use_template(self, request, pk=None):
         template = self.get_object()
 
         quote_data = {
-            "service": template.default_service,
+            "service": (
+                template.default_service.id if template.default_service else None
+            ),
             "cleaning_type": template.cleaning_type,
             "urgency_level": template.default_urgency_level,
+            "number_of_rooms": template.number_of_rooms,
+            "square_meters": template.square_meters,
+            "special_requirements": template.special_requirements,
+            "access_instructions": template.access_instructions,
+            "is_ndis_client": template.is_ndis_template,
         }
 
         quote_data.update(request.data)
@@ -629,7 +653,6 @@ class QuoteTemplateViewSet(viewsets.ModelViewSet):
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class QuoteAnalyticsView(APIView):
     permission_classes = [CanViewQuoteAnalytics]
