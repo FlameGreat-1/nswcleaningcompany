@@ -49,6 +49,7 @@ urlpatterns = [
     path("api/v1/accounts/", include("accounts.urls")),
     path("api/v1/services/", include("services.urls")),
     path("api/v1/quotes/", include("quotes.urls")),
+    path("api/v1/invoices/", include("invoices.urls")),  
     path("", RedirectView.as_view(url="/api/", permanent=False), name="root_redirect"),
 ]
 
