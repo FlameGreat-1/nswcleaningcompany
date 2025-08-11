@@ -27,7 +27,7 @@ from .views import (
 app_name = "quotes"
 
 router = DefaultRouter()
-router.register(r"quotes", QuoteViewSet, basename="quote")
+router.register(r"", QuoteViewSet, basename="quote")  
 router.register(r"items", QuoteItemViewSet, basename="quoteitem")
 router.register(r"attachments", QuoteAttachmentViewSet, basename="quoteattachment")
 router.register(r"revisions", QuoteRevisionViewSet, basename="quoterevision")
