@@ -23,9 +23,13 @@ python manage.py makemigrations --noinput
 echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput
 
+# Debug: Check if management command exists
+echo "🔍 Checking available management commands..."
+python manage.py help | grep create_superuser || echo "❌ create_superuser command not found"
+
 # Create superuser if it doesn't exist
 echo "👤 Creating superuser if needed..."
-python manage.py create_superuser
+python manage.py create_superuser 2>&1 || echo "❌ Superuser creation failed with exit code $?"
 
 # Warm up the application
 echo "🔥 Warming up application..."
