@@ -510,11 +510,11 @@ def update_quote_search_index_data(instance):
             f"Failed to update search index for quote {instance.quote_number}: {str(e)}"
         )
 
-
 def log_quote_activity_data(instance, created):
     try:
         from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
         from django.contrib.contenttypes.models import ContentType
+        from django.contrib.auth import get_user_model
 
         if created:
             activity_type = "created"
@@ -528,8 +528,15 @@ def log_quote_activity_data(instance, created):
                 activity_type = "updated"
                 details = f"Quote {instance.quote_number} updated"
 
+        User = get_user_model()
+        system_user = User.objects.filter(is_staff=True, is_superuser=True).first()
+        
+        if not system_user:
+            logger.warning("No system user found for logging quote activity")
+            return
+
         LogEntry.objects.create(
-            user_id=getattr(instance, "_current_user_id", None),
+            user_id=system_user.id,
             content_type=ContentType.objects.get_for_model(Quote),
             object_id=instance.pk,
             object_repr=str(instance),
@@ -538,7 +545,6 @@ def log_quote_activity_data(instance, created):
         )
     except Exception as e:
         logger.error(f"Failed to log quote activity: {str(e)}")
-
 
 def clear_quote_related_caches(instance):
     try:
