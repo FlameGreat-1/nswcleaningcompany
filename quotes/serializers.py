@@ -331,6 +331,7 @@ class QuoteDetailSerializer(serializers.ModelSerializer):
             "expires_at",
         ]
 
+
 class QuoteCreateSerializer(serializers.ModelSerializer):
     service_type = serializers.CharField(write_only=True, required=True)
     items = QuoteItemSerializer(many=True, required=False)
@@ -338,7 +339,7 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Quote
         fields = [
-            "service_type",  # Changed from "service" to "service_type"
+            "service_type",
             "cleaning_type",
             "property_address",
             "postcode",
@@ -351,6 +352,12 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
             "preferred_time",
             "special_requirements",
             "access_instructions",
+            "is_ndis_client",
+            "ndis_participant_number",
+            "plan_manager_name",
+            "plan_manager_contact",
+            "support_coordinator_name",
+            "support_coordinator_contact",
             "items",
         ]
 
@@ -363,7 +370,8 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_square_meters(self, value):
-        validate_square_meters(value)
+        if value:
+            validate_square_meters(value)
         return value
 
     def validate_urgency_level(self, value):
@@ -371,26 +379,46 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_preferred_date(self, value):
-        validate_preferred_date(value)
+        if value:
+            validate_preferred_date(value)
         return value
 
     def validate_preferred_time(self, value):
-        validate_preferred_time(value)
+        if value:
+            validate_preferred_time(value)
+        return value
+
+    def validate_ndis_participant_number(self, value):
+        if value:
+            validate_ndis_participant_number(value)
         return value
 
     def validate(self, attrs):
+        if attrs.get("is_ndis_client") and not attrs.get("ndis_participant_number"):
+            raise serializers.ValidationError(
+                {
+                    "ndis_participant_number": "NDIS participant number is required for NDIS clients."
+                }
+            )
+
         QuoteValidator.validate_quote_creation(attrs)
         return attrs
 
     def create(self, validated_data):
-
-        service_type = validated_data.pop('service_type', None)
+        service_type = validated_data.pop("service_type", None)
         if service_type:
             from services.models import Service
-            service = Service.objects.filter(service_type=service_type).first()
-            if service:
+
+            try:
+                service = Service.objects.get(service_type=service_type)
                 validated_data["service"] = service
-        
+            except Service.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"Service with type '{service_type}' not found"
+                )
+        else:
+            raise serializers.ValidationError("Service type is required")
+
         items_data = validated_data.pop("items", [])
         request = self.context.get("request")
 
@@ -402,6 +430,7 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
 
         quote.update_pricing()
         return quote
+
 class QuoteUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -419,6 +448,12 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
             "preferred_time",
             "special_requirements",
             "access_instructions",
+            "is_ndis_client",
+            "ndis_participant_number",
+            "plan_manager_name",
+            "plan_manager_contact",
+            "support_coordinator_name",
+            "support_coordinator_contact",
         ]
 
     def validate_postcode(self, value):
@@ -430,7 +465,8 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_square_meters(self, value):
-        validate_square_meters(value)
+        if value:
+            validate_square_meters(value)
         return value
 
     def validate_urgency_level(self, value):
@@ -438,14 +474,26 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_preferred_date(self, value):
-        validate_preferred_date(value)
+        if value:
+            validate_preferred_date(value)
         return value
 
     def validate_preferred_time(self, value):
-        validate_preferred_time(value)
+        if value:
+            validate_preferred_time(value)
+        return value
+
+    def validate_ndis_participant_number(self, value):
+        if value:
+            validate_ndis_participant_number(value)
         return value
 
     def validate(self, attrs):
+        if attrs.get('is_ndis_client') and not attrs.get('ndis_participant_number'):
+            raise serializers.ValidationError({
+                'ndis_participant_number': 'NDIS participant number is required for NDIS clients.'
+            })
+        
         QuoteValidator.validate_quote_update(self.instance, attrs)
         return attrs
 
@@ -456,7 +504,6 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
         instance.save()
         instance.update_pricing()
         return instance
-
 
 class QuoteStatusUpdateSerializer(serializers.ModelSerializer):
 
@@ -469,10 +516,8 @@ class QuoteStatusUpdateSerializer(serializers.ModelSerializer):
         if new_status and new_status != self.instance.status:
             QuoteValidator.validate_quote_update(self.instance, {"status": new_status})
         return attrs
-
-
 class QuoteCalculatorSerializer(serializers.Serializer):
-    service_id = serializers.IntegerField()
+    service_id = serializers.CharField()
     cleaning_type = serializers.ChoiceField(choices=Quote.CLEANING_TYPE_CHOICES)
     number_of_rooms = serializers.IntegerField(min_value=1, max_value=50)
     square_meters = serializers.DecimalField(
@@ -492,10 +537,10 @@ class QuoteCalculatorSerializer(serializers.Serializer):
         from services.models import Service
 
         try:
-            service = Service.objects.get(id=value, is_active=True)
+            service = Service.objects.get(service_type=value, is_active=True)
             return value
         except Service.DoesNotExist:
-            raise serializers.ValidationError("Invalid or inactive service.")
+            raise serializers.ValidationError("Invalid or inactive service type.")
 
     def validate_addon_ids(self, value):
         if value:
@@ -509,7 +554,6 @@ class QuoteCalculatorSerializer(serializers.Serializer):
                     "One or more add-ons are invalid or inactive."
                 )
         return value
-
 
 class QuoteAssignmentSerializer(serializers.ModelSerializer):
     assigned_to_name = serializers.CharField(

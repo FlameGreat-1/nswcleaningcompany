@@ -410,7 +410,7 @@ class QuoteCalculatorView(APIView):
         if serializer.is_valid():
             try:
                 service = Service.objects.get(
-                    id=serializer.validated_data["service_id"], is_active=True
+                    service_type=serializer.validated_data["service_id"], is_active=True
                 )
 
                 addon_ids = serializer.validated_data.get("addon_ids", [])
@@ -446,8 +446,6 @@ class QuoteCalculatorView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class QuoteItemViewSet(viewsets.ModelViewSet):
     queryset = QuoteItem.objects.all()
     serializer_class = QuoteItemSerializer
