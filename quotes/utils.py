@@ -226,10 +226,15 @@ def calculate_urgency_surcharge(base_price, urgency_level):
 
     return surcharge.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+
 def calculate_discount(subtotal, quote_data):
     discount_amount = Decimal("0.00")
 
-    if hasattr(quote_data, 'is_ndis_client'):
+    if isinstance(quote_data, bool):
+        is_ndis = quote_data
+        is_repeat_customer = False
+        promotional_discount = Decimal("0.00")
+    elif hasattr(quote_data, "is_ndis_client"):
         is_ndis = quote_data.is_ndis_client
         is_repeat_customer = False
         promotional_discount = Decimal("0.00")
@@ -252,7 +257,6 @@ def calculate_discount(subtotal, quote_data):
         discount_amount = max_discount
 
     return discount_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
 
 def calculate_gst(taxable_amount):
     gst_rate = Decimal("0.10")
