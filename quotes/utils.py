@@ -11,7 +11,7 @@ import logging
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch
-from reportlab.lib.colors import black, blue, red, green
+from reportlab.lib.colors import black, blue, red, green, white 
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from io import BytesIO
@@ -19,15 +19,24 @@ from io import BytesIO
 logger = logging.getLogger(__name__)
 
 
-def calculate_quote_pricing(quote_data):
+def calculate_quote_pricing(quote):
     try:
-        service = quote_data.get("service")
-        cleaning_type = quote_data.get("cleaning_type", "general")
-        number_of_rooms = quote_data.get("number_of_rooms", 1)
-        square_meters = quote_data.get("square_meters")
-        urgency_level = quote_data.get("urgency_level", 2)
-        postcode = quote_data.get("postcode", "2000")
-        addons = quote_data.get("addons", [])
+        if hasattr(quote, 'service'):
+            service = quote.service
+            cleaning_type = quote.cleaning_type
+            number_of_rooms = quote.number_of_rooms
+            square_meters = quote.square_meters
+            urgency_level = quote.urgency_level
+            postcode = quote.postcode
+            addons = []  
+        else:
+            service = quote.get("service")
+            cleaning_type = quote.get("cleaning_type", "general")
+            number_of_rooms = quote.get("number_of_rooms", 1)
+            square_meters = quote.get("square_meters")
+            urgency_level = quote.get("urgency_level", 2)
+            postcode = quote.get("postcode", "2000")
+            addons = quote.get("addons", [])
 
         base_price = calculate_base_price(
             service, cleaning_type, number_of_rooms, square_meters
@@ -37,7 +46,7 @@ def calculate_quote_pricing(quote_data):
         urgency_surcharge = calculate_urgency_surcharge(base_price, urgency_level)
 
         subtotal = base_price + extras_cost + travel_cost + urgency_surcharge
-        discount_amount = calculate_discount(subtotal, quote_data)
+        discount_amount = calculate_discount(subtotal, quote)
         taxable_amount = subtotal - discount_amount
         gst_amount = calculate_gst(taxable_amount)
         total_price = taxable_amount + gst_amount
@@ -50,7 +59,7 @@ def calculate_quote_pricing(quote_data):
             "subtotal": subtotal,
             "discount_amount": discount_amount,
             "gst_amount": gst_amount,
-            "total_price": total_price,
+            "final_price": total_price,  
             "quote_valid_until": timezone.now() + timedelta(days=30),
             "breakdown": {
                 "service_name": service.name if service else "Unknown",
@@ -65,7 +74,6 @@ def calculate_quote_pricing(quote_data):
     except Exception as e:
         logger.error(f"Quote pricing calculation failed: {str(e)}")
         raise
-
 
 def calculate_base_price(service, cleaning_type, number_of_rooms, square_meters=None):
     if not service:
