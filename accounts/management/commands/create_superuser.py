@@ -10,7 +10,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         User = get_user_model()
-        email = "softverse.com@gmail.com"
+        email = "admin@nswcleaningcompany.com"
 
         self.stdout.write("🔍 Checking for existing superuser...")
         logger.info(f"Checking for superuser: {email}")
