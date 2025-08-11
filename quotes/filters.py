@@ -197,7 +197,7 @@ class QuoteFilter(django_filters.FilterSet):
             return queryset.filter(
                 Q(client__first_name__icontains=value)
                 | Q(client__last_name__icontains=value)
-                | Q(client__username__icontains=value)
+                | Q(client__email__icontains=value)
             )
         return queryset
 
