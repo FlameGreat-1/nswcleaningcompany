@@ -21,15 +21,19 @@ logger = logging.getLogger(__name__)
 
 def calculate_quote_pricing(quote):
     try:
+        # Handle both Quote objects and dictionaries
         if hasattr(quote, 'service'):
+            # It's a Quote model instance
             service = quote.service
             cleaning_type = quote.cleaning_type
             number_of_rooms = quote.number_of_rooms
             square_meters = quote.square_meters
             urgency_level = quote.urgency_level
             postcode = quote.postcode
-            addons = []  
+            addons = list(quote.items.all()) if hasattr(quote, 'items') else []
+            is_ndis_client = quote.is_ndis_client
         else:
+            # It's a dictionary (from calculator)
             service = quote.get("service")
             cleaning_type = quote.get("cleaning_type", "general")
             number_of_rooms = quote.get("number_of_rooms", 1)
@@ -37,6 +41,7 @@ def calculate_quote_pricing(quote):
             urgency_level = quote.get("urgency_level", 2)
             postcode = quote.get("postcode", "2000")
             addons = quote.get("addons", [])
+            is_ndis_client = quote.get("is_ndis_client", False)
 
         base_price = calculate_base_price(
             service, cleaning_type, number_of_rooms, square_meters
@@ -46,7 +51,7 @@ def calculate_quote_pricing(quote):
         urgency_surcharge = calculate_urgency_surcharge(base_price, urgency_level)
 
         subtotal = base_price + extras_cost + travel_cost + urgency_surcharge
-        discount_amount = calculate_discount(subtotal, quote)
+        discount_amount = calculate_discount(subtotal, is_ndis_client)
         taxable_amount = subtotal - discount_amount
         gst_amount = calculate_gst(taxable_amount)
         total_price = taxable_amount + gst_amount
@@ -59,7 +64,7 @@ def calculate_quote_pricing(quote):
             "subtotal": subtotal,
             "discount_amount": discount_amount,
             "gst_amount": gst_amount,
-            "final_price": total_price,  
+            "final_price": total_price,
             "quote_valid_until": timezone.now() + timedelta(days=30),
             "breakdown": {
                 "service_name": service.name if service else "Unknown",
@@ -221,19 +226,24 @@ def calculate_urgency_surcharge(base_price, urgency_level):
 
     return surcharge.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-
 def calculate_discount(subtotal, quote_data):
     discount_amount = Decimal("0.00")
 
-    is_ndis = quote_data.get("is_ndis_client", False)
+    if hasattr(quote_data, 'is_ndis_client'):
+        is_ndis = quote_data.is_ndis_client
+        is_repeat_customer = False
+        promotional_discount = Decimal("0.00")
+    else:
+        is_ndis = quote_data.get("is_ndis_client", False)
+        is_repeat_customer = quote_data.get("is_repeat_customer", False)
+        promotional_discount = quote_data.get("promotional_discount", Decimal("0.00"))
+
     if is_ndis:
         discount_amount += subtotal * Decimal("0.05")
 
-    is_repeat_customer = quote_data.get("is_repeat_customer", False)
     if is_repeat_customer:
         discount_amount += subtotal * Decimal("0.03")
 
-    promotional_discount = quote_data.get("promotional_discount", Decimal("0.00"))
     if promotional_discount:
         discount_amount += promotional_discount
 
