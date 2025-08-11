@@ -1,5 +1,4 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from django.urls import path
 from .views import (
     QuoteViewSet,
     QuoteItemViewSet,
@@ -26,15 +25,8 @@ from .views import (
 
 app_name = "quotes"
 
-# Create router ONLY for secondary ViewSets
-router = DefaultRouter()
-router.register(r"templates", QuoteTemplateViewSet, basename="template")
-router.register(r"items", QuoteItemViewSet, basename="item")
-router.register(r"attachments", QuoteAttachmentViewSet, basename="attachment")
-router.register(r"revisions", QuoteRevisionViewSet, basename="revision")
-
 urlpatterns = [
-    # Custom list views FIRST
+    # Custom views FIRST (to avoid conflicts)
     path("my-quotes/", MyQuotesView.as_view(), name="my-quotes"),
     path("pending/", PendingQuotesView.as_view(), name="pending-quotes"),
     path("expiring/", ExpiringQuotesView.as_view(), name="expiring-quotes"),
@@ -69,7 +61,21 @@ urlpatterns = [
     path(
         "monthly-trends/", QuoteMonthlyTrendsView.as_view(), name="quote-monthly-trends"
     ),
-    # Main QuoteViewSet URLs - Manual configuration
+    path(
+        "bulk-operations/",
+        QuoteViewSet.as_view({"post": "bulk_operations"}),
+        name="quote-bulk-operations",
+    ),
+    path(
+        "statistics/",
+        QuoteViewSet.as_view({"get": "statistics"}),
+        name="quote-statistics",
+    ),
+    path(
+        "dashboard/", QuoteViewSet.as_view({"get": "dashboard"}), name="quote-dashboard"
+    ),
+    path("search/", QuoteViewSet.as_view({"post": "search"}), name="quote-search"),
+    # Main quote CRUD operations
     path(
         "", QuoteViewSet.as_view({"get": "list", "post": "create"}), name="quote-list"
     ),
@@ -85,6 +91,7 @@ urlpatterns = [
         ),
         name="quote-detail",
     ),
+    # Quote actions
     path(
         "<uuid:pk>/submit/",
         QuoteViewSet.as_view({"post": "submit"}),
@@ -126,20 +133,86 @@ urlpatterns = [
         QuoteViewSet.as_view({"post": "recalculate_pricing"}),
         name="quote-recalculate",
     ),
+    # Templates
     path(
-        "bulk-operations/",
-        QuoteViewSet.as_view({"post": "bulk_operations"}),
-        name="quote-bulk-operations",
+        "templates/",
+        QuoteTemplateViewSet.as_view({"get": "list", "post": "create"}),
+        name="template-list",
     ),
     path(
-        "statistics/",
-        QuoteViewSet.as_view({"get": "statistics"}),
-        name="quote-statistics",
+        "templates/<int:pk>/",
+        QuoteTemplateViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="template-detail",
     ),
     path(
-        "dashboard/", QuoteViewSet.as_view({"get": "dashboard"}), name="quote-dashboard"
+        "templates/<int:pk>/use-template/",
+        QuoteTemplateViewSet.as_view({"post": "use_template"}),
+        name="template-use",
     ),
-    path("search/", QuoteViewSet.as_view({"post": "search"}), name="quote-search"),
-    # Include router URLs for other ViewSets
-    path("", include(router.urls)),
+    # Items
+    path(
+        "items/",
+        QuoteItemViewSet.as_view({"get": "list", "post": "create"}),
+        name="item-list",
+    ),
+    path(
+        "items/<int:pk>/",
+        QuoteItemViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="item-detail",
+    ),
+    # Attachments
+    path(
+        "attachments/",
+        QuoteAttachmentViewSet.as_view({"get": "list", "post": "create"}),
+        name="attachment-list",
+    ),
+    path(
+        "attachments/<int:pk>/",
+        QuoteAttachmentViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="attachment-detail",
+    ),
+    path(
+        "attachments/<int:pk>/download/",
+        QuoteAttachmentViewSet.as_view({"get": "download"}),
+        name="attachment-download",
+    ),
+    # Revisions
+    path(
+        "revisions/",
+        QuoteRevisionViewSet.as_view({"get": "list", "post": "create"}),
+        name="revision-list",
+    ),
+    path(
+        "revisions/<int:pk>/",
+        QuoteRevisionViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="revision-detail",
+    ),
 ]
