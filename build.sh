@@ -20,7 +20,6 @@ python manage.py collectstatic --noinput --clear
 echo "🔧 Fixing QuoteTemplate migration..."
 python manage.py shell << EOF
 from django.db import connection
-from django.core.management.color import no_style
 
 try:
     with connection.cursor() as cursor:
