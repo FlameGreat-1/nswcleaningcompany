@@ -82,7 +82,6 @@ from .utils import (
 )
 from services.models import Service, ServiceAddOn
 
-
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -131,7 +130,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
         elif self.action == "create":
             permission_classes = [permissions.IsAuthenticated]
         elif self.action in ["retrieve", "update", "partial_update"]:
-            permission_classes = [IsQuoteOwnerOrStaff]
+            permission_classes = [permissions.IsAuthenticated]
         elif self.action == "destroy":
             permission_classes = [CanDeleteQuote]
         elif self.action in ["approve", "reject"]:
@@ -145,9 +144,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
         elif self.action == "convert":
             permission_classes = [IsStaffUser]
         else:
-            permission_classes = [IsQuoteOwnerOrStaff]
+            permission_classes = [permissions.IsAuthenticated]
 
-        return [permission() for permission in permission_classes]
+        return [permission() for permission in permission_classes]    
 
     def get_queryset(self):
         queryset = Quote.objects.select_related(
