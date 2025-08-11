@@ -401,8 +401,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
             return Response(result_serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class QuoteCalculatorView(APIView):
     permission_classes = [permissions.AllowAny]
 

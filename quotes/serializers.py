@@ -331,14 +331,14 @@ class QuoteDetailSerializer(serializers.ModelSerializer):
             "expires_at",
         ]
 
-
 class QuoteCreateSerializer(serializers.ModelSerializer):
+    service_type = serializers.CharField(write_only=True, required=True)
     items = QuoteItemSerializer(many=True, required=False)
 
     class Meta:
         model = Quote
         fields = [
-            "service",
+            "service_type",  # Changed from "service" to "service_type"
             "cleaning_type",
             "property_address",
             "postcode",
@@ -383,6 +383,14 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+
+        service_type = validated_data.pop('service_type', None)
+        if service_type:
+            from services.models import Service
+            service = Service.objects.filter(service_type=service_type).first()
+            if service:
+                validated_data["service"] = service
+        
         items_data = validated_data.pop("items", [])
         request = self.context.get("request")
 
@@ -394,8 +402,6 @@ class QuoteCreateSerializer(serializers.ModelSerializer):
 
         quote.update_pricing()
         return quote
-
-
 class QuoteUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
