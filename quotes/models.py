@@ -736,7 +736,6 @@ class QuoteRevision(models.Model):
 class QuoteTemplate(models.Model):
     """Reusable quote templates for common services"""
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(
         max_length=200, validators=[validate_template_name], help_text="Template name"
     )
