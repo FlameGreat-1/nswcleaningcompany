@@ -42,6 +42,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "quotes.middleware.DatabaseConsistencyMiddleware",
+    "quotes.middleware.QuoteAccessMiddleware",
+    "quotes.middleware.TransactionDebugMiddleware",
 ]
 
 ROOT_URLCONF = "cleaning_service.urls"
