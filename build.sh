@@ -25,23 +25,7 @@ python manage.py migrate --noinput
 
 # Create superuser if it doesn't exist
 echo "👤 Creating superuser if needed..."
-python manage.py shell << EOF
-from django.contrib.auth import get_user_model
-User = get_user_model()
-if not User.objects.filter(is_superuser=True).exists():
-    try:
-        User.objects.create_superuser(
-            email='admin@nswcleaningcompany.com.au',
-            password='admin123',
-            first_name='Admin',
-            last_name='User'
-        )
-        print("✅ Superuser created successfully")
-    except Exception as e:
-        print(f"❌ Error creating superuser: {e}")
-else:
-    print("✅ Superuser already exists")
-EOF
+python manage.py create_superuser
 
 # Warm up the application
 echo "🔥 Warming up application..."

@@ -281,6 +281,13 @@ class ServiceAddOnAdmin(admin.ModelAdmin):
     service_count.short_description = "Services"
 
 
+class ServiceAddOnInline(admin.TabularInline):
+    model = ServiceAddOn.services.through
+    extra = 1
+    verbose_name = "Add-on"
+    verbose_name_plural = "Available Add-ons"
+
+
 @admin.register(Service)
 class ServiceAdmin(admin.ModelAdmin):
     list_display = (
@@ -310,8 +317,8 @@ class ServiceAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
     ordering = ("display_order", "name")
     readonly_fields = ("created_at", "updated_at", "price_display", "duration_display")
-    filter_horizontal = ("service_areas", "addons")
-    inlines = [ServiceAvailabilityInline, ServicePricingInline]
+    filter_horizontal = ("service_areas",)
+    inlines = [ServiceAvailabilityInline, ServicePricingInline, ServiceAddOnInline]
 
     fieldsets = (
         (
@@ -365,7 +372,7 @@ class ServiceAdmin(admin.ModelAdmin):
         ),
         (
             "Associations",
-            {"fields": ("service_areas", "addons"), "classes": ("collapse",)},
+            {"fields": ("service_areas",), "classes": ("collapse",)},
         ),
         (
             "Timestamps",
@@ -440,7 +447,6 @@ class ServiceAdmin(admin.ModelAdmin):
             .prefetch_related("service_areas", "addons")
         )
 
-
 @admin.register(ServiceAvailability)
 class ServiceAvailabilityAdmin(admin.ModelAdmin):
     list_display = (
@@ -506,4 +512,3 @@ class ServicePricingAdmin(admin.ModelAdmin):
 admin.site.site_header = "Professional Cleaning Service Administration"
 admin.site.site_title = "Cleaning Service Admin"
 admin.site.index_title = "Service Management Dashboard"
-
