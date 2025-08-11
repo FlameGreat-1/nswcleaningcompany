@@ -16,6 +16,25 @@ pip install -r requirements.txt
 echo "🎨 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
+# Fix QuoteTemplate migration issue
+echo "🔧 Fixing QuoteTemplate migration..."
+python manage.py shell << EOF
+from django.db import connection
+from django.core.management.color import no_style
+
+try:
+    with connection.cursor() as cursor:
+        # Drop the problematic table if it exists
+        cursor.execute("DROP TABLE IF EXISTS quotes_quote_template CASCADE;")
+        
+        # Remove migration records for QuoteTemplate
+        cursor.execute("DELETE FROM django_migrations WHERE app = 'quotes' AND name LIKE '%quotetemplate%';")
+        
+        print("✅ QuoteTemplate table and migrations cleaned up")
+except Exception as e:
+    print(f"⚠️ QuoteTemplate cleanup: {e}")
+EOF
+
 # Create and run database migrations
 echo "🗄️ Creating new migrations..."
 python manage.py makemigrations --noinput
@@ -48,5 +67,3 @@ echo "🔥 Warming up application..."
 python manage.py check --deploy
 
 echo "✅ Build completed successfully!"
-
-#####################################################~~~~~~~~~~~~~~~~~ FLAME GREAT ~~~~~~~~~~~~~~~~~~~~~~~~~~#########################################################
