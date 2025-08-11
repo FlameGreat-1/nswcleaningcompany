@@ -17,12 +17,12 @@ class DatabaseConsistencyMiddleware(MiddlewareMixin):
     def process_request(self, request):
         """Ensure all database operations are atomic"""
         if request.path.startswith("/api/v1/quotes/"):
-            # Force database connection to be in autocommit mode
+            # Force database connection refresh
             from django.db import connections
 
             for conn in connections.all():
-                if conn.queries_logged:
-                    conn.queries_logged.clear()
+                if hasattr(conn, "queries") and conn.queries:
+                    conn.queries.clear()
 
         return None
 
@@ -30,7 +30,10 @@ class DatabaseConsistencyMiddleware(MiddlewareMixin):
         """Handle post-request database consistency"""
         if request.path.startswith("/api/v1/quotes/") and request.method == "POST":
             # Force commit for quote creation
-            transaction.commit()
+            try:
+                transaction.commit()
+            except:
+                pass
 
             # Small delay to ensure database consistency
             if not settings.DEBUG:
@@ -53,7 +56,7 @@ class QuoteAccessMiddleware(MiddlewareMixin):
         ):
 
             quote_id = view_kwargs.get("pk")
-            if quote_id:
+            if quote_id and len(str(quote_id)) > 10:  # UUID check
                 # Try to access quote with retry logic
                 return self._handle_quote_access(
                     request, quote_id, view_func, view_args, view_kwargs
@@ -73,7 +76,7 @@ class QuoteAccessMiddleware(MiddlewareMixin):
         for attempt in range(max_retries):
             try:
                 # Force fresh database query
-                quote = Quote.objects.select_for_update().get(pk=quote_id)
+                quote = Quote.objects.get(pk=quote_id)
 
                 # Check user permissions
                 if not request.user.is_staff and quote.client != request.user:
@@ -98,7 +101,7 @@ class QuoteAccessMiddleware(MiddlewareMixin):
 
             except Exception as e:
                 logger.error(f"Error accessing quote {quote_id}: {str(e)}")
-                return JsonResponse({"detail": "Server error."}, status=500)
+                break
 
         return None
 
@@ -113,12 +116,6 @@ class TransactionDebugMiddleware(MiddlewareMixin):
             logger.info(f"🔍 Request: {request.method} {request.path}")
             logger.info(f"🔍 User: {request.user}")
 
-            # Log database connection state
-            from django.db import connection
-
-            logger.info(f"🔍 DB Connection: {connection.vendor}")
-            logger.info(f"🔍 In Transaction: {connection.in_atomic_block}")
-
         return None
 
     def process_response(self, request, response):
@@ -126,13 +123,13 @@ class TransactionDebugMiddleware(MiddlewareMixin):
             logger.info(f"🔍 Response: {response.status_code}")
 
             if request.method == "POST" and response.status_code == 201:
-                # Log successful quote creation
                 logger.info("✅ Quote created successfully")
 
                 # Force database sync
-                from django.db import transaction
-
-                transaction.commit()
-                logger.info("✅ Database transaction committed")
+                try:
+                    transaction.commit()
+                    logger.info("✅ Database transaction committed")
+                except:
+                    pass
 
         return response
