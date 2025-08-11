@@ -49,47 +49,35 @@ class Quote(models.Model):
         (5, "Emergency (ASAP)"),
     )
 
-    # Primary identifiers
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     quote_number = models.CharField(
         max_length=20,
         unique=True,
         validators=[validate_quote_number],
-        help_text="Auto-generated quote number (QT-YYYY-NNNN)",
     )
 
-    # Client information
     client = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="quotes",
-        help_text="Client who requested the quote",
     )
 
-    # Service details
     service = models.ForeignKey(
         "services.Service",
         on_delete=models.CASCADE,
         related_name="quotes",
-        help_text="Primary service being quoted",
     )
 
     cleaning_type = models.CharField(
         max_length=20,
         choices=CLEANING_TYPE_CHOICES,
-        help_text="Type of cleaning service",
     )
 
-    # Property details
-    property_address = models.TextField(
-        help_text="Full property address for the cleaning service"
-    )
+    property_address = models.TextField()
 
-    postcode = models.CharField(
-        max_length=4, help_text="Property postcode for service area validation"
-    )
+    postcode = models.CharField(max_length=4)
 
-    suburb = models.CharField(max_length=100, help_text="Property suburb")
+    suburb = models.CharField(max_length=100)
 
     state = models.CharField(
         max_length=3,
@@ -103,13 +91,9 @@ class Quote(models.Model):
             ("ACT", "Australian Capital Territory"),
             ("NT", "Northern Territory"),
         ),
-        help_text="Property state",
     )
 
-    # Service specifications
-    number_of_rooms = models.PositiveIntegerField(
-        validators=[validate_room_count], help_text="Number of rooms to be cleaned"
-    )
+    number_of_rooms = models.PositiveIntegerField(validators=[validate_room_count])
 
     square_meters = models.DecimalField(
         max_digits=8,
@@ -117,143 +101,95 @@ class Quote(models.Model):
         null=True,
         blank=True,
         validators=[validate_square_meters],
-        help_text="Property size in square meters (optional)",
     )
 
     urgency_level = models.PositiveIntegerField(
         choices=URGENCY_LEVEL_CHOICES,
         default=2,
         validators=[validate_urgency_level],
-        help_text="Service urgency level (affects pricing)",
     )
 
-    # Scheduling
-    preferred_date = models.DateField(
-        null=True, blank=True, help_text="Client's preferred service date"
-    )
+    preferred_date = models.DateField(null=True, blank=True)
 
-    preferred_time = models.TimeField(
-        null=True, blank=True, help_text="Client's preferred service time"
-    )
+    preferred_time = models.TimeField(null=True, blank=True)
 
-    # Special requirements
-    special_requirements = models.TextField(
-        blank=True, help_text="Any special cleaning requirements or instructions"
-    )
+    special_requirements = models.TextField(blank=True)
 
-    access_instructions = models.TextField(
-        blank=True, help_text="Property access instructions (keys, codes, etc.)"
-    )
+    access_instructions = models.TextField(blank=True)
 
-    # NDIS specific fields
-    is_ndis_client = models.BooleanField(
-        default=False, help_text="Whether this is an NDIS client quote"
-    )
+    is_ndis_client = models.BooleanField(default=False)
 
-    ndis_participant_number = models.CharField(
-        max_length=9, blank=True, help_text="NDIS participant number (if applicable)"
-    )
+    ndis_participant_number = models.CharField(max_length=9, blank=True)
 
-    plan_manager_name = models.CharField(
-        max_length=200, blank=True, help_text="NDIS plan manager name (if applicable)"
-    )
+    plan_manager_name = models.CharField(max_length=200, blank=True)
 
-    plan_manager_contact = models.CharField(
-        max_length=100, blank=True, help_text="NDIS plan manager contact details"
-    )
+    plan_manager_contact = models.CharField(max_length=100, blank=True)
 
-    support_coordinator_name = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text="NDIS support coordinator name (if applicable)",
-    )
+    support_coordinator_name = models.CharField(max_length=200, blank=True)
 
-    support_coordinator_contact = models.CharField(
-        max_length=100, blank=True, help_text="NDIS support coordinator contact details"
-    )
+    support_coordinator_contact = models.CharField(max_length=100, blank=True)
 
-    # Pricing details
     estimated_total = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Auto-calculated estimated total price",
     )
 
     base_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Base service price",
     )
 
     extras_cost = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Cost of additional services/extras",
     )
 
     travel_cost = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Travel cost based on location",
     )
 
     urgency_surcharge = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Additional cost for urgent service",
     )
 
     discount_amount = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Discount applied to the quote",
     )
 
     gst_amount = models.DecimalField(
         max_digits=8,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="GST amount (10% in Australia)",
     )
 
     final_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
-        help_text="Final price including all adjustments",
     )
 
-    # Quote status and workflow
     status = models.CharField(
         max_length=20,
         choices=QUOTE_STATUS_CHOICES,
         default="draft",
-        help_text="Current quote status",
     )
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    submitted_at = models.DateTimeField(
-        null=True, blank=True, help_text="When the quote was submitted by client"
-    )
-    reviewed_at = models.DateTimeField(
-        null=True, blank=True, help_text="When the quote was reviewed by staff"
-    )
-    approved_at = models.DateTimeField(
-        null=True, blank=True, help_text="When the quote was approved"
-    )
-    expires_at = models.DateTimeField(
-        null=True, blank=True, help_text="Quote expiration date"
-    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
 
-    # Staff handling
     assigned_to = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -261,7 +197,6 @@ class Quote(models.Model):
         blank=True,
         related_name="assigned_quotes",
         limit_choices_to={"is_staff": True},
-        help_text="Staff member assigned to handle this quote",
     )
 
     reviewed_by = models.ForeignKey(
@@ -271,35 +206,22 @@ class Quote(models.Model):
         blank=True,
         related_name="reviewed_quotes",
         limit_choices_to={"is_staff": True},
-        help_text="Staff member who reviewed the quote",
     )
 
-    # Notes and communication
-    admin_notes = models.TextField(
-        blank=True, help_text="Internal notes for staff (not visible to client)"
-    )
+    admin_notes = models.TextField(blank=True)
 
-    client_notes = models.TextField(blank=True, help_text="Notes visible to client")
+    client_notes = models.TextField(blank=True)
 
-    rejection_reason = models.TextField(
-        blank=True, help_text="Reason for quote rejection (if applicable)"
-    )
+    rejection_reason = models.TextField(blank=True)
 
-    # Tracking and analytics
-    source = models.CharField(
-        max_length=50,
-        default="website",
-        help_text="How the quote was generated (website, phone, etc.)",
-    )
+    source = models.CharField(max_length=50, default="website")
 
     conversion_rate_applied = models.DecimalField(
         max_digits=5,
         decimal_places=4,
         default=Decimal("1.0000"),
-        help_text="Conversion rate applied for pricing calculations",
     )
 
-    # Custom manager
     objects = QuoteManager()
 
     class Meta:
@@ -320,44 +242,26 @@ class Quote(models.Model):
         return f"Quote {self.quote_number} - {self.client.get_full_name()}"
 
     def save(self, *args, **kwargs):
-        # Generate quote number if not exists
         if not self.quote_number:
             self.quote_number = self.generate_quote_number()
 
-        # Set NDIS fields based on client
-        if hasattr(self.client, "client_profile") and self.client.client_profile:
-            profile = self.client.client_profile
-            if profile.client_type == "ndis":
-                self.is_ndis_client = True
-                self.ndis_participant_number = profile.ndis_number or ""
-                self.plan_manager_name = profile.plan_manager_name or ""
-                self.plan_manager_contact = profile.plan_manager_contact or ""
-                self.support_coordinator_name = profile.support_coordinator_name or ""
-                self.support_coordinator_contact = (
-                    profile.support_coordinator_contact or ""
-                )
-
-        # Set expiration date
         if not self.expires_at and self.status in ["approved"]:
             self.expires_at = timezone.now() + timezone.timedelta(days=30)
 
         super().save(*args, **kwargs)
 
     def generate_quote_number(self):
-        """Generate unique quote number in format QT-YYYY-NNNN"""
         from django.db.models import Max
         import re
 
         current_year = timezone.now().year
         prefix = f"QT-{current_year}-"
 
-        # Get the highest number for current year
         latest_quote = Quote.objects.filter(quote_number__startswith=prefix).aggregate(
             Max("quote_number")
         )["quote_number__max"]
 
         if latest_quote:
-            # Extract number from QT-YYYY-NNNN format
             match = re.search(r"-(\d{4})$", latest_quote)
             if match:
                 next_number = int(match.group(1)) + 1
@@ -370,14 +274,12 @@ class Quote(models.Model):
 
     @property
     def is_expired(self):
-        """Check if quote has expired"""
         if self.expires_at:
             return timezone.now() > self.expires_at
         return False
 
     @property
     def days_until_expiry(self):
-        """Get days until quote expires"""
         if self.expires_at:
             delta = self.expires_at - timezone.now()
             return max(0, delta.days)
@@ -385,26 +287,22 @@ class Quote(models.Model):
 
     @property
     def can_be_accepted(self):
-        """Check if quote can be accepted by client"""
         return (
             self.status == "approved" and not self.is_expired and self.final_price > 0
         )
 
     @property
     def total_items_cost(self):
-        """Calculate total cost of all quote items"""
         return self.items.aggregate(
             total=models.Sum(models.F("quantity") * models.F("unit_price"))
         )["total"] or Decimal("0.00")
 
     def calculate_pricing(self):
-        """Calculate all pricing components"""
         from .utils import calculate_quote_pricing
 
         return calculate_quote_pricing(self)
 
     def update_pricing(self):
-        """Update all pricing fields based on current data"""
         pricing_data = self.calculate_pricing()
 
         self.base_price = pricing_data["base_price"]
@@ -430,7 +328,6 @@ class Quote(models.Model):
         )
 
     def submit_quote(self):
-        """Submit quote for review"""
         if self.status == "draft":
             self.status = "submitted"
             self.submitted_at = timezone.now()
@@ -439,7 +336,6 @@ class Quote(models.Model):
         return False
 
     def approve_quote(self, approved_by_user):
-        """Approve the quote"""
         if self.status in ["submitted", "under_review"]:
             self.status = "approved"
             self.approved_at = timezone.now()
@@ -452,7 +348,6 @@ class Quote(models.Model):
         return False
 
     def reject_quote(self, rejected_by_user, reason=""):
-        """Reject the quote"""
         if self.status in ["submitted", "under_review"]:
             self.status = "rejected"
             self.reviewed_at = timezone.now()
@@ -468,6 +363,8 @@ class Quote(models.Model):
             )
             return True
         return False
+
+
 class QuoteItem(models.Model):
     """Individual items/services within a quote"""
 
