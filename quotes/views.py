@@ -160,7 +160,19 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        serializer.save(client=self.request.user)
+        quote = serializer.save(client=self.request.user)
+        return quote
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        quote = self.perform_create(serializer)
+
+        response_serializer = QuoteDetailSerializer(quote, context={"request": request})
+        headers = self.get_success_headers(response_serializer.data)
+        return Response(
+            response_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
@@ -258,7 +270,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         if serializer.is_valid():
             new_quote = duplicate_quote(quote, request.user, serializer.validated_data)
-            response_serializer = QuoteDetailSerializer(new_quote)
+            response_serializer = QuoteDetailSerializer(
+                new_quote, context={"request": request}
+            )
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -311,7 +325,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         if quote.status in ["draft", "submitted", "under_review"]:
             quote.update_pricing()
-            serializer = QuoteDetailSerializer(quote)
+            serializer = QuoteDetailSerializer(quote, context={"request": request})
             return Response(serializer.data)
 
         return Response(
@@ -624,8 +638,10 @@ class QuoteTemplateViewSet(viewsets.ModelViewSet):
         template = self.get_object()
 
         quote_data = {
-            "service": (
-                template.default_service.id if template.default_service else None
+            "service_type": (
+                template.default_service.service_type
+                if template.default_service
+                else None
             ),
             "cleaning_type": template.cleaning_type,
             "urgency_level": template.default_urgency_level,
@@ -642,14 +658,15 @@ class QuoteTemplateViewSet(viewsets.ModelViewSet):
             data=quote_data, context={"request": request}
         )
         if serializer.is_valid():
-            quote = serializer.save()
+            quote = serializer.save(client=request.user)
             template.increment_usage()
 
-            response_serializer = QuoteDetailSerializer(quote)
+            response_serializer = QuoteDetailSerializer(
+                quote, context={"request": request}
+            )
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class QuoteAnalyticsView(APIView):
     permission_classes = [CanViewQuoteAnalytics]
 
