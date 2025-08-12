@@ -285,7 +285,12 @@ LOGGING = {
         "console": {
             "level": "DEBUG",
             "class": "logging.StreamHandler",
-            "formatter": "simple",
+            "formatter": "verbose",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "debug.log",
+            "formatter": "verbose",
         },
     },
     "loggers": {
@@ -301,6 +306,16 @@ LOGGING = {
         },
         "accounts": {
             "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "quotes.views": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "quotes.middleware": {
+            "handlers": ["console", "file"],
             "level": "INFO",
             "propagate": True,
         },

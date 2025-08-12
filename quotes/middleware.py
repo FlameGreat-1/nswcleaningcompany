@@ -10,14 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseConsistencyMiddleware(MiddlewareMixin):
-    """
-    Middleware to handle database consistency issues and atomic transactions
-    """
 
     def process_request(self, request):
-        """Ensure all database operations are atomic"""
         if request.path.startswith("/api/v1/quotes/"):
-            # Force database connection refresh
             from django.db import connections
 
             for conn in connections.all():
@@ -27,15 +22,12 @@ class DatabaseConsistencyMiddleware(MiddlewareMixin):
         return None
 
     def process_response(self, request, response):
-        """Handle post-request database consistency"""
         if request.path.startswith("/api/v1/quotes/") and request.method == "POST":
-            # Force commit for quote creation
             try:
                 transaction.commit()
             except:
                 pass
 
-            # Small delay to ensure database consistency
             if not settings.DEBUG:
                 time.sleep(0.1)
 
@@ -43,12 +35,8 @@ class DatabaseConsistencyMiddleware(MiddlewareMixin):
 
 
 class QuoteAccessMiddleware(MiddlewareMixin):
-    """
-    Middleware specifically for quote access issues
-    """
 
     def process_view(self, request, view_func, view_args, view_kwargs):
-        """Handle quote access with retry logic"""
         if (
             request.path.startswith("/api/v1/quotes/")
             and "pk" in view_kwargs
@@ -56,8 +44,25 @@ class QuoteAccessMiddleware(MiddlewareMixin):
         ):
 
             quote_id = view_kwargs.get("pk")
-            if quote_id and len(str(quote_id)) > 10:  # UUID check
-                # Try to access quote with retry logic
+            logger.info(f"🔍 MIDDLEWARE - Processing quote access: {quote_id}")
+            logger.info(f"🔍 MIDDLEWARE - User: {request.user.id}")
+            logger.info(f"🔍 MIDDLEWARE - Path: {request.path}")
+            logger.info(f"🔍 MIDDLEWARE - View: {view_func}")
+
+            if quote_id and len(str(quote_id)) > 10:
+                from quotes.models import Quote
+
+                try:
+                    quote = Quote.objects.get(pk=quote_id)
+                    logger.info(
+                        f"🔍 MIDDLEWARE - Quote exists, client: {quote.client.id}"
+                    )
+                    logger.info(
+                        f"🔍 MIDDLEWARE - Access check: {quote.client == request.user}"
+                    )
+                except Quote.DoesNotExist:
+                    logger.error(f"🔍 MIDDLEWARE - Quote {quote_id} does not exist!")
+
                 return self._handle_quote_access(
                     request, quote_id, view_func, view_args, view_kwargs
                 )
@@ -67,7 +72,6 @@ class QuoteAccessMiddleware(MiddlewareMixin):
     def _handle_quote_access(
         self, request, quote_id, view_func, view_args, view_kwargs
     ):
-        """Handle quote access with database consistency checks"""
         from quotes.models import Quote
 
         max_retries = 3
@@ -75,14 +79,11 @@ class QuoteAccessMiddleware(MiddlewareMixin):
 
         for attempt in range(max_retries):
             try:
-                # Force fresh database query
                 quote = Quote.objects.get(pk=quote_id)
 
-                # Check user permissions
                 if not request.user.is_staff and quote.client != request.user:
                     return JsonResponse({"detail": "Not found."}, status=404)
 
-                # Quote exists and user has access, proceed normally
                 return None
 
             except Quote.DoesNotExist:
@@ -91,7 +92,7 @@ class QuoteAccessMiddleware(MiddlewareMixin):
                         f"Quote {quote_id} not found, retrying... (attempt {attempt + 1})"
                     )
                     time.sleep(retry_delay)
-                    retry_delay *= 2  # Exponential backoff
+                    retry_delay *= 2
                     continue
                 else:
                     logger.error(
@@ -107,9 +108,6 @@ class QuoteAccessMiddleware(MiddlewareMixin):
 
 
 class TransactionDebugMiddleware(MiddlewareMixin):
-    """
-    Debug middleware to log transaction states
-    """
 
     def process_request(self, request):
         if settings.DEBUG and request.path.startswith("/api/v1/quotes/"):
@@ -125,7 +123,6 @@ class TransactionDebugMiddleware(MiddlewareMixin):
             if request.method == "POST" and response.status_code == 201:
                 logger.info("✅ Quote created successfully")
 
-                # Force database sync
                 try:
                     transaction.commit()
                     logger.info("✅ Database transaction committed")

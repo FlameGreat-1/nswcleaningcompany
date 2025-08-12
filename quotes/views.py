@@ -82,6 +82,11 @@ from .utils import (
 )
 from services.models import Service, ServiceAddOn
 
+import logging
+from django.http import Http404
+
+logger = logging.getLogger(__name__)
+
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all()
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -149,14 +154,86 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]    
 
     def get_queryset(self):
+        logger.info(f"🔍 GET_QUERYSET - Action: {getattr(self, 'action', 'unknown')}")
+        logger.info(f"🔍 GET_QUERYSET - User: {self.request.user.id} ({self.request.user.email})")
+        logger.info(f"🔍 GET_QUERYSET - Is Staff: {self.request.user.is_staff}")
+        logger.info(f"🔍 GET_QUERYSET - Request Path: {self.request.path}")
+        
         queryset = Quote.objects.select_related(
             "client", "service", "assigned_to", "reviewed_by"
         ).prefetch_related("items", "attachments", "revisions")
+        
+        total_quotes = Quote.objects.count()
+        logger.info(f"🔍 GET_QUERYSET - Total quotes in DB: {total_quotes}")
 
         if not self.request.user.is_staff:
-            queryset = queryset.filter(client=self.request.user)
-
+            user_quotes = queryset.filter(client=self.request.user)
+            user_count = user_quotes.count()
+            logger.info(f"🔍 GET_QUERYSET - User's quotes: {user_count}")
+            
+            user_quote_ids = list(user_quotes.values_list('id', flat=True))
+            logger.info(f"🔍 GET_QUERYSET - User's quote IDs: {user_quote_ids}")
+            
+            return user_quotes
+        
+        logger.info(f"🔍 GET_QUERYSET - Staff user, returning all quotes")
         return queryset
+
+    def get_object(self):
+        logger.info(f"🔍 GET_OBJECT - Starting...")
+        logger.info(f"🔍 GET_OBJECT - Action: {getattr(self, 'action', 'unknown')}")
+        logger.info(f"🔍 GET_OBJECT - Kwargs: {self.kwargs}")
+        
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs.get(lookup_url_kwarg)
+        logger.info(f"🔍 GET_OBJECT - Looking for: {lookup_value}")
+        
+        queryset = self.filter_queryset(self.get_queryset())
+        logger.info(f"🔍 GET_OBJECT - Filtered queryset count: {queryset.count()}")
+        
+        try:
+            db_quote = Quote.objects.get(pk=lookup_value)
+            logger.info(f"🔍 GET_OBJECT - Quote exists in DB: {db_quote.id}")
+            logger.info(f"🔍 GET_OBJECT - Quote client: {db_quote.client.id} ({db_quote.client.email})")
+            logger.info(f"🔍 GET_OBJECT - Current user: {self.request.user.id} ({self.request.user.email})")
+            logger.info(f"🔍 GET_OBJECT - Client match: {db_quote.client == self.request.user}")
+        except Quote.DoesNotExist:
+            logger.error(f"🔍 GET_OBJECT - Quote {lookup_value} does NOT exist in database!")
+            raise Http404("Quote not found in database")
+        
+        filter_kwargs = {self.lookup_field: lookup_value}
+        try:
+            obj = queryset.get(**filter_kwargs)
+            logger.info(f"🔍 GET_OBJECT - Found in filtered queryset: {obj.id}")
+        except Quote.DoesNotExist:
+            logger.error(f"🔍 GET_OBJECT - Quote {lookup_value} filtered out by queryset!")
+            logger.error(f"🔍 GET_OBJECT - This means user doesn't have permission or queryset is wrong")
+            raise Http404("Quote not found in filtered results")
+        
+        logger.info(f"🔍 GET_OBJECT - Checking object permissions...")
+        self.check_object_permissions(self.request, obj)
+        logger.info(f"🔍 GET_OBJECT - Permissions OK, returning object")
+        
+        return obj
+
+    def retrieve(self, request, *args, **kwargs):
+        logger.info(f"🔍 RETRIEVE - Starting retrieve action")
+        logger.info(f"🔍 RETRIEVE - User: {request.user.id}")
+        logger.info(f"🔍 RETRIEVE - Args: {args}")
+        logger.info(f"🔍 RETRIEVE - Kwargs: {kwargs}")
+        
+        try:
+            instance = self.get_object()
+            logger.info(f"🔍 RETRIEVE - Got object: {instance.id}")
+            serializer = self.get_serializer(instance)
+            logger.info(f"🔍 RETRIEVE - Serialized successfully")
+            return Response(serializer.data)
+        except Http404 as e:
+            logger.error(f"🔍 RETRIEVE - Http404 error: {str(e)}")
+            raise
+        except Exception as e:
+            logger.error(f"🔍 RETRIEVE - Unexpected error: {str(e)}")
+            raise
 
     def perform_create(self, serializer):
         quote = serializer.save(client=self.request.user)
@@ -414,6 +491,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             return Response(result_serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class QuoteCalculatorView(APIView):
     permission_classes = [permissions.AllowAny]
 
