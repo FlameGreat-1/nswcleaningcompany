@@ -45,7 +45,11 @@ class QuoteAccessMiddleware(MiddlewareMixin):
 
             quote_id = view_kwargs.get("pk")
             logger.info(f"🔍 MIDDLEWARE - Processing quote access: {quote_id}")
-            logger.info(f"🔍 MIDDLEWARE - User: {request.user.id}")
+            logger.info(f"🔍 MIDDLEWARE - User: {request.user}")
+            logger.info(f"🔍 MIDDLEWARE - User ID: {getattr(request.user, 'id', None)}")
+            logger.info(
+                f"🔍 MIDDLEWARE - Is authenticated: {request.user.is_authenticated}"
+            )
             logger.info(f"🔍 MIDDLEWARE - Path: {request.path}")
             logger.info(f"🔍 MIDDLEWARE - View: {view_func}")
 
@@ -57,9 +61,19 @@ class QuoteAccessMiddleware(MiddlewareMixin):
                     logger.info(
                         f"🔍 MIDDLEWARE - Quote exists, client: {quote.client.id}"
                     )
-                    logger.info(
-                        f"🔍 MIDDLEWARE - Access check: {quote.client == request.user}"
-                    )
+
+                    # Fixed access check logic
+                    if request.user.is_authenticated:
+                        user_matches = quote.client.id == request.user.id
+                        logger.info(
+                            f"🔍 MIDDLEWARE - User matches client: {user_matches}"
+                        )
+                        logger.info(
+                            f"🔍 MIDDLEWARE - quote.client.id: {quote.client.id}, request.user.id: {request.user.id}"
+                        )
+                    else:
+                        logger.info(f"🔍 MIDDLEWARE - User is not authenticated")
+
                 except Quote.DoesNotExist:
                     logger.error(f"🔍 MIDDLEWARE - Quote {quote_id} does not exist!")
 
@@ -74,37 +88,33 @@ class QuoteAccessMiddleware(MiddlewareMixin):
     ):
         from quotes.models import Quote
 
-        max_retries = 3
-        retry_delay = 0.1
+        try:
+            quote = Quote.objects.get(pk=quote_id)
 
-        for attempt in range(max_retries):
-            try:
-                quote = Quote.objects.get(pk=quote_id)
+            # Check if user is authenticated
+            if not request.user.is_authenticated:
+                logger.error(
+                    f"🔍 MIDDLEWARE - User not authenticated for quote {quote_id}"
+                )
+                return JsonResponse({"detail": "Authentication required."}, status=401)
 
-                if not request.user.is_staff and quote.client != request.user:
-                    return JsonResponse({"detail": "Not found."}, status=404)
+            # Check if user is staff or owns the quote
+            if not request.user.is_staff and quote.client.id != request.user.id:
+                logger.error(
+                    f"🔍 MIDDLEWARE - Access denied: quote belongs to client {quote.client.id}, user is {request.user.id}"
+                )
+                return JsonResponse({"detail": "Not found."}, status=404)
 
-                return None
+            logger.info(f"🔍 MIDDLEWARE - Access granted for quote {quote_id}")
+            return None
 
-            except Quote.DoesNotExist:
-                if attempt < max_retries - 1:
-                    logger.warning(
-                        f"Quote {quote_id} not found, retrying... (attempt {attempt + 1})"
-                    )
-                    time.sleep(retry_delay)
-                    retry_delay *= 2
-                    continue
-                else:
-                    logger.error(
-                        f"Quote {quote_id} not found after {max_retries} attempts"
-                    )
-                    return JsonResponse({"detail": "Quote not found."}, status=404)
+        except Quote.DoesNotExist:
+            logger.error(f"🔍 MIDDLEWARE - Quote {quote_id} not found")
+            return JsonResponse({"detail": "Quote not found."}, status=404)
 
-            except Exception as e:
-                logger.error(f"Error accessing quote {quote_id}: {str(e)}")
-                break
-
-        return None
+        except Exception as e:
+            logger.error(f"🔍 MIDDLEWARE - Error accessing quote {quote_id}: {str(e)}")
+            return JsonResponse({"detail": "Server error."}, status=500)
 
 
 class TransactionDebugMiddleware(MiddlewareMixin):
