@@ -1,0 +1,273 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+.invoice-container {
+    max-width: 800px;
+    margin: 20px auto;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.invoice-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.invoice-content {
+    padding: 30px;
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.invoice-title {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.invoice-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 40px;
+}
+
+.invoice-info > div {
+    flex: 1;
+}
+
+.ndis-info {
+    background: #f8f9fa;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-left: 4px solid #007bff;
+    border-radius: 4px;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+}
+
+.items-table th {
+    background: #34495e;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.items-table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.items-table th:nth-child(2),
+.items-table td:nth-child(2),
+.items-table th:nth-child(4),
+.items-table td:nth-child(4) {
+    text-align: center;
+}
+
+.items-table th:nth-child(3),
+.items-table td:nth-child(3),
+.items-table th:nth-child(5),
+.items-table td:nth-child(5) {
+    text-align: right;
+}
+
+.totals {
+    text-align: right;
+    margin-top: 30px;
+}
+
+.totals-box {
+    display: inline-block;
+    text-align: right;
+    min-width: 250px;
+}
+
+.total-line {
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.final-total {
+    font-size: 20px;
+    border-top: 2px solid #34495e;
+    padding-top: 15px;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.print-button {
+    background: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.print-button:hover {
+    background: #0056b3;
+}
+
+@media print {
+    .invoice-header,
+    .print-button {
+        display: none !important;
+    }
+    
+    .invoice-container {
+        border: none;
+        margin: 0;
+        max-width: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'change' invoice.pk %}">{{ invoice.invoice_number }}</a>
+    &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="invoice-container">
+    <div class="invoice-header">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1 style="margin: 0;">{{ title }}</h1>
+            <button class="print-button" onclick="window.print()">
+                Print Invoice
+            </button>
+        </div>
+    </div>
+
+    <div class="invoice-content">
+        <h2 class="invoice-title">INVOICE</h2>
+        
+        <div class="invoice-info">
+            <div>
+                <strong>Invoice Number:</strong> {{ invoice.invoice_number }}<br>
+                <strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"d/m/Y" }}<br>
+                <strong>Due Date:</strong> {{ invoice.due_date|date:"d/m/Y" }}<br>
+                {% if invoice.payment_terms %}
+                <strong>Payment Terms:</strong> {{ invoice.payment_terms }} days<br>
+                {% endif %}
+            </div>
+            <div>
+                <strong>Bill To:</strong><br>
+                {{ invoice.client.get_full_name }}<br>
+                {{ invoice.client.email }}<br>
+                {% if invoice.billing_address %}
+                {{ invoice.billing_address|linebreaks }}
+                {% endif %}
+            </div>
+        </div>
+
+        {% if invoice.is_ndis_invoice %}
+        <div class="ndis-info">
+            <strong>NDIS Information:</strong><br>
+            {% if invoice.participant_name %}
+            <strong>Participant:</strong> {{ invoice.participant_name }}<br>
+            {% endif %}
+            {% if invoice.ndis_number %}
+            <strong>NDIS Number:</strong> {{ invoice.ndis_number }}<br>
+            {% endif %}
+            {% if invoice.service_start_date and invoice.service_end_date %}
+            <strong>Service Period:</strong> {{ invoice.service_start_date|date:"d/m/Y" }} - {{ invoice.service_end_date|date:"d/m/Y" }}
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% if invoice.service_address and invoice.service_address != invoice.billing_address %}
+        <div style="margin-bottom: 20px;">
+            <strong>Service Address:</strong><br>
+            {{ invoice.service_address|linebreaks }}
+        </div>
+        {% endif %}
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
+                    <th>GST</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in invoice.items.all %}
+                <tr>
+                    <td>{{ item.description }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>${{ item.unit_price|floatformat:2 }}</td>
+                    <td>{% if item.is_taxable %}Yes{% else %}No{% endif %}</td>
+                    <td>${{ item.total_price|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #666;">No items found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="totals-box">
+                <div class="total-line">
+                    <strong>Subtotal: ${{ invoice.subtotal|floatformat:2 }}</strong>
+                </div>
+                <div class="total-line">
+                    <strong>GST: ${{ invoice.gst_amount|floatformat:2 }}</strong>
+                </div>
+                <div class="final-total">
+                    <strong>Total: ${{ invoice.total_amount|floatformat:2 }}</strong>
+                </div>
+            </div>
+        </div>
+
+        {% if invoice.notes %}
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <strong>Notes:</strong><br>
+            {{ invoice.notes|linebreaks }}
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
+            <p>Thank you for your business!</p>
+            {% if invoice.is_overdue %}
+            <p style="color: #dc3545; font-weight: bold;">
+                This invoice is {{ invoice.days_overdue }} days overdue. Please remit payment immediately.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-focus for better UX
+document.addEventListener('DOMContentLoaded', function() {
+    // Add any JavaScript functionality here if needed
+});
+</script>
+{% endblock %}
