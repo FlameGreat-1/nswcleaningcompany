@@ -1,17 +1,16 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.urls import reverse
+from django.urls import reverse, path
 from django.utils import timezone
 from django.db.models import Count, Sum, Avg
 from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 import csv
 from .models import Quote, QuoteItem, QuoteAttachment, QuoteRevision, QuoteTemplate
 from .permissions import check_quote_permission
 from .validators import validate_quote_status_transition
-
 
 class QuoteItemInline(admin.TabularInline):
     model = QuoteItem
@@ -59,7 +58,7 @@ class QuoteRevisionInline(admin.TabularInline):
     ordering = ["-revision_number"]
 
     def price_change_display(self, obj):
-       
+
         if obj.new_price is None or obj.previous_price is None:
             return "N/A"
 
@@ -71,6 +70,7 @@ class QuoteRevisionInline(admin.TabularInline):
         return "$0.00"
 
     price_change_display.short_description = "Price Change"
+
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
@@ -85,6 +85,7 @@ class QuoteAdmin(admin.ModelAdmin):
         "is_ndis_display",
         "created_at",
         "expires_at",
+        "quote_actions",
     ]
 
     list_filter = [
@@ -119,6 +120,7 @@ class QuoteAdmin(admin.ModelAdmin):
         "days_until_expiry",
         "can_be_accepted",
         "total_items_cost",
+        "quote_actions",
     ]
 
     fieldsets = (
@@ -199,6 +201,13 @@ class QuoteAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Actions",
+            {
+                "fields": ("quote_actions",),
+                "classes": ["wide"],
+            },
+        ),
+        (
             "Timestamps",
             {
                 "fields": (
@@ -233,6 +242,73 @@ class QuoteAdmin(admin.ModelAdmin):
         "export_quotes",
         "recalculate_pricing",
     ]
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<uuid:quote_id>/generate-invoice/",
+                self.admin_site.admin_view(self.generate_invoice_from_quote),
+                name="quotes_quote_generate_invoice",
+            ),
+        ]
+        return custom_urls + urls
+
+    def generate_invoice_from_quote(self, request, quote_id):
+        from invoices.models import Invoice
+        from django.shortcuts import get_object_or_404, redirect
+
+        quote = get_object_or_404(Quote, id=quote_id)
+
+        if quote.status != "approved":
+            messages.error(
+                request,
+                f"Quote {quote.quote_number} must be approved before generating invoice.",
+            )
+            return redirect("admin:quotes_quote_change", quote.id)
+
+        if hasattr(quote, "invoice"):
+            messages.warning(
+                request, f"Invoice already exists for quote {quote.quote_number}."
+            )
+            return redirect("admin:invoices_invoice_change", quote.invoice.id)
+
+        try:
+            invoice = Invoice.create_from_quote(quote, created_by=request.user)
+            messages.success(
+                request,
+                f"Invoice {invoice.invoice_number} created successfully from quote {quote.quote_number}.",
+            )
+            return redirect("admin:invoices_invoice_change", invoice.id)
+        except Exception as e:
+            messages.error(request, f"Error creating invoice: {str(e)}")
+            return redirect("admin:quotes_quote_change", quote.id)
+
+    def quote_actions(self, obj):
+        buttons = []
+
+        if obj.status == "approved" and not hasattr(obj, "invoice"):
+            generate_url = reverse("admin:quotes_quote_generate_invoice", args=[obj.id])
+            buttons.append(
+                f'<a href="{generate_url}" class="button" style="background: #28a745; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: bold;">Generate Invoice</a>'
+            )
+        elif hasattr(obj, "invoice"):
+            invoice_url = reverse(
+                "admin:invoices_invoice_change", args=[obj.invoice.id]
+            )
+            buttons.append(
+                f'<a href="{invoice_url}" class="button" style="background: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: bold;">View Invoice</a>'
+            )
+
+        return (
+            format_html(" ".join(buttons))
+            if buttons
+            else format_html(
+                '<span style="color: #6c757d;">No actions available</span>'
+            )
+        )
+
+    quote_actions.short_description = "Actions"
 
     def get_queryset(self, request):
         return (
@@ -424,8 +500,6 @@ class QuoteAdmin(admin.ModelAdmin):
         if obj:
             return check_quote_permission(request.user, obj, "delete")
         return super().has_delete_permission(request, obj)
-
-
 @admin.register(QuoteItem)
 class QuoteItemAdmin(admin.ModelAdmin):
     list_display = [
