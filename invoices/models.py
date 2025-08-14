@@ -142,7 +142,7 @@ class Invoice(models.Model):
             except ObjectDoesNotExist:
                 return None
         return None
-    
+
     @property
     def is_overdue(self):
         if self.due_date and self.status not in ['cancelled']:
@@ -255,6 +255,55 @@ class Invoice(models.Model):
             created_by=created_by,
         )
 
+        if quote.base_price > 0:
+            service_description = f"{quote.service.name}"
+            if hasattr(quote, "cleaning_type") and quote.cleaning_type:
+                service_description += f" - {quote.get_cleaning_type_display()}"
+
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=service_description,
+                quantity=Decimal("1.00"),
+                unit_price=quote.base_price,
+                is_taxable=True,
+            )
+
+        if quote.travel_cost > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Travel Cost",
+                quantity=Decimal("1.00"),
+                unit_price=quote.travel_cost,
+                is_taxable=False,
+            )
+
+        if quote.urgency_surcharge > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Urgency Surcharge",
+                quantity=Decimal("1.00"),
+                unit_price=quote.urgency_surcharge,
+                is_taxable=True,
+            )
+
+        if quote.extras_cost > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Extra Services",
+                quantity=Decimal("1.00"),
+                unit_price=quote.extras_cost,
+                is_taxable=True,
+            )
+
+        if quote.discount_amount > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Discount Applied",
+                quantity=Decimal("1.00"),
+                unit_price=-quote.discount_amount,  
+                is_taxable=False,
+            )
+
         for quote_item in quote.items.all():
             InvoiceItem.objects.create(
                 invoice=invoice,
@@ -270,7 +319,6 @@ class Invoice(models.Model):
         quote.save(update_fields=["status"])
 
         return invoice
-
 
 class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")

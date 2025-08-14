@@ -7,70 +7,142 @@
 {{ block.super }}
 <style>
 .invoice-container {
-    max-width: 800px;
+    max-width: 900px;
     margin: 20px auto;
     background: white;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .invoice-header {
-    background: #f8f9fa;
-    padding: 20px;
-    border-bottom: 1px solid #ddd;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+    padding: 25px;
+    border-bottom: 3px solid #3498db;
 }
 
 .invoice-content {
-    padding: 30px;
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
+    padding: 40px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.7;
+    color: #2c3e50;
 }
 
 .invoice-title {
     text-align: center;
     color: #2c3e50;
-    margin-bottom: 30px;
-    font-size: 28px;
-    font-weight: bold;
+    margin-bottom: 40px;
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 15px;
 }
 
 .invoice-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 30px;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    margin-bottom: 40px;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
 }
 
-.invoice-info > div {
-    flex: 1;
+.info-section h3 {
+    color: #2c3e50;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 8px;
+}
+
+.info-section p {
+    margin: 8px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #34495e;
 }
 
 .ndis-info {
-    background: #f8f9fa;
-    padding: 15px;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    padding: 20px;
+    margin-bottom: 35px;
+    border-left: 5px solid #2196f3;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+}
+
+.ndis-info h3 {
+    color: #1976d2;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.ndis-info p {
+    margin: 6px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1565c0;
+}
+
+.service-address {
+    background: #fff3e0;
+    padding: 20px;
     margin-bottom: 30px;
-    border-left: 4px solid #007bff;
-    border-radius: 4px;
+    border-left: 5px solid #ff9800;
+    border-radius: 8px;
+}
+
+.service-address h3 {
+    color: #f57c00;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
 }
 
 .items-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 30px;
+    margin-bottom: 35px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .items-table th {
-    background: #34495e;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
     color: white;
-    padding: 12px;
+    padding: 18px 15px;
     text-align: left;
-    border: 1px solid #ddd;
+    font-size: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .items-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 15px;
+    font-weight: 500;
+    color: #2c3e50;
+    background: white;
+}
+
+.items-table tbody tr:nth-child(even) td {
+    background: #f8f9fa;
+}
+
+.items-table tbody tr:hover td {
+    background: #e3f2fd;
+    transition: background-color 0.3s ease;
 }
 
 .items-table th:nth-child(2),
@@ -89,40 +161,126 @@
 
 .totals {
     text-align: right;
-    margin-top: 30px;
+    margin-top: 40px;
 }
 
 .totals-box {
     display: inline-block;
     text-align: right;
-    min-width: 250px;
+    min-width: 350px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid #dee2e6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 .total-line {
-    margin-bottom: 8px;
-    font-size: 16px;
+    margin-bottom: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c3e50;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
 }
 
 .final-total {
-    font-size: 20px;
-    border-top: 2px solid #34495e;
-    padding-top: 15px;
+    font-size: 24px;
+    border-top: 3px solid #2c3e50;
+    padding-top: 20px;
+    margin-top: 20px;
+    font-weight: 700;
+    color: #2c3e50;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.notes-section {
+    margin-top: 40px;
+    padding: 25px;
+    background: #f8f9fa;
+    border-left: 5px solid #28a745;
+    border-radius: 8px;
+}
+
+.notes-section h3 {
+    color: #155724;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.footer-section {
+    margin-top: 50px;
+    text-align: center;
+    padding: 25px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    border-top: 3px solid #3498db;
+}
+
+.footer-section p {
+    margin: 8px 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.overdue-notice {
+    background: linear-gradient(135deg, #ffebee, #ffcdd2);
+    color: #c62828;
+    font-weight: 700;
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid #f44336;
     margin-top: 15px;
-    font-weight: bold;
 }
 
 .print-button {
-    background: #007bff;
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
-    padding: 10px 20px;
+    padding: 12px 25px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
 .print-button:hover {
-    background: #0056b3;
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.status-draft { 
+    background: linear-gradient(135deg, #95a5a6, #7f8c8d); 
+    color: white; 
+}
+
+.status-sent { 
+    background: linear-gradient(135deg, #3498db, #2980b9); 
+    color: white; 
+}
+
+.status-cancelled { 
+    background: linear-gradient(135deg, #e74c3c, #c0392b); 
+    color: white; 
 }
 
 @media print {
@@ -135,6 +293,38 @@
         border: none;
         margin: 0;
         max-width: none;
+        box-shadow: none;
+    }
+    
+    .invoice-content {
+        padding: 20px;
+    }
+    
+    .items-table th,
+    .items-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .invoice-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .invoice-info {
+        grid-template-columns: 1fr;
+        gap: 25px;
+    }
+    
+    .invoice-container {
+        margin: 10px;
+        max-width: none;
+    }
+    
+    .invoice-content {
+        padding: 20px;
     }
 }
 </style>
@@ -154,10 +344,13 @@
 <div class="invoice-container">
     <div class="invoice-header">
         <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1 style="margin: 0;">{{ title }}</h1>
-            <button class="print-button" onclick="window.print()">
-                Print Invoice
-            </button>
+            <h1 style="margin: 0; font-size: 24px; font-weight: 600;">{{ title }}</h1>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <span class="status-badge status-{{ invoice.status }}">{{ invoice.get_status_display }}</span>
+                <button class="print-button" onclick="window.print()">
+                    Print Invoice
+                </button>
+            </div>
         </div>
     </div>
 
@@ -165,43 +358,54 @@
         <h2 class="invoice-title">INVOICE</h2>
         
         <div class="invoice-info">
-            <div>
-                <strong>Invoice Number:</strong> {{ invoice.invoice_number }}<br>
-                <strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"d/m/Y" }}<br>
-                <strong>Due Date:</strong> {{ invoice.due_date|date:"d/m/Y" }}<br>
+            <div class="info-section">
+                <h3>Invoice Details</h3>
+                <p><strong>Invoice Number:</strong> {{ invoice.invoice_number }}</p>
+                <p><strong>Invoice Date:</strong> {{ invoice.invoice_date|date:"d/m/Y" }}</p>
+                <p><strong>Due Date:</strong> {{ invoice.due_date|date:"d/m/Y" }}</p>
                 {% if invoice.payment_terms %}
-                <strong>Payment Terms:</strong> {{ invoice.payment_terms }} days<br>
+                <p><strong>Payment Terms:</strong> {{ invoice.payment_terms }} days</p>
+                {% endif %}
+                {% if invoice.is_overdue %}
+                <p style="color: #e74c3c; font-weight: 700;">
+                    <strong>OVERDUE:</strong> {{ invoice.days_overdue }} days
+                </p>
                 {% endif %}
             </div>
-            <div>
-                <strong>Bill To:</strong><br>
-                {{ invoice.client.get_full_name }}<br>
-                {{ invoice.client.email }}<br>
+            
+            <div class="info-section">
+                <h3>Bill To</h3>
+                <p><strong>{{ invoice.client.get_full_name|default:invoice.client.first_name }}</strong></p>
+                <p>{{ invoice.client.email }}</p>
                 {% if invoice.billing_address %}
-                {{ invoice.billing_address|linebreaks }}
+                    {% for line in invoice.billing_address|linebreaksbr %}
+                        <p>{{ line }}</p>
+                    {% endfor %}
                 {% endif %}
             </div>
         </div>
 
         {% if invoice.is_ndis_invoice %}
         <div class="ndis-info">
-            <strong>NDIS Information:</strong><br>
+            <h3>NDIS Information</h3>
             {% if invoice.participant_name %}
-            <strong>Participant:</strong> {{ invoice.participant_name }}<br>
+            <p><strong>Participant:</strong> {{ invoice.participant_name }}</p>
             {% endif %}
             {% if invoice.ndis_number %}
-            <strong>NDIS Number:</strong> {{ invoice.ndis_number }}<br>
+            <p><strong>NDIS Number:</strong> {{ invoice.ndis_number }}</p>
             {% endif %}
             {% if invoice.service_start_date and invoice.service_end_date %}
-            <strong>Service Period:</strong> {{ invoice.service_start_date|date:"d/m/Y" }} - {{ invoice.service_end_date|date:"d/m/Y" }}
+            <p><strong>Service Period:</strong> {{ invoice.service_start_date|date:"d/m/Y" }} - {{ invoice.service_end_date|date:"d/m/Y" }}</p>
             {% endif %}
         </div>
         {% endif %}
 
         {% if invoice.service_address and invoice.service_address != invoice.billing_address %}
-        <div style="margin-bottom: 20px;">
-            <strong>Service Address:</strong><br>
-            {{ invoice.service_address|linebreaks }}
+        <div class="service-address">
+            <h3>Service Address</h3>
+            {% for line in invoice.service_address|linebreaksbr %}
+                <p>{{ line }}</p>
+            {% endfor %}
         </div>
         {% endif %}
 
@@ -218,15 +422,15 @@
             <tbody>
                 {% for item in invoice.items.all %}
                 <tr>
-                    <td>{{ item.description }}</td>
-                    <td>{{ item.quantity }}</td>
+                    <td><strong>{{ item.description }}</strong></td>
+                    <td>{{ item.quantity|floatformat:2 }}</td>
                     <td>${{ item.unit_price|floatformat:2 }}</td>
                     <td>{% if item.is_taxable %}Yes{% else %}No{% endif %}</td>
-                    <td>${{ item.total_price|floatformat:2 }}</td>
+                    <td><strong>${{ item.total_price|floatformat:2 }}</strong></td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" style="text-align: center; color: #666;">No items found</td>
+                    <td colspan="5" style="text-align: center; color: #666; font-style: italic; padding: 30px;">No items found</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -235,39 +439,41 @@
         <div class="totals">
             <div class="totals-box">
                 <div class="total-line">
-                    <strong>Subtotal: ${{ invoice.subtotal|floatformat:2 }}</strong>
+                    <span>Subtotal:</span>
+                    <span><strong>${{ invoice.subtotal|floatformat:2 }}</strong></span>
                 </div>
                 <div class="total-line">
-                    <strong>GST: ${{ invoice.gst_amount|floatformat:2 }}</strong>
+                    <span>GST (10%):</span>
+                    <span><strong>${{ invoice.gst_amount|floatformat:2 }}</strong></span>
                 </div>
-                <div class="final-total">
-                    <strong>Total: ${{ invoice.total_amount|floatformat:2 }}</strong>
+                <div class="final-total total-line">
+                    <span>TOTAL:</span>
+                    <span><strong>${{ invoice.total_amount|floatformat:2 }}</strong></span>
                 </div>
             </div>
         </div>
 
         {% if invoice.notes %}
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <strong>Notes:</strong><br>
-            {{ invoice.notes|linebreaks }}
+        <div class="notes-section">
+            <h3>Notes</h3>
+            <p>{{ invoice.notes|linebreaksbr }}</p>
         </div>
         {% endif %}
 
-        <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
-            <p>Thank you for your business!</p>
-            {% if invoice.is_overdue %}
-            <p style="color: #dc3545; font-weight: bold;">
-                This invoice is {{ invoice.days_overdue }} days overdue. Please remit payment immediately.
+        <div class="footer-section">
+            <p><strong>Thank you for your business!</strong></p>
+            <p>For any questions regarding this invoice, please contact us.</p>
+            {% if invoice.email_sent %}
+            <p style="color: #28a745; font-weight: 600;">
+                <strong>✓ Email sent:</strong> {{ invoice.email_sent_at|date:"d/m/Y H:i" }}
             </p>
+            {% endif %}
+            {% if invoice.is_overdue %}
+            <div class="overdue-notice">
+                <strong>PAYMENT OVERDUE:</strong> This invoice is {{ invoice.days_overdue }} days past due. Please remit payment immediately to avoid service interruption.
+            </div>
             {% endif %}
         </div>
     </div>
 </div>
-
-<script>
-// Auto-focus for better UX
-document.addEventListener('DOMContentLoaded', function() {
-    // Add any JavaScript functionality here if needed
-});
-</script>
 {% endblock %}
