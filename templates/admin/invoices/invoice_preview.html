@@ -372,15 +372,13 @@
                 </p>
                 {% endif %}
             </div>
-            
+
             <div class="info-section">
                 <h3>Bill To</h3>
                 <p><strong>{{ invoice.client.get_full_name|default:invoice.client.first_name }}</strong></p>
                 <p>{{ invoice.client.email }}</p>
                 {% if invoice.billing_address %}
-                    {% for line in invoice.billing_address|linebreaksbr %}
-                        <p>{{ line }}</p>
-                    {% endfor %}
+                    <div style="white-space: pre-line;">{{ invoice.billing_address }}</div>
                 {% endif %}
             </div>
         </div>
@@ -403,9 +401,7 @@
         {% if invoice.service_address and invoice.service_address != invoice.billing_address %}
         <div class="service-address">
             <h3>Service Address</h3>
-            {% for line in invoice.service_address|linebreaksbr %}
-                <p>{{ line }}</p>
-            {% endfor %}
+            <div style="white-space: pre-line;">{{ invoice.service_address }}</div>
         </div>
         {% endif %}
 
