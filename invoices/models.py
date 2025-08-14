@@ -142,6 +142,18 @@ class Invoice(models.Model):
             except ObjectDoesNotExist:
                 return None
         return None
+    
+    @property
+    def is_overdue(self):
+        if self.due_date and self.status not in ['cancelled']:
+            return timezone.now().date() > self.due_date
+        return False
+
+    @property
+    def days_overdue(self):
+        if self.is_overdue:
+            return (timezone.now().date() - self.due_date).days
+        return 0
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:

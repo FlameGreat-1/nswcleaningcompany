@@ -43,7 +43,6 @@ class QuoteAttachmentInline(admin.TabularInline):
 
     file_size_display.short_description = "File Size"
 
-
 class QuoteRevisionInline(admin.TabularInline):
     model = QuoteRevision
     extra = 0
@@ -60,6 +59,10 @@ class QuoteRevisionInline(admin.TabularInline):
     ordering = ["-revision_number"]
 
     def price_change_display(self, obj):
+       
+        if obj.new_price is None or obj.previous_price is None:
+            return "N/A"
+
         change = obj.new_price - obj.previous_price
         if change > 0:
             return format_html('<span style="color: green;">+${:.2f}</span>', change)
@@ -68,7 +71,6 @@ class QuoteRevisionInline(admin.TabularInline):
         return "$0.00"
 
     price_change_display.short_description = "Price Change"
-
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
@@ -557,7 +559,6 @@ class QuoteAttachmentAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("quote", "uploaded_by")
 
-
 @admin.register(QuoteRevision)
 class QuoteRevisionAdmin(admin.ModelAdmin):
     list_display = [
@@ -617,7 +618,10 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     revised_by_name.short_description = "Revised By"
     revised_by_name.admin_order_field = "revised_by__last_name"
 
-    def price_change_display(self, obj):
+    def price_change_display(self, obj): 
+        if obj.new_price is None or obj.previous_price is None:
+            return "N/A"
+
         change = obj.new_price - obj.previous_price
         if change > 0:
             return format_html('<span style="color: green;">+${:.2f}</span>', change)
@@ -628,20 +632,29 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     price_change_display.short_description = "Price Change"
 
     def price_change_amount(self, obj):
+    
+        if obj.new_price is None or obj.previous_price is None:
+            return "N/A"
         return obj.new_price - obj.previous_price
 
     price_change_amount.short_description = "Change Amount"
 
     def price_change_percent(self, obj):
-        if obj.previous_price > 0:
-            return f"{((obj.new_price - obj.previous_price) / obj.previous_price) * 100:.2f}%"
-        return "0%"
+    
+        if (
+            obj.new_price is None
+            or obj.previous_price is None
+            or obj.previous_price == 0
+        ):
+            return "N/A"
+        return (
+            f"{((obj.new_price - obj.previous_price) / obj.previous_price) * 100:.2f}%"
+        )
 
     price_change_percent.short_description = "Change %"
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("quote", "revised_by")
-
 
 @admin.register(QuoteTemplate)
 class QuoteTemplateAdmin(admin.ModelAdmin):
