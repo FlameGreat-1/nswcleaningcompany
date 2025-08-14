@@ -10,26 +10,6 @@ from .utils import PDFInvoiceGenerator, InvoiceEmailService, FilePathGenerator
 logger = logging.getLogger(__name__)
 
 
-@receiver(post_save, sender="quotes.Quote")
-def create_invoice_from_approved_quote(sender, instance, created, **kwargs):
-    if instance.status == "approved" and not hasattr(instance, "invoice"):
-        try:
-            invoice = Invoice.create_from_quote(
-                quote=instance, created_by=instance.reviewed_by
-            )
-
-            logger.info(
-                f"Invoice {invoice.invoice_number} created from quote {instance.quote_number}"
-            )
-
-            generate_and_send_invoice.delay(invoice.id)
-
-        except Exception as e:
-            logger.error(
-                f"Failed to create invoice from quote {instance.quote_number}: {str(e)}"
-            )
-
-
 @receiver(post_save, sender=Invoice)
 def handle_invoice_creation(sender, instance, created, **kwargs):
     if created:

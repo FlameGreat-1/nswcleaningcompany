@@ -761,39 +761,6 @@ class QuoteAdminSite(admin.AdminSite):
         return super().index(request, extra_context)
 
 
-admin.site.unregister(Quote)
-admin.site.unregister(QuoteItem)
-admin.site.unregister(QuoteAttachment)
-admin.site.unregister(QuoteRevision)
-admin.site.unregister(QuoteTemplate)
-
-quote_admin_site = QuoteAdminSite(name="quote_admin")
-quote_admin_site.register(Quote, QuoteAdmin)
-quote_admin_site.register(QuoteItem, QuoteItemAdmin)
-quote_admin_site.register(QuoteAttachment, QuoteAttachmentAdmin)
-quote_admin_site.register(QuoteRevision, QuoteRevisionAdmin)
-quote_admin_site.register(QuoteTemplate, QuoteTemplateAdmin)
-
-
-class QuoteInlineForUserAdmin(admin.TabularInline):
-    model = Quote
-    fk_name = "client"
-    extra = 0
-    fields = [
-        "quote_number",
-        "cleaning_type",
-        "status",
-        "final_price",
-        "created_at",
-        "expires_at",
-    ]
-    readonly_fields = ["quote_number", "created_at"]
-    show_change_link = True
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
 class QuoteInlineForUserAdmin(admin.TabularInline):
     model = Quote
     fk_name = "client"
@@ -862,10 +829,8 @@ def register_quote_admin_extensions():
 
 register_quote_admin_extensions()
 
-admin.site.add_action(lambda modeladmin, request, queryset: None, "quote_bulk_actions")
 
 class QuoteAdminMixin:
-
     def get_quote_context_data(self, request, object_id=None):
         context = {}
 
@@ -904,85 +869,3 @@ class QuoteAdminMixin:
         extra_context = extra_context or {}
         extra_context.update(self.get_quote_context_data(request, object_id))
         return super().changeform_view(request, object_id, form_url, extra_context)
-
-
-for model_admin in [
-    QuoteAdmin,
-    QuoteItemAdmin,
-    QuoteAttachmentAdmin,
-    QuoteRevisionAdmin,
-]:
-    if hasattr(model_admin, "__bases__"):
-        model_admin.__bases__ = model_admin.__bases__ + (QuoteAdminMixin,)
-
-
-def get_admin_urls():
-    from django.urls import path
-
-    return [
-        path(
-            "quotes/analytics/",
-            admin.site.admin_view(quote_analytics_view),
-            name="quote_analytics",
-        ),
-        path(
-            "quotes/reports/",
-            admin.site.admin_view(quote_reports_view),
-            name="quote_reports",
-        ),
-        path(
-            "quotes/bulk-operations/",
-            admin.site.admin_view(quote_bulk_operations_view),
-            name="quote_bulk_operations",
-        ),
-    ]
-
-
-def quote_analytics_view(request):
-    from django.shortcuts import render
-
-    context = {
-        "title": "Quote Analytics",
-        "statistics": Quote.objects.statistics(),
-        "recent_trends": Quote.objects.this_month().count(),
-    }
-
-    return render(request, "admin/quotes/analytics.html", context)
-
-
-def quote_reports_view(request):
-    from django.shortcuts import render
-
-    context = {
-        "title": "Quote Reports",
-        "available_reports": [
-            "Monthly Summary",
-            "Conversion Analysis",
-            "NDIS Quotes Report",
-            "Staff Performance",
-        ],
-    }
-
-    return render(request, "admin/quotes/reports.html", context)
-
-
-def quote_bulk_operations_view(request):
-    from django.shortcuts import render
-
-    if request.method == "POST":
-        operation = request.POST.get("operation")
-        quote_ids = request.POST.getlist("quote_ids")
-
-        if operation and quote_ids:
-            messages.success(
-                request,
-                f"Bulk operation '{operation}' completed for {len(quote_ids)} quotes.",
-            )
-
-    context = {
-        "title": "Bulk Quote Operations",
-        "pending_quotes": Quote.objects.pending().count(),
-        "available_operations": ["approve", "reject", "assign", "export"],
-    }
-
-    return render(request, "admin/quotes/bulk_operations.html", context)

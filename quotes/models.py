@@ -1,9 +1,11 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Max
 from decimal import Decimal
 import uuid
+import re
 from .managers import QuoteManager, QuoteItemManager
 from .validators import (
     validate_quote_number,
@@ -96,7 +98,7 @@ class Quote(models.Model):
     number_of_rooms = models.PositiveIntegerField(validators=[validate_room_count])
 
     square_meters = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         null=True,
         blank=True,
@@ -148,25 +150,25 @@ class Quote(models.Model):
     )
 
     travel_cost = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
     )
 
     urgency_surcharge = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
     )
 
     discount_amount = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
     )
 
     gst_amount = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         default=Decimal("0.00"),
     )
@@ -237,6 +239,24 @@ class Quote(models.Model):
             models.Index(fields=["expires_at"]),
             models.Index(fields=["is_ndis_client"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(final_price__gte=0),
+                name="quotes_quote_positive_final_price",
+            ),
+            models.CheckConstraint(
+                check=models.Q(number_of_rooms__gt=0),
+                name="quotes_quote_positive_room_count",
+            ),
+            models.CheckConstraint(
+                check=models.Q(base_price__gte=0),
+                name="quotes_quote_positive_base_price",
+            ),
+            models.CheckConstraint(
+                check=models.Q(estimated_total__gte=0),
+                name="quotes_quote_positive_estimated_total",
+            ),
+        ]
 
     def __str__(self):
         return f"Quote {self.quote_number} - {self.client.get_full_name()}"
@@ -250,16 +270,16 @@ class Quote(models.Model):
 
         super().save(*args, **kwargs)
 
+    @transaction.atomic
     def generate_quote_number(self):
-        from django.db.models import Max
-        import re
-
         current_year = timezone.now().year
         prefix = f"QT-{current_year}-"
 
-        latest_quote = Quote.objects.filter(quote_number__startswith=prefix).aggregate(
-            Max("quote_number")
-        )["quote_number__max"]
+        latest_quote = (
+            Quote.objects.select_for_update()
+            .filter(quote_number__startswith=prefix)
+            .aggregate(Max("quote_number"))["quote_number__max"]
+        )
 
         if latest_quote:
             match = re.search(r"-(\d{4})$", latest_quote)
@@ -366,8 +386,6 @@ class Quote(models.Model):
 
 
 class QuoteItem(models.Model):
-    """Individual items/services within a quote"""
-
     ITEM_TYPE_CHOICES = (
         ("service", "Main Service"),
         ("addon", "Add-on Service"),
@@ -379,7 +397,6 @@ class QuoteItem(models.Model):
         ("discount", "Discount"),
     )
 
-    # Relationships
     quote = models.ForeignKey(
         Quote,
         on_delete=models.CASCADE,
@@ -403,7 +420,6 @@ class QuoteItem(models.Model):
         help_text="Related add-on service (if applicable)",
     )
 
-    # Item details
     item_type = models.CharField(
         max_length=20, choices=ITEM_TYPE_CHOICES, help_text="Type of quote item"
     )
@@ -412,9 +428,8 @@ class QuoteItem(models.Model):
 
     description = models.TextField(blank=True, help_text="Detailed item description")
 
-    # Pricing
     quantity = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         default=Decimal("1.00"),
         validators=[MinValueValidator(Decimal("0.01"))],
@@ -435,7 +450,6 @@ class QuoteItem(models.Model):
         help_text="Total price (quantity × unit_price)",
     )
 
-    # Metadata
     is_optional = models.BooleanField(
         default=False, help_text="Whether this item is optional"
     )
@@ -448,11 +462,9 @@ class QuoteItem(models.Model):
         default=0, help_text="Order for displaying items"
     )
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # Custom manager
     objects = QuoteItemManager()
 
     class Meta:
@@ -464,31 +476,40 @@ class QuoteItem(models.Model):
             models.Index(fields=["quote", "item_type"]),
             models.Index(fields=["display_order"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(quantity__gt=0),
+                name="quotes_quoteitem_positive_quantity",
+            ),
+            models.CheckConstraint(
+                check=models.Q(unit_price__gte=0),
+                name="quotes_quoteitem_positive_unit_price",
+            ),
+            models.CheckConstraint(
+                check=models.Q(total_price__gte=0),
+                name="quotes_quoteitem_positive_total_price",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.quote.quote_number} - {self.name}"
 
     def save(self, *args, **kwargs):
-        # Calculate total price
         self.total_price = self.quantity * self.unit_price
         super().save(*args, **kwargs)
 
     @property
     def gst_amount(self):
-        """Calculate GST amount for this item"""
         if self.is_taxable:
             return (self.total_price * Decimal("0.10")).quantize(Decimal("0.01"))
         return Decimal("0.00")
 
     @property
     def total_with_gst(self):
-        """Get total price including GST"""
         return self.total_price + self.gst_amount
 
 
 class QuoteAttachment(models.Model):
-    """File attachments for quotes (images, documents)"""
-
     ATTACHMENT_TYPE_CHOICES = (
         ("image", "Image"),
         ("document", "Document"),
@@ -496,7 +517,6 @@ class QuoteAttachment(models.Model):
         ("reference", "Reference Photo"),
     )
 
-    # Relationships
     quote = models.ForeignKey(
         Quote,
         on_delete=models.CASCADE,
@@ -508,7 +528,6 @@ class QuoteAttachment(models.Model):
         User, on_delete=models.CASCADE, help_text="User who uploaded this file"
     )
 
-    # File details
     file = models.FileField(
         upload_to="quotes/attachments/%Y/%m/",
         validators=[validate_file_size, validate_image_file],
@@ -528,7 +547,6 @@ class QuoteAttachment(models.Model):
         help_text="Type of attachment",
     )
 
-    # Metadata
     title = models.CharField(
         max_length=200, blank=True, help_text="Attachment title/caption"
     )
@@ -543,7 +561,6 @@ class QuoteAttachment(models.Model):
         default=0, help_text="Order for displaying attachments"
     )
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -556,6 +573,12 @@ class QuoteAttachment(models.Model):
             models.Index(fields=["quote", "attachment_type"]),
             models.Index(fields=["uploaded_by"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(file_size__gt=0),
+                name="quotes_quoteattachment_positive_file_size",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.quote.quote_number} - {self.original_filename}"
@@ -563,27 +586,22 @@ class QuoteAttachment(models.Model):
     def save(self, *args, **kwargs):
         if self.file:
             self.file_size = self.file.size
-            self.original_filename = self.file.name
-            # Set file_type based on file extension or content
+            if not self.original_filename:
+                self.original_filename = getattr(self.file, "name", "unknown")
             if hasattr(self.file.file, "content_type"):
                 self.file_type = self.file.file.content_type
         super().save(*args, **kwargs)
 
     @property
     def is_image(self):
-        """Check if attachment is an image"""
         return self.file_type.startswith("image/") if self.file_type else False
 
     @property
     def file_size_mb(self):
-        """Get file size in MB"""
         return round(self.file_size / (1024 * 1024), 2)
 
 
 class QuoteRevision(models.Model):
-    """Track quote revisions and changes"""
-
-    # Relationships
     quote = models.ForeignKey(
         Quote,
         on_delete=models.CASCADE,
@@ -595,7 +613,6 @@ class QuoteRevision(models.Model):
         User, on_delete=models.CASCADE, help_text="User who made the revision"
     )
 
-    # Revision details
     revision_number = models.PositiveIntegerField(
         help_text="Sequential revision number"
     )
@@ -612,7 +629,6 @@ class QuoteRevision(models.Model):
 
     reason = models.TextField(help_text="Reason for the revision")
 
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -625,14 +641,26 @@ class QuoteRevision(models.Model):
             models.Index(fields=["quote", "revision_number"]),
             models.Index(fields=["revised_by"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(previous_price__gte=0),
+                name="quotes_quoterevision_positive_previous_price",
+            ),
+            models.CheckConstraint(
+                check=models.Q(new_price__gte=0),
+                name="quotes_quoterevision_positive_new_price",
+            ),
+            models.CheckConstraint(
+                check=models.Q(revision_number__gt=0),
+                name="quotes_quoterevision_positive_revision_number",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.quote.quote_number} - Revision {self.revision_number}"
 
 
 class QuoteTemplate(models.Model):
-    """Reusable quote templates for common services"""
-
     name = models.CharField(
         max_length=200, validators=[validate_template_name], help_text="Template name"
     )
@@ -661,7 +689,7 @@ class QuoteTemplate(models.Model):
         help_text="Default number of rooms",
     )
     square_meters = models.DecimalField(
-        max_digits=8,
+        max_digits=10,
         decimal_places=2,
         null=True,
         blank=True,
@@ -702,11 +730,16 @@ class QuoteTemplate(models.Model):
             models.Index(fields=["cleaning_type", "is_active"]),
             models.Index(fields=["is_ndis_template"]),
         ]
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(usage_count__gte=0),
+                name="quotes_quotetemplate_positive_usage_count",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.name} - {self.created_by.get_full_name()}"
 
     def increment_usage(self):
-        """Increment usage count"""
         self.usage_count += 1
         self.save(update_fields=["usage_count"])

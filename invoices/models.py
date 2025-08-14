@@ -253,6 +253,10 @@ class Invoice(models.Model):
             )
 
         invoice.calculate_totals()
+
+        quote.status = "converted"
+        quote.save(update_fields=["status"])
+
         return invoice
 
 
