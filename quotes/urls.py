@@ -28,6 +28,7 @@ app_name = "quotes"
 urlpatterns = [
     # Custom views FIRST (to avoid conflicts)
     path("my-quotes/", MyQuotesView.as_view(), name="my-quotes"),
+    path("my-quotes/", QuoteViewSet.as_view({"get": "list"}), name="my-quotes"),
     path("pending/", PendingQuotesView.as_view(), name="pending-quotes"),
     path("expiring/", ExpiringQuotesView.as_view(), name="expiring-quotes"),
     path("urgent/", UrgentQuotesView.as_view(), name="urgent-quotes"),
