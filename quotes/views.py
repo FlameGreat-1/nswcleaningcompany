@@ -86,8 +86,6 @@ import logging
 from django.http import Http404
 
 logger = logging.getLogger(__name__)
-
-
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all()
 
@@ -812,22 +810,6 @@ class QuoteNotificationView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class MyQuotesView(ListAPIView):
-    serializer_class = QuoteListSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = QuoteFilter
-    ordering = ["-created_at"]
-
-    def get_queryset(self):
-        return (
-            Quote.objects.filter(client=self.request.user)
-            .select_related("service", "assigned_to")
-            .prefetch_related("items", "attachments")
-        )
-
 
 class PendingQuotesView(ListAPIView):
     serializer_class = QuoteListSerializer
