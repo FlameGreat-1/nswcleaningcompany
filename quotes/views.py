@@ -184,12 +184,12 @@ class QuoteViewSet(viewsets.ModelViewSet):
         logger.info(f"🔍 RETRIEVE - User: {request.user.id} ({request.user.email})")
 
         try:
-            # Debug the lookup process step by step
-            lookup_value = kwargs.get('pk')
+            lookup_value = kwargs.get("pk")
             logger.info(f"🔍 RETRIEVE - Looking for quote: {lookup_value}")
 
             # Check if quote exists in database at all
             from quotes.models import Quote
+
             db_quote_exists = Quote.objects.filter(pk=lookup_value).exists()
             logger.info(f"🔍 RETRIEVE - Quote exists in DB: {db_quote_exists}")
 
@@ -197,7 +197,27 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 db_quote = Quote.objects.get(pk=lookup_value)
                 logger.info(f"🔍 RETRIEVE - DB Quote client: {db_quote.client.id}")
                 logger.info(f"🔍 RETRIEVE - Current user: {request.user.id}")
-                logger.info(f"🔍 RETRIEVE - User owns quote: {db_quote.client.id == request.user.id}")
+                logger.info(
+                    f"🔍 RETRIEVE - User owns quote: {db_quote.client.id == request.user.id}"
+                )
+
+            # Debug the queryset before get_object
+            queryset = self.get_queryset()
+            logger.info(
+                f"🔍 RETRIEVE - Queryset count before get_object: {queryset.count()}"
+            )
+            quote_in_queryset = queryset.filter(pk=lookup_value).exists()
+            logger.info(f"🔍 RETRIEVE - Quote in queryset: {quote_in_queryset}")
+
+            # Try filter_queryset to see if that's the issue
+            filtered_queryset = self.filter_queryset(queryset)
+            logger.info(
+                f"🔍 RETRIEVE - Filtered queryset count: {filtered_queryset.count()}"
+            )
+            quote_in_filtered = filtered_queryset.filter(pk=lookup_value).exists()
+            logger.info(
+                f"🔍 RETRIEVE - Quote in filtered queryset: {quote_in_filtered}"
+            )
 
             # Now try the normal get_object
             instance = self.get_object()
