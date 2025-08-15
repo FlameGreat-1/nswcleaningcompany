@@ -304,9 +304,9 @@ def send_password_reset_email(user, reset_token: str) -> bool:
             return False
 
         reset_url = (
-            f"{settings.FRONTEND_URL}/accounts/reset-password?token={reset_token}"
+            f"{settings.FRONTEND_URL}/accounts/password-reset?token={reset_token}"
         )
-
+        
         context = {
             "user": user,
             "reset_url": reset_url,
