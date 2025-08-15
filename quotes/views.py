@@ -86,18 +86,19 @@ import logging
 from django.http import Http404
 
 logger = logging.getLogger(__name__)
+
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all()
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # ← COMMENT OUT
-    filterset_class = QuoteFilter
-    search_fields = [  
-        "quote_number",
-        "client__first_name",
-        "client__last_name",
-        "property_address",
-        "suburb",
-        "postcode",
-    ]
+    # filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # ← COMMENT OUT
+    # filterset_class = QuoteFilter  # ← COMMENT OUT
+    # search_fields = [  # ← COMMENT OUT THIS ENTIRE BLOCK
+    #     "quote_number",
+    #     "client__first_name",
+    #     "client__last_name",
+    #     "property_address",
+    #     "suburb",
+    #     "postcode",
+    # ]
 
     ordering_fields = [
         "created_at",
@@ -178,6 +179,20 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         logger.info(f"🔍 GET_QUERYSET - Staff user, returning all quotes")
         return queryset
+
+    def filter_queryset(self, queryset):
+        """Override to disable all filtering for now"""
+        logger.info(f"🔍 FILTER_QUERYSET - Original count: {queryset.count()}")
+        
+        # For retrieve action, return unfiltered queryset
+        if self.action == 'retrieve':
+            logger.info(f"🔍 FILTER_QUERYSET - Retrieve action, returning unfiltered")
+            return queryset
+        
+        # For other actions, apply normal filtering
+        filtered = super().filter_queryset(queryset)
+        logger.info(f"🔍 FILTER_QUERYSET - Filtered count: {filtered.count()}")
+        return filtered
 
     def retrieve(self, request, *args, **kwargs):
         logger.info(f"🔍 RETRIEVE - Starting retrieve for: {kwargs}")
