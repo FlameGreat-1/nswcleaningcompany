@@ -81,7 +81,7 @@ from .utils import (
     export_quotes_data,
 )
 from services.models import Service, ServiceAddOn
-
+from django.db import transaction
 import logging
 from django.http import Http404
 
@@ -240,15 +240,21 @@ class QuoteViewSet(viewsets.ModelViewSet):
         return quote
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        quote = self.perform_create(serializer)
-
-        response_serializer = QuoteDetailSerializer(quote, context={"request": request})
-        headers = self.get_success_headers(response_serializer.data)
-        return Response(
-            response_serializer.data, status=status.HTTP_201_CREATED, headers=headers
-        )
+        
+        with transaction.atomic():
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            quote = self.perform_create(serializer)
+            
+            transaction.on_commit(lambda: None)
+            
+            quote.refresh_from_db()
+            
+            response_serializer = QuoteDetailSerializer(quote, context={"request": request})
+            headers = self.get_success_headers(response_serializer.data)
+            return Response(
+                response_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            )    
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
