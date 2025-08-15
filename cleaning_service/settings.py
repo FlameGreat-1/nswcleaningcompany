@@ -42,8 +42,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "quotes.middleware.quote_middleware.QuoteDebugMiddleware",  
-    "quotes.middleware.quote_middleware.DatabaseConsistencyMiddleware",  
+    "quotes.middleware.TransactionDebugMiddleware",
 ]
 
 ROOT_URLCONF = "cleaning_service.urls"
@@ -71,6 +70,29 @@ DATABASES = {
         default=config("DATABASE_URL", default=f"sqlite:///{BASE_DIR}/db.sqlite3")
     )
 }
+
+CLEAR_DATABASE_ON_STARTUP = config(
+    "CLEAR_DATABASE_ON_STARTUP", default=False, cast=bool
+)
+if CLEAR_DATABASE_ON_STARTUP and DEBUG:
+    import django
+    import sys
+
+    def clear_database():
+        try:
+            django.setup()
+            from accounts.models import User, EmailVerification
+            from django.contrib.auth.models import Token
+
+            User.objects.all().delete()
+            EmailVerification.objects.all().delete()
+            Token.objects.all().delete()
+            print("✅ Database cleared for testing!")
+        except Exception as e:
+            print(f"⚠️ Could not clear database: {e}")
+
+    if len(sys.argv) > 1 and sys.argv[1] == "runserver":
+        clear_database()
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -250,21 +272,36 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "file": {
+            "class": "logging.FileHandler",
+            "filename": "debug.log",
+            "formatter": "verbose",
+        },
     },
     "loggers": {
         "django": {
             "handlers": ["console"],
-            "level": "WARNING",
+            "level": "INFO",
             "propagate": True,
         },
         "django.request": {
             "handlers": ["console"],
-            "level": "ERROR",
+            "level": "DEBUG",
             "propagate": True,
         },
         "accounts": {
             "handlers": ["console"],
-            "level": "WARNING",
+            "level": "INFO",
+            "propagate": True,
+        },
+        "quotes.views": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "quotes.middleware": {
+            "handlers": ["console", "file"],
+            "level": "INFO",
             "propagate": True,
         },
     },
@@ -315,6 +352,16 @@ FEATURE_FLAGS = {
     "advanced_search": config("FEATURE_ADVANCED_SEARCH", default=True, cast=bool),
     "bulk_operations": config("FEATURE_BULK_OPERATIONS", default=True, cast=bool),
 }
+
+if DEBUG:
+    INTERNAL_IPS = ["127.0.0.1", "localhost"]
+    try:
+        import debug_toolbar
+
+        INSTALLED_APPS.append("debug_toolbar")
+        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    except ImportError:
+        pass
 
 os.makedirs(BASE_DIR / "media", exist_ok=True)
 os.makedirs(BASE_DIR / "staticfiles", exist_ok=True)
