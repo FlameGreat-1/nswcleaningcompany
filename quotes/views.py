@@ -179,25 +179,37 @@ class QuoteViewSet(viewsets.ModelViewSet):
         logger.info(f"🔍 GET_QUERYSET - Staff user, returning all quotes")
         return queryset
 
-    def get_object(self):
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        lookup_value = self.kwargs.get(lookup_url_kwarg)
-
-        queryset = self.filter_queryset(self.get_queryset())
-
-        filter_kwargs = {self.lookup_field: lookup_value}
-        try:
-            obj = queryset.get(**filter_kwargs)
-        except Quote.DoesNotExist:
-            raise Http404("Quote not found")
-
-        self.check_object_permissions(self.request, obj)
-        return obj
-
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        logger.info(f"🔍 RETRIEVE - Starting retrieve for: {kwargs}")
+        logger.info(f"🔍 RETRIEVE - User: {request.user.id} ({request.user.email})")
+        
+        try:
+            # Debug the lookup process step by step
+            lookup_value = kwargs.get('pk')
+            logger.info(f"🔍 RETRIEVE - Looking for quote: {lookup_value}")
+            
+            # Check if quote exists in database at all
+            from quotes.models import Quote
+            db_quote_exists = Quote.objects.filter(pk=lookup_value).exists()
+            logger.info(f"🔍 RETRIEVE - Quote exists in DB: {db_quote_exists}")
+            
+            if db_quote_exists:
+                db_quote = Quote.objects.get(pk=lookup_value)
+                logger.info(f"🔍 RETRIEVE - DB Quote client: {db_quote.client.id}")
+                logger.info(f"🔍 RETRIEVE - Current user: {request.user.id}")
+                logger.info(f"🔍 RETRIEVE - User owns quote: {db_quote.client.id == request.user.id}")
+            
+            # Now try the normal get_object
+            instance = self.get_object()
+            logger.info(f"🔍 RETRIEVE - get_object() succeeded: {instance.id}")
+            
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            logger.error(f"🔍 RETRIEVE - Error: {str(e)}")
+            logger.error(f"🔍 RETRIEVE - Error type: {type(e)}")
+            raise
 
     def perform_create(self, serializer):
         quote = serializer.save(client=self.request.user)
