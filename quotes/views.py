@@ -86,6 +86,7 @@ import logging
 from django.http import Http404
 
 logger = logging.getLogger(__name__)
+
 class QuoteViewSet(viewsets.ModelViewSet):
     queryset = Quote.objects.all()
 
@@ -153,9 +154,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def filter_queryset(self, queryset):
-        return queryset
-
     def perform_create(self, serializer):
         quote = serializer.save(client=self.request.user)
         return quote
@@ -165,8 +163,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             quote = self.perform_create(serializer)
-
-            transaction.on_commit(lambda: None)
 
             quote.refresh_from_db()
 
@@ -182,131 +178,144 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def submit(self, request, pk=None):
-        quote = self.get_object()
+        with transaction.atomic():
+            quote = self.get_object()
 
-        if quote.submit_quote():
-            send_quote_notification(quote, "submitted", "staff")
+            if quote.submit_quote():
+                send_quote_notification(quote, "submitted", "staff")
+                return Response(
+                    {"message": "Quote submitted successfully", "status": quote.status}
+                )
+
             return Response(
-                {"message": "Quote submitted successfully", "status": quote.status}
+                {"error": "Quote cannot be submitted"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        return Response(
-            {"error": "Quote cannot be submitted"}, status=status.HTTP_400_BAD_REQUEST
-        )
 
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
-        quote = self.get_object()
-        serializer = self.get_serializer(quote, data=request.data, partial=True)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            if quote.approve_quote(request.user):
-                send_quote_notification(quote, "approved", "client")
+        with transaction.atomic():
+            quote = self.get_object()
+            
+            if not quote.can_be_approved():
                 return Response(
-                    {
-                        "message": "Quote approved successfully",
-                        "status": quote.status,
-                        "expires_at": quote.expires_at,
-                    }
+                    {"error": "Quote cannot be approved"}, 
+                    status=status.HTTP_400_BAD_REQUEST
                 )
+            
+            serializer = self.get_serializer(quote, data=request.data, partial=True)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            if serializer.is_valid():
+                if quote.approve_quote(request.user):
+                    serializer.save()
+                    send_quote_notification(quote, "approved", "client")
+                    return Response(
+                        {
+                            "message": "Quote approved successfully",
+                            "status": quote.status,
+                            "expires_at": quote.expires_at,
+                        }
+                    )
+
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def reject(self, request, pk=None):
-        quote = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        with transaction.atomic():
+            quote = self.get_object()
+            serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            rejection_reason = serializer.validated_data["rejection_reason"]
+            if serializer.is_valid():
+                rejection_reason = serializer.validated_data["rejection_reason"]
 
-            if quote.reject_quote(request.user, rejection_reason):
-                send_quote_notification(quote, "rejected", "client")
-                return Response(
-                    {
-                        "message": "Quote rejected successfully",
-                        "status": quote.status,
-                        "rejection_reason": rejection_reason,
-                    }
-                )
+                if quote.reject_quote(request.user, rejection_reason):
+                    send_quote_notification(quote, "rejected", "client")
+                    return Response(
+                        {
+                            "message": "Quote rejected successfully",
+                            "status": quote.status,
+                            "rejection_reason": rejection_reason,
+                        }
+                    )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
-        quote = self.get_object()
+        with transaction.atomic():
+            quote = self.get_object()
 
-        if quote.status not in ["converted", "cancelled"]:
-            quote.status = "cancelled"
-            quote.save()
+            if quote.status not in ["converted", "cancelled"]:
+                quote.status = "cancelled"
+                quote.save()
 
-            send_quote_notification(quote, "cancelled", "both")
+                send_quote_notification(quote, "cancelled", "both")
+                return Response(
+                    {"message": "Quote cancelled successfully", "status": quote.status}
+                )
+
             return Response(
-                {"message": "Quote cancelled successfully", "status": quote.status}
+                {"error": "Quote cannot be cancelled"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-        return Response(
-            {"error": "Quote cannot be cancelled"}, status=status.HTTP_400_BAD_REQUEST
-        )
 
     @action(detail=True, methods=["post"])
     def assign(self, request, pk=None):
-        quote = self.get_object()
-        serializer = self.get_serializer(quote, data=request.data, partial=True)
+        with transaction.atomic():
+            quote = self.get_object()
+            serializer = self.get_serializer(quote, data=request.data, partial=True)
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {
-                    "message": "Quote assigned successfully",
-                    "assigned_to": (
-                        quote.assigned_to.get_full_name() if quote.assigned_to else None
-                    ),
-                }
-            )
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {
+                        "message": "Quote assigned successfully",
+                        "assigned_to": (
+                            quote.assigned_to.get_full_name() if quote.assigned_to else None
+                        ),
+                    }
+                )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def duplicate(self, request, pk=None):
-        quote = self.get_object()
-        serializer = self.get_serializer(data=request.data)
+        with transaction.atomic():
+            quote = self.get_object()
+            serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            new_quote = duplicate_quote(quote, request.user, serializer.validated_data)
-            response_serializer = QuoteDetailSerializer(
-                new_quote, context={"request": request}
-            )
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                new_quote = duplicate_quote(quote, request.user, serializer.validated_data)
+                response_serializer = QuoteDetailSerializer(
+                    new_quote, context={"request": request}
+                )
+                return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["post"])
     def convert(self, request, pk=None):
-        quote = self.get_object()
+        with transaction.atomic():
+            quote = self.get_object()
 
-        if not quote.can_be_accepted:
-            return Response(
-                {"error": "Quote cannot be converted"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            if not quote.can_be_accepted:
+                return Response(
+                    {"error": "Quote cannot be converted"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            quote.status = "converted"
-            quote.save()
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                quote.status = "converted"
+                quote.save()
 
-            return Response(
-                {
-                    "message": "Quote converted to job successfully",
-                    "status": quote.status,
-                    "job_data": serializer.validated_data,
-                }
-            )
+                return Response(
+                    {
+                        "message": "Quote converted to job successfully",
+                        "status": quote.status,
+                        "job_data": serializer.validated_data,
+                    }
+                )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=["get"])
     def pdf(self, request, pk=None):
@@ -320,6 +329,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
             )
             return response
         except Exception as e:
+            logger.error(f"PDF generation failed for quote {quote.id}: {str(e)}")
             return Response(
                 {"error": "Failed to generate PDF"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -327,27 +337,29 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def recalculate_pricing(self, request, pk=None):
-        quote = self.get_object()
+        with transaction.atomic():
+            quote = self.get_object()
 
-        if quote.status in ["draft", "submitted", "under_review"]:
-            quote.update_pricing()
-            serializer = QuoteDetailSerializer(quote, context={"request": request})
-            return Response(serializer.data)
+            if quote.status in ["draft", "submitted", "under_review"]:
+                quote.update_pricing()
+                serializer = QuoteDetailSerializer(quote, context={"request": request})
+                return Response(serializer.data)
 
-        return Response(
-            {"error": "Cannot recalculate pricing for quote with current status"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+            return Response(
+                {"error": "Cannot recalculate pricing for quote with current status"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     @action(detail=False, methods=["post"])
     def bulk_operations(self, request):
-        serializer = BulkQuoteOperationSerializer(data=request.data)
+        with transaction.atomic():
+            serializer = BulkQuoteOperationSerializer(data=request.data)
 
-        if serializer.is_valid():
-            result = bulk_quote_operation(serializer.validated_data, request.user)
-            return Response(result)
+            if serializer.is_valid():
+                result = bulk_quote_operation(serializer.validated_data, request.user)
+                return Response(result)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"])
     def statistics(self, request):
@@ -409,7 +421,7 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(final_price__lte=price_max)
 
             assigned_to = serializer.validated_data.get("assigned_to")
-            if assigned_to:
+            if assigned_to and (request.user.is_staff or request.user.id == assigned_to):
                 queryset = queryset.filter(assigned_to_id=assigned_to)
 
             page = self.paginate_queryset(queryset)
@@ -421,8 +433,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
             return Response(result_serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class QuoteCalculatorView(APIView):
     permission_classes = [permissions.AllowAny]
 

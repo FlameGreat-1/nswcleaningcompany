@@ -10,7 +10,6 @@ from .views import (
     QuoteReportView,
     QuoteExportView,
     QuoteNotificationView,
-    MyQuotesView,
     PendingQuotesView,
     ExpiringQuotesView,
     UrgentQuotesView,
@@ -26,18 +25,16 @@ from .views import (
 app_name = "quotes"
 
 urlpatterns = [
-    # Custom views FIRST (to avoid conflicts)
-    path("my-quotes/", QuoteViewSet.as_view({"get": "list"}), name="my-quotes"),
-    path("pending/", PendingQuotesView.as_view(), name="pending-quotes"),
-    path("expiring/", ExpiringQuotesView.as_view(), name="expiring-quotes"),
-    path("urgent/", UrgentQuotesView.as_view(), name="urgent-quotes"),
-    path("ndis/", NDISQuotesView.as_view(), name="ndis-quotes"),
-    path("high-value/", HighValueQuotesView.as_view(), name="high-value-quotes"),
     path("calculator/", QuoteCalculatorView.as_view(), name="quote-calculator"),
     path("analytics/", QuoteAnalyticsView.as_view(), name="quote-analytics"),
     path("reports/", QuoteReportView.as_view(), name="quote-reports"),
     path("export/", QuoteExportView.as_view(), name="quote-export"),
     path("notifications/", QuoteNotificationView.as_view(), name="quote-notifications"),
+    path("pending/", PendingQuotesView.as_view(), name="pending-quotes"),
+    path("expiring/", ExpiringQuotesView.as_view(), name="expiring-quotes"),
+    path("urgent/", UrgentQuotesView.as_view(), name="urgent-quotes"),
+    path("ndis/", NDISQuotesView.as_view(), name="ndis-quotes"),
+    path("high-value/", HighValueQuotesView.as_view(), name="high-value-quotes"),
     path(
         "by-service/<int:service_id>/",
         QuotesByServiceView.as_view(),
@@ -75,7 +72,28 @@ urlpatterns = [
         "dashboard/", QuoteViewSet.as_view({"get": "dashboard"}), name="quote-dashboard"
     ),
     path("search/", QuoteViewSet.as_view({"post": "search"}), name="quote-search"),
-    # Main quote CRUD operations
+    path(
+        "templates/",
+        QuoteTemplateViewSet.as_view({"get": "list", "post": "create"}),
+        name="template-list",
+    ),
+    path(
+        "templates/<int:pk>/",
+        QuoteTemplateViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+        name="template-detail",
+    ),
+    path(
+        "templates/<int:pk>/use-template/",
+        QuoteTemplateViewSet.as_view({"post": "use_template"}),
+        name="template-use",
+    ),
     path(
         "", QuoteViewSet.as_view({"get": "list", "post": "create"}), name="quote-list"
     ),
@@ -91,7 +109,6 @@ urlpatterns = [
         ),
         name="quote-detail",
     ),
-    # Quote actions
     path(
         "<uuid:pk>/submit/",
         QuoteViewSet.as_view({"post": "submit"}),
@@ -133,37 +150,13 @@ urlpatterns = [
         QuoteViewSet.as_view({"post": "recalculate_pricing"}),
         name="quote-recalculate",
     ),
-    # Templates
     path(
-        "templates/",
-        QuoteTemplateViewSet.as_view({"get": "list", "post": "create"}),
-        name="template-list",
-    ),
-    path(
-        "templates/<int:pk>/",
-        QuoteTemplateViewSet.as_view(
-            {
-                "get": "retrieve",
-                "put": "update",
-                "patch": "partial_update",
-                "delete": "destroy",
-            }
-        ),
-        name="template-detail",
-    ),
-    path(
-        "templates/<int:pk>/use-template/",
-        QuoteTemplateViewSet.as_view({"post": "use_template"}),
-        name="template-use",
-    ),
-    # Items
-    path(
-        "items/",
+        "<uuid:quote_pk>/items/",
         QuoteItemViewSet.as_view({"get": "list", "post": "create"}),
-        name="item-list",
+        name="quote-item-list",
     ),
     path(
-        "items/<int:pk>/",
+        "<uuid:quote_pk>/items/<int:pk>/",
         QuoteItemViewSet.as_view(
             {
                 "get": "retrieve",
@@ -172,16 +165,15 @@ urlpatterns = [
                 "delete": "destroy",
             }
         ),
-        name="item-detail",
+        name="quote-item-detail",
     ),
-    # Attachments
     path(
-        "attachments/",
+        "<uuid:quote_pk>/attachments/",
         QuoteAttachmentViewSet.as_view({"get": "list", "post": "create"}),
-        name="attachment-list",
+        name="quote-attachment-list",
     ),
     path(
-        "attachments/<int:pk>/",
+        "<uuid:quote_pk>/attachments/<int:pk>/",
         QuoteAttachmentViewSet.as_view(
             {
                 "get": "retrieve",
@@ -190,21 +182,20 @@ urlpatterns = [
                 "delete": "destroy",
             }
         ),
-        name="attachment-detail",
+        name="quote-attachment-detail",
     ),
     path(
-        "attachments/<int:pk>/download/",
+        "<uuid:quote_pk>/attachments/<int:pk>/download/",
         QuoteAttachmentViewSet.as_view({"get": "download"}),
-        name="attachment-download",
+        name="quote-attachment-download",
     ),
-    # Revisions
     path(
-        "revisions/",
+        "<uuid:quote_pk>/revisions/",
         QuoteRevisionViewSet.as_view({"get": "list", "post": "create"}),
-        name="revision-list",
+        name="quote-revision-list",
     ),
     path(
-        "revisions/<int:pk>/",
+        "<uuid:quote_pk>/revisions/<int:pk>/",
         QuoteRevisionViewSet.as_view(
             {
                 "get": "retrieve",
@@ -213,6 +204,6 @@ urlpatterns = [
                 "delete": "destroy",
             }
         ),
-        name="revision-detail",
+        name="quote-revision-detail",
     ),
 ]
