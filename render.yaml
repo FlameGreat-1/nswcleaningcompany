@@ -13,7 +13,7 @@ services:
       python manage.py migrate
     startCommand: gunicorn cleaning_service.wsgi:application --bind 0.0.0.0:$PORT
     healthCheckPath: /api/v1/accounts/health/
-    healthCheckInterval: 60s      
+    healthCheckInterval: 120s      
     healthCheckTimeout: 15s       
     healthCheckGracePeriod: 120s  
     envVars:
