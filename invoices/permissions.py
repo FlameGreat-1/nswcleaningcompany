@@ -36,16 +36,15 @@ class IsAdminOrStaff(permissions.BasePermission):
 
 
 class InvoiceViewPermission(permissions.BasePermission):
-
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
 
-        if view.action in ["list", "retrieve"]:
+        if view.action in ["list", "retrieve", "my_invoices", "download_pdf"]:
             return True
 
-        if view.action in ["download_pdf", "resend_email"]:
-            return True
+        if view.action in ["resend_email", "regenerate_pdf", "dashboard_stats"]:
+            return request.user.is_admin_user or request.user.is_staff
 
         return request.user.is_admin_user or request.user.is_staff
 
@@ -57,7 +56,6 @@ class InvoiceViewPermission(permissions.BasePermission):
             return True
 
         return False
-
 
 class NDISInvoicePermission(permissions.BasePermission):
 

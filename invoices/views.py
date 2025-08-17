@@ -192,7 +192,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
         status_filter = request.query_params.get("status")
-        if status_filter:
+        if status_filter and status_filter != "all":
             invoices = invoices.filter(status=status_filter)
 
         search = request.query_params.get("search")
@@ -205,11 +205,11 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         is_ndis = request.query_params.get("is_ndis_invoice")
-        if is_ndis is not None:
+        if is_ndis is not None and is_ndis != "null":
             invoices = invoices.filter(is_ndis_invoice=is_ndis.lower() == "true")
 
         email_sent = request.query_params.get("email_sent")
-        if email_sent is not None:
+        if email_sent is not None and email_sent != "null":
             invoices = invoices.filter(email_sent=email_sent.lower() == "true")
 
         ordering = request.query_params.get("ordering", "-created_at")
