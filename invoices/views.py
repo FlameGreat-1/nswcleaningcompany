@@ -7,6 +7,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
+from django.db.models import Count, Sum
+from decimal import Decimal
 import os
 import logging
 from .models import Invoice, InvoiceItem
@@ -193,6 +195,26 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         if status_filter:
             invoices = invoices.filter(status=status_filter)
 
+        search = request.query_params.get("search")
+        if search:
+            invoices = invoices.filter(
+                Q(invoice_number__icontains=search)
+                | Q(client__first_name__icontains=search)
+                | Q(client__last_name__icontains=search)
+                | Q(participant_name__icontains=search)
+            )
+
+        is_ndis = request.query_params.get("is_ndis_invoice")
+        if is_ndis is not None:
+            invoices = invoices.filter(is_ndis_invoice=is_ndis.lower() == "true")
+
+        email_sent = request.query_params.get("email_sent")
+        if email_sent is not None:
+            invoices = invoices.filter(email_sent=email_sent.lower() == "true")
+
+        ordering = request.query_params.get("ordering", "-created_at")
+        invoices = invoices.order_by(ordering)
+
         serializer = InvoiceListSerializer(
             invoices, many=True, context={"request": request}
         )
@@ -224,9 +246,6 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(
                 {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
             )
-
-        from django.db.models import Count, Sum
-        from decimal import Decimal
 
         stats = Invoice.objects.aggregate(
             total_invoices=Count("id"),
