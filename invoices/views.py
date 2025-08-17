@@ -176,8 +176,8 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
                 {"error": "PDF regeneration failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-    @action(detail=False, methods=["get"])
+        
+    @action(detail=False, methods=["get"], url_path='my-invoices')
     def my_invoices(self, request):
         if not request.user.is_client:
             return Response(
@@ -219,7 +219,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             invoices, many=True, context={"request": request}
         )
         return Response(serializer.data)
-
+  
     @action(detail=False, methods=["get"])
     def ndis_invoices(self, request):
         user = request.user
