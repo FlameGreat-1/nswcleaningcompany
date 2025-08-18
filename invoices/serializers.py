@@ -55,6 +55,10 @@ class InvoiceSerializer(serializers.ModelSerializer):
     )
     is_overdue = serializers.BooleanField(read_only=True)
     days_overdue = serializers.IntegerField(read_only=True)
+    requires_deposit = serializers.BooleanField(read_only=True)
+    deposit_status = serializers.CharField(read_only=True)
+    formatted_deposit_amount = serializers.CharField(read_only=True)
+    formatted_remaining_balance = serializers.CharField(read_only=True)
 
     pdf_url = serializers.SerializerMethodField()
     status_display = serializers.CharField(source="get_status_display", read_only=True)
@@ -82,6 +86,16 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "subtotal",
             "gst_amount",
             "total_amount",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+            "remaining_balance",
+            "deposit_paid",
+            "deposit_paid_date",
+            "requires_deposit",
+            "deposit_status",
+            "formatted_deposit_amount",
+            "formatted_remaining_balance",
             "balance_due",
             "payment_terms",
             "notes",
@@ -103,6 +117,10 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "subtotal",
             "gst_amount",
             "total_amount",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+            "remaining_balance",
             "pdf_file",
             "email_sent",
             "email_sent_at",
@@ -226,6 +244,8 @@ class InvoiceListSerializer(serializers.ModelSerializer):
     )
     is_overdue = serializers.BooleanField(read_only=True)
     days_overdue = serializers.IntegerField(read_only=True)
+    requires_deposit = serializers.BooleanField(read_only=True)
+    deposit_status = serializers.CharField(read_only=True)
     items_count = serializers.SerializerMethodField()
     items = InvoiceItemSerializer(many=True, read_only=True)
 
@@ -244,6 +264,14 @@ class InvoiceListSerializer(serializers.ModelSerializer):
             "total_amount",
             "subtotal",
             "gst_amount",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+            "remaining_balance",
+            "deposit_paid",
+            "deposit_paid_date",
+            "requires_deposit",
+            "deposit_status",
             "balance_due",
             "is_ndis_invoice",
             "participant_name",
@@ -287,6 +315,8 @@ class InvoiceActionSerializer(serializers.Serializer):
 class NDISInvoiceSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.full_name", read_only=True)
     client_full_name = serializers.ReadOnlyField()
+    requires_deposit = serializers.BooleanField(read_only=True)
+    deposit_status = serializers.CharField(read_only=True)
     items = InvoiceItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -303,10 +333,20 @@ class NDISInvoiceSerializer(serializers.ModelSerializer):
             "subtotal",
             "gst_amount",
             "total_amount",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+            "remaining_balance",
+            "deposit_paid",
+            "deposit_paid_date",
+            "requires_deposit",
+            "deposit_status",
             "items",
             "invoice_date",
             "due_date",
         ]
+
+
 class ClientInvoiceListSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.full_name", read_only=True)
     client_email = serializers.CharField(source="client.email", read_only=True)
@@ -316,6 +356,10 @@ class ClientInvoiceListSerializer(serializers.ModelSerializer):
     )
     is_overdue = serializers.BooleanField(read_only=True)
     days_overdue = serializers.IntegerField(read_only=True)
+    requires_deposit = serializers.BooleanField(read_only=True)
+    deposit_status = serializers.CharField(read_only=True)
+    formatted_deposit_amount = serializers.CharField(read_only=True)
+    formatted_remaining_balance = serializers.CharField(read_only=True)
     items_count = serializers.SerializerMethodField()
     items = InvoiceItemSerializer(many=True, read_only=True)
 
@@ -332,6 +376,16 @@ class ClientInvoiceListSerializer(serializers.ModelSerializer):
             "total_amount",
             "subtotal",
             "gst_amount",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+            "remaining_balance",
+            "deposit_paid",
+            "deposit_paid_date",
+            "requires_deposit",
+            "deposit_status",
+            "formatted_deposit_amount",
+            "formatted_remaining_balance",
             "balance_due",
             "is_ndis_invoice",
             "participant_name",

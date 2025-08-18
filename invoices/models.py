@@ -1,406 +1,430 @@
-from rest_framework import serializers
+from django.db import models
 from django.contrib.auth import get_user_model
-from .models import Invoice, InvoiceItem
-from accounts.serializers import UserSerializer
-from quotes.serializers import QuoteSerializer
+from django.utils import timezone
+from django.core.validators import MinValueValidator
+from django.core.exceptions import ObjectDoesNotExist
+from decimal import Decimal
+import uuid
+import os
+from django.conf import settings
+from .utils import (
+    InvoiceNumberGenerator,
+    PricingCalculator,
+    PDFInvoiceGenerator,
+    InvoiceEmailService,
+    DateTimeUtils,
+    FilePathGenerator,
+)
+from .validators import (
+    validate_invoice_number,
+    validate_ndis_number,
+    validate_positive_decimal,
+    validate_due_date,
+    validate_payment_terms,
+    validate_quantity,
+    validate_unit_price,
+    validate_participant_name,
+)
 
 User = get_user_model()
 
 
-class InvoiceItemSerializer(serializers.ModelSerializer):
-    gst_amount = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
+class Invoice(models.Model):
+    STATUS_CHOICES = (
+        ("draft", "Draft"),
+        ("sent", "Sent"),
+        ("cancelled", "Cancelled"),
     )
-    total_with_gst = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    invoice_number = models.CharField(
+        max_length=20, unique=True, validators=[validate_invoice_number]
+    )
+
+    client = models.ForeignKey(User, on_delete=models.CASCADE, related_name="invoices")
+
+    quote = models.OneToOneField(
+        "quotes.Quote",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="invoice",
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+
+    invoice_date = models.DateField(default=timezone.now)
+    due_date = models.DateField(validators=[validate_due_date])
+
+    billing_address = models.TextField()
+    service_address = models.TextField()
+
+    is_ndis_invoice = models.BooleanField(default=False)
+    participant_name = models.CharField(
+        max_length=200, blank=True, validators=[validate_participant_name]
+    )
+    ndis_number = models.CharField(
+        max_length=20, blank=True, validators=[validate_ndis_number]
+    )
+    service_start_date = models.DateField(null=True, blank=True)
+    service_end_date = models.DateField(null=True, blank=True)
+
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+    gst_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+
+    deposit_required = models.BooleanField(default=False)
+    deposit_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+    deposit_percentage = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+    remaining_balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[validate_positive_decimal],
+    )
+    deposit_paid = models.BooleanField(default=False)
+    deposit_paid_date = models.DateField(null=True, blank=True)
+
+    payment_terms = models.PositiveIntegerField(
+        default=30, validators=[validate_payment_terms]
+    )
+
+    notes = models.TextField(blank=True)
+
+    pdf_file = models.FileField(upload_to="invoices/pdfs/%Y/%m/", blank=True, null=True)
+
+    email_sent = models.BooleanField(default=False)
+    email_sent_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_invoices",
     )
 
     class Meta:
-        model = InvoiceItem
-        fields = [
-            "id",
-            "description",
-            "quantity",
-            "unit_price",
-            "total_price",
-            "is_taxable",
-            "gst_amount",
-            "total_with_gst",
-            "created_at",
-            "updated_at",
+        db_table = "invoices_invoice"
+        verbose_name = "Invoice"
+        verbose_name_plural = "Invoices"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["client", "status"]),
+            models.Index(fields=["invoice_number"]),
+            models.Index(fields=["due_date"]),
+            models.Index(fields=["is_ndis_invoice"]),
+            models.Index(fields=["deposit_required", "deposit_paid"]),
+            models.Index(fields=["deposit_paid_date"]),
         ]
-        read_only_fields = ["id", "total_price", "created_at", "updated_at"]
-
-    def validate_quantity(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("Quantity must be greater than zero")
-        return value
-
-    def validate_unit_price(self, value):
-        if value < 0:
-            raise serializers.ValidationError("Unit price cannot be negative")
-        return value
-
-
-class InvoiceSerializer(serializers.ModelSerializer):
-    client = UserSerializer(read_only=True)
-    quote = QuoteSerializer(read_only=True)
-    items = InvoiceItemSerializer(many=True, read_only=True)
-    client_id = serializers.UUIDField(write_only=True)
-    quote_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
-
-    client_full_name = serializers.ReadOnlyField()
-    balance_due = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
-    is_overdue = serializers.BooleanField(read_only=True)
-    days_overdue = serializers.IntegerField(read_only=True)
-    requires_deposit = serializers.BooleanField(read_only=True)
-    deposit_status = serializers.CharField(read_only=True)
-    formatted_deposit_amount = serializers.CharField(read_only=True)
-    formatted_remaining_balance = serializers.CharField(read_only=True)
-
-    pdf_url = serializers.SerializerMethodField()
-    status_display = serializers.CharField(source="get_status_display", read_only=True)
-
-    class Meta:
-        model = Invoice
-        fields = [
-            "id",
-            "invoice_number",
-            "client",
-            "client_id",
-            "quote",
-            "quote_id",
-            "status",
-            "status_display",
-            "invoice_date",
-            "due_date",
-            "billing_address",
-            "service_address",
-            "is_ndis_invoice",
-            "participant_name",
-            "ndis_number",
-            "service_start_date",
-            "service_end_date",
-            "subtotal",
-            "gst_amount",
-            "total_amount",
-            "deposit_required",
-            "deposit_amount",
-            "deposit_percentage",
-            "remaining_balance",
-            "deposit_paid",
-            "deposit_paid_date",
-            "requires_deposit",
-            "deposit_status",
-            "formatted_deposit_amount",
-            "formatted_remaining_balance",
-            "balance_due",
-            "payment_terms",
-            "notes",
-            "pdf_file",
-            "pdf_url",
-            "email_sent",
-            "email_sent_at",
-            "is_overdue",
-            "days_overdue",
-            "client_full_name",
-            "items",
-            "created_at",
-            "updated_at",
-            "created_by",
-        ]
-        read_only_fields = [
-            "id",
-            "invoice_number",
-            "subtotal",
-            "gst_amount",
-            "total_amount",
-            "deposit_required",
-            "deposit_amount",
-            "deposit_percentage",
-            "remaining_balance",
-            "pdf_file",
-            "email_sent",
-            "email_sent_at",
-            "created_at",
-            "updated_at",
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(deposit_amount__gte=0),
+                name="invoices_invoice_positive_deposit_amount",
+            ),
+            models.CheckConstraint(
+                check=models.Q(deposit_percentage__gte=0, deposit_percentage__lte=100),
+                name="invoices_invoice_valid_deposit_percentage",
+            ),
+            models.CheckConstraint(
+                check=models.Q(remaining_balance__gte=0),
+                name="invoices_invoice_positive_remaining_balance",
+            ),
         ]
 
-    def get_pdf_url(self, obj):
-        if obj.pdf_file:
-            request = self.context.get("request")
-            if request:
-                return request.build_absolute_uri(obj.pdf_file.url)
+    def __str__(self):
+        return f"Invoice {self.invoice_number} - {self.client_full_name}"
+
+    @property
+    def client_full_name(self):
+        if hasattr(self.client, "full_name"):
+            return self.client.full_name
+        return f"{self.client.first_name} {self.client.last_name}".strip()
+
+    @property
+    def is_client_ndis(self):
+        return getattr(self.client, "is_ndis_client", False)
+
+    @property
+    def client_profile_data(self):
+        if hasattr(self.client, "client_profile"):
+            try:
+                return self.client.client_profile
+            except ObjectDoesNotExist:
+                return None
         return None
 
-    def validate_client_id(self, value):
-        try:
-            client = User.objects.get(id=value)
-            if not client.is_client:
-                raise serializers.ValidationError("Selected user is not a client")
-            return value
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Client does not exist")
+    @property
+    def is_overdue(self):
+        if self.due_date and self.status not in ["cancelled"]:
+            return timezone.now().date() > self.due_date
+        return False
 
-    def validate_quote_id(self, value):
-        if value:
-            from quotes.models import Quote
+    @property
+    def days_overdue(self):
+        if self.is_overdue:
+            return (timezone.now().date() - self.due_date).days
+        return 0
 
-            try:
-                quote = Quote.objects.get(id=value)
-                if quote.status != "approved":
-                    raise serializers.ValidationError(
-                        "Quote must be approved to create invoice"
-                    )
-                return value
-            except Quote.DoesNotExist:
-                raise serializers.ValidationError("Quote does not exist")
-        return value
+    @property
+    def requires_deposit(self):
+        return self.deposit_required and self.deposit_amount > Decimal("0.00")
 
-    def validate(self, attrs):
-        if attrs.get("service_start_date") and attrs.get("service_end_date"):
-            if attrs["service_start_date"] > attrs["service_end_date"]:
-                raise serializers.ValidationError(
-                    {"service_end_date": "Service end date must be after start date"}
-                )
+    @property
+    def deposit_status(self):
+        if not self.requires_deposit:
+            return "not_required"
+        return "paid" if self.deposit_paid else "pending"
 
-        if attrs.get("is_ndis_invoice"):
-            if not attrs.get("participant_name"):
-                raise serializers.ValidationError(
-                    {
-                        "participant_name": "Participant name is required for NDIS invoices"
-                    }
-                )
-            if not attrs.get("ndis_number"):
-                raise serializers.ValidationError(
-                    {"ndis_number": "NDIS number is required for NDIS invoices"}
-                )
+    @property
+    def formatted_deposit_amount(self):
+        from .utils import format_currency
 
-        return attrs
+        return format_currency(self.deposit_amount)
 
-    def create(self, validated_data):
-        client_id = validated_data.pop("client_id")
-        quote_id = validated_data.pop("quote_id", None)
+    @property
+    def formatted_remaining_balance(self):
+        from .utils import format_currency
 
-        client = User.objects.get(id=client_id)
-        quote = None
+        return format_currency(self.remaining_balance)
 
-        if quote_id:
-            from quotes.models import Quote
+    def save(self, *args, **kwargs):
+        if not self.invoice_number:
+            self.invoice_number = InvoiceNumberGenerator.generate_invoice_number()
 
-            quote = Quote.objects.get(id=quote_id)
-
-        invoice = Invoice.objects.create(
-            client=client,
-            quote=quote,
-            created_by=self.context["request"].user,
-            **validated_data
-        )
-
-        return invoice
-
-
-class InvoiceCreateFromQuoteSerializer(serializers.Serializer):
-    quote_id = serializers.UUIDField()
-
-    def validate_quote_id(self, value):
-        from quotes.models import Quote
-
-        try:
-            quote = Quote.objects.get(id=value)
-            if quote.status != "approved":
-                raise serializers.ValidationError(
-                    "Quote must be approved to create invoice"
-                )
-            if hasattr(quote, "invoice"):
-                raise serializers.ValidationError(
-                    "Invoice already exists for this quote"
-                )
-            return value
-        except Quote.DoesNotExist:
-            raise serializers.ValidationError("Quote does not exist")
-
-    def create(self, validated_data):
-        from quotes.models import Quote
-
-        quote = Quote.objects.get(id=validated_data["quote_id"])
-
-        invoice = Invoice.create_from_quote(
-            quote=quote, created_by=self.context["request"].user
-        )
-
-        return invoice
-
-
-class InvoiceListSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source="client.full_name", read_only=True)
-    client_email = serializers.CharField(source="client.email", read_only=True)
-    client_full_name = serializers.ReadOnlyField()
-    status_display = serializers.CharField(source="get_status_display", read_only=True)
-    balance_due = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
-    )
-    is_overdue = serializers.BooleanField(read_only=True)
-    days_overdue = serializers.IntegerField(read_only=True)
-    requires_deposit = serializers.BooleanField(read_only=True)
-    deposit_status = serializers.CharField(read_only=True)
-    items_count = serializers.SerializerMethodField()
-    items = InvoiceItemSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Invoice
-        fields = [
-            "id",
-            "invoice_number",
-            "client_name",
-            "client_email",
-            "client_full_name",
-            "status",
-            "status_display",
-            "invoice_date",
-            "due_date",
-            "total_amount",
-            "subtotal",
-            "gst_amount",
-            "deposit_required",
-            "deposit_amount",
-            "deposit_percentage",
-            "remaining_balance",
-            "deposit_paid",
-            "deposit_paid_date",
-            "requires_deposit",
-            "deposit_status",
-            "balance_due",
-            "is_ndis_invoice",
-            "participant_name",
-            "ndis_number",
-            "service_start_date",
-            "service_end_date",
-            "billing_address",
-            "service_address",
-            "email_sent",
-            "is_overdue",
-            "days_overdue",
-            "items_count",
-            "items",
-            "pdf_file",
-            "created_at",
-        ]
-
-    def get_items_count(self, obj):
-        return obj.items.count()
-
-
-class InvoiceActionSerializer(serializers.Serializer):
-    action = serializers.ChoiceField(
-        choices=["generate_pdf", "send_email", "mark_as_sent"]
-    )
-
-    def validate_action(self, value):
-        invoice = self.context.get("invoice")
-
-        if value == "mark_as_sent" and invoice.status != "draft":
-            raise serializers.ValidationError("Can only mark draft invoices as sent")
-
-        if value == "send_email" and not invoice.client.email:
-            raise serializers.ValidationError(
-                "Client email is required to send invoice"
+        if not self.due_date:
+            self.due_date = DateTimeUtils.calculate_due_date(
+                self.invoice_date, self.payment_terms
             )
 
-        return value
+        if self.is_client_ndis:
+            self.is_ndis_invoice = True
+            self.participant_name = self.client_full_name
+
+            profile = self.client_profile_data
+            if profile:
+                self.ndis_number = getattr(profile, "ndis_number", "") or ""
+
+        if self.quote:
+            self.billing_address = self.quote.property_address
+            self.service_address = self.quote.property_address
+            if self.quote.preferred_date:
+                self.service_start_date = self.quote.preferred_date
+                self.service_end_date = self.quote.preferred_date
+
+        super().save(*args, **kwargs)
+
+    def calculate_totals(self):
+        items_data = []
+        for item in self.items.all():
+            items_data.append(
+                {
+                    "quantity": item.quantity,
+                    "unit_price": item.unit_price,
+                    "is_taxable": item.is_taxable,
+                }
+            )
+
+        totals = PricingCalculator.calculate_invoice_totals(items_data)
+
+        self.subtotal = totals["subtotal"]
+        self.gst_amount = totals["gst_amount"]
+        self.total_amount = totals["total_amount"]
+
+        self.save(update_fields=["subtotal", "gst_amount", "total_amount"])
+
+    def generate_pdf(self):
+        pdf_path = FilePathGenerator.generate_invoice_pdf_path(self)
+        FilePathGenerator.ensure_directory_exists(pdf_path)
+
+        generator = PDFInvoiceGenerator()
+        success = generator.generate_pdf(self, pdf_path)
+
+        if success:
+            relative_path = os.path.relpath(pdf_path, settings.MEDIA_ROOT)
+            self.pdf_file.name = relative_path
+            self.save(update_fields=["pdf_file"])
+
+        return success
+
+    def send_email(self):
+        if not self.pdf_file:
+            if not self.generate_pdf():
+                return False
+
+        pdf_path = self.pdf_file.path if self.pdf_file else None
+        success = InvoiceEmailService.send_invoice_email(self, pdf_path)
+
+        if success:
+            self.email_sent = True
+            self.email_sent_at = timezone.now()
+            self.save(update_fields=["email_sent", "email_sent_at"])
+
+        return success
+
+    def mark_as_sent(self):
+        if self.status == "draft":
+            self.status = "sent"
+            self.save(update_fields=["status"])
+
+    @classmethod
+    def create_from_quote(cls, quote, created_by=None):
+        client_name = ""
+        if hasattr(quote.client, "full_name"):
+            client_name = quote.client.full_name
+        else:
+            client_name = f"{quote.client.first_name} {quote.client.last_name}".strip()
+
+        invoice = cls.objects.create(
+            client=quote.client,
+            quote=quote,
+            billing_address=quote.property_address,
+            service_address=quote.property_address,
+            is_ndis_invoice=quote.is_ndis_client,
+            participant_name=client_name if quote.is_ndis_client else "",
+            ndis_number=quote.ndis_participant_number or "",
+            service_start_date=quote.preferred_date,
+            service_end_date=quote.preferred_date,
+            deposit_required=quote.deposit_required,
+            deposit_amount=quote.deposit_amount,
+            deposit_percentage=quote.deposit_percentage,
+            remaining_balance=quote.remaining_balance,
+            created_by=created_by,
+        )
+
+        if quote.base_price > 0:
+            service_description = f"{quote.service.name}"
+            if hasattr(quote, "cleaning_type") and quote.cleaning_type:
+                service_description += f" - {quote.get_cleaning_type_display()}"
+
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=service_description,
+                quantity=Decimal("1.00"),
+                unit_price=quote.base_price,
+                is_taxable=True,
+            )
+
+        if quote.travel_cost > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Travel Cost",
+                quantity=Decimal("1.00"),
+                unit_price=quote.travel_cost,
+                is_taxable=False,
+            )
+
+        if quote.urgency_surcharge > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Urgency Surcharge",
+                quantity=Decimal("1.00"),
+                unit_price=quote.urgency_surcharge,
+                is_taxable=True,
+            )
+
+        if quote.extras_cost > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Extra Services",
+                quantity=Decimal("1.00"),
+                unit_price=quote.extras_cost,
+                is_taxable=True,
+            )
+
+        if quote.discount_amount > 0:
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description="Discount Applied",
+                quantity=Decimal("1.00"),
+                unit_price=-quote.discount_amount,
+                is_taxable=False,
+            )
+
+        for quote_item in quote.items.all():
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=quote_item.name,
+                quantity=quote_item.quantity,
+                unit_price=quote_item.unit_price,
+                is_taxable=quote_item.is_taxable,
+            )
+
+        invoice.calculate_totals()
+
+        quote.status = "converted"
+        quote.save(update_fields=["status"])
+
+        return invoice
 
 
-class NDISInvoiceSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source="client.full_name", read_only=True)
-    client_full_name = serializers.ReadOnlyField()
-    requires_deposit = serializers.BooleanField(read_only=True)
-    deposit_status = serializers.CharField(read_only=True)
-    items = InvoiceItemSerializer(many=True, read_only=True)
+class InvoiceItem(models.Model):
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="items")
 
-    class Meta:
-        model = Invoice
-        fields = [
-            "id",
-            "invoice_number",
-            "client_name",
-            "client_full_name",
-            "participant_name",
-            "ndis_number",
-            "service_start_date",
-            "service_end_date",
-            "subtotal",
-            "gst_amount",
-            "total_amount",
-            "deposit_required",
-            "deposit_amount",
-            "deposit_percentage",
-            "remaining_balance",
-            "deposit_paid",
-            "deposit_paid_date",
-            "requires_deposit",
-            "deposit_status",
-            "items",
-            "invoice_date",
-            "due_date",
-        ]
-
-
-class ClientInvoiceListSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source="client.full_name", read_only=True)
-    client_email = serializers.CharField(source="client.email", read_only=True)
-    client_full_name = serializers.ReadOnlyField()
-    balance_due = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True
+    description = models.CharField(max_length=500)
+    quantity = models.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal("1.00"),
+        validators=[validate_quantity],
     )
-    is_overdue = serializers.BooleanField(read_only=True)
-    days_overdue = serializers.IntegerField(read_only=True)
-    requires_deposit = serializers.BooleanField(read_only=True)
-    deposit_status = serializers.CharField(read_only=True)
-    formatted_deposit_amount = serializers.CharField(read_only=True)
-    formatted_remaining_balance = serializers.CharField(read_only=True)
-    items_count = serializers.SerializerMethodField()
-    items = InvoiceItemSerializer(many=True, read_only=True)
+    unit_price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[validate_unit_price]
+    )
+    total_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+    is_taxable = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        model = Invoice
-        fields = [
-            "id",
-            "invoice_number",
-            "client_name",
-            "client_email",
-            "client_full_name",
-            "invoice_date",
-            "due_date",
-            "total_amount",
-            "subtotal",
-            "gst_amount",
-            "deposit_required",
-            "deposit_amount",
-            "deposit_percentage",
-            "remaining_balance",
-            "deposit_paid",
-            "deposit_paid_date",
-            "requires_deposit",
-            "deposit_status",
-            "formatted_deposit_amount",
-            "formatted_remaining_balance",
-            "balance_due",
-            "is_ndis_invoice",
-            "participant_name",
-            "ndis_number",
-            "service_start_date",
-            "service_end_date",
-            "billing_address",
-            "service_address",
-            "is_overdue",
-            "days_overdue",
-            "items_count",
-            "items",
-            "pdf_file",
-            "created_at",
-        ]
+        db_table = "invoices_invoice_item"
+        verbose_name = "Invoice Item"
+        verbose_name_plural = "Invoice Items"
+        ordering = ["id"]
 
-    def get_items_count(self, obj):
-        return obj.items.count()
+    def __str__(self):
+        return f"{self.invoice.invoice_number} - {self.description}"
+
+    def save(self, *args, **kwargs):
+        self.total_price = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+    @property
+    def gst_amount(self):
+        if self.is_taxable:
+            return PricingCalculator.calculate_gst(self.total_price)
+        return Decimal("0.00")
+
+    @property
+    def total_with_gst(self):
+        return self.total_price + self.gst_amount
