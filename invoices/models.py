@@ -205,15 +205,12 @@ class Invoice(models.Model):
 
     @property
     def formatted_deposit_amount(self):
-        from .utils import format_currency
-
-        return format_currency(self.deposit_amount)
+        return f"${self.deposit_amount:,.2f}"
 
     @property
     def formatted_remaining_balance(self):
-        from .utils import format_currency
+        return f"${self.remaining_balance:,.2f}"
 
-        return format_currency(self.remaining_balance)
 
     def save(self, *args, **kwargs):
         if not self.invoice_number:
