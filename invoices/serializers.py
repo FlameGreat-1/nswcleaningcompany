@@ -6,6 +6,7 @@ from quotes.serializers import QuoteSerializer
 
 User = get_user_model()
 
+
 class InvoiceItemSerializer(serializers.ModelSerializer):
     gst_amount = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
@@ -13,6 +14,7 @@ class InvoiceItemSerializer(serializers.ModelSerializer):
     total_with_gst = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
+
     class Meta:
         model = InvoiceItem
         fields = [
@@ -47,6 +49,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     client_id = serializers.UUIDField(write_only=True)
     quote_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
 
+    client_full_name = serializers.ReadOnlyField()
     balance_due = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
@@ -88,6 +91,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             "email_sent_at",
             "is_overdue",
             "days_overdue",
+            "client_full_name",
             "items",
             "created_at",
             "updated_at",
@@ -215,12 +219,15 @@ class InvoiceCreateFromQuoteSerializer(serializers.Serializer):
 class InvoiceListSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.full_name", read_only=True)
     client_email = serializers.CharField(source="client.email", read_only=True)
+    client_full_name = serializers.ReadOnlyField()
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     balance_due = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
     is_overdue = serializers.BooleanField(read_only=True)
+    days_overdue = serializers.IntegerField(read_only=True)
     items_count = serializers.SerializerMethodField()
+    items = InvoiceItemSerializer(many=True, read_only=True)
 
     class Meta:
         model = Invoice
@@ -229,16 +236,28 @@ class InvoiceListSerializer(serializers.ModelSerializer):
             "invoice_number",
             "client_name",
             "client_email",
+            "client_full_name",
             "status",
             "status_display",
             "invoice_date",
             "due_date",
             "total_amount",
+            "subtotal",
+            "gst_amount",
             "balance_due",
             "is_ndis_invoice",
+            "participant_name",
+            "ndis_number",
+            "service_start_date",
+            "service_end_date",
+            "billing_address",
+            "service_address",
             "email_sent",
             "is_overdue",
+            "days_overdue",
             "items_count",
+            "items",
+            "pdf_file",
             "created_at",
         ]
 
@@ -267,6 +286,7 @@ class InvoiceActionSerializer(serializers.Serializer):
 
 class NDISInvoiceSerializer(serializers.ModelSerializer):
     client_name = serializers.CharField(source="client.full_name", read_only=True)
+    client_full_name = serializers.ReadOnlyField()
     items = InvoiceItemSerializer(many=True, read_only=True)
 
     class Meta:
@@ -275,6 +295,7 @@ class NDISInvoiceSerializer(serializers.ModelSerializer):
             "id",
             "invoice_number",
             "client_name",
+            "client_full_name",
             "participant_name",
             "ndis_number",
             "service_start_date",
@@ -286,3 +307,46 @@ class NDISInvoiceSerializer(serializers.ModelSerializer):
             "invoice_date",
             "due_date",
         ]
+class ClientInvoiceListSerializer(serializers.ModelSerializer):
+    client_name = serializers.CharField(source="client.full_name", read_only=True)
+    client_email = serializers.CharField(source="client.email", read_only=True)
+    client_full_name = serializers.ReadOnlyField()
+    balance_due = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    is_overdue = serializers.BooleanField(read_only=True)
+    days_overdue = serializers.IntegerField(read_only=True)
+    items_count = serializers.SerializerMethodField()
+    items = InvoiceItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Invoice
+        fields = [
+            "id",
+            "invoice_number",
+            "client_name",
+            "client_email",
+            "client_full_name",
+            "invoice_date",
+            "due_date",
+            "total_amount",
+            "subtotal",
+            "gst_amount",
+            "balance_due",
+            "is_ndis_invoice",
+            "participant_name",
+            "ndis_number",
+            "service_start_date",
+            "service_end_date",
+            "billing_address",
+            "service_address",
+            "is_overdue",
+            "days_overdue",
+            "items_count",
+            "items",
+            "pdf_file",
+            "created_at",
+        ]
+
+    def get_items_count(self, obj):
+        return obj.items.count()

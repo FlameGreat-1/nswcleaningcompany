@@ -18,6 +18,7 @@ from .serializers import (
     InvoiceItemSerializer,
     NDISInvoiceSerializer,
     InvoiceActionSerializer,
+    ClientInvoiceListSerializer,
 )
 from .permissions import InvoiceViewPermission, NDISInvoicePermission, IsOwnerOrAdmin
 from .signals import send_invoice_email
@@ -176,7 +177,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
                 {"error": "PDF regeneration failed"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
+
     @action(detail=False, methods=["get"], url_path='my-invoices')
     def my_invoices(self, request):
         if not request.user.is_client:
@@ -187,7 +188,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
 
         invoices = (
             Invoice.objects.filter(client=request.user)
-            .select_related("client")
+            .select_related("client", "quote")
             .prefetch_related("items")
         )
 
@@ -215,11 +216,11 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         ordering = request.query_params.get("ordering", "-created_at")
         invoices = invoices.order_by(ordering)
 
-        serializer = InvoiceListSerializer(
+        serializer = ClientInvoiceListSerializer(
             invoices, many=True, context={"request": request}
         )
         return Response(serializer.data)
-  
+
     @action(detail=False, methods=["get"])
     def ndis_invoices(self, request):
         user = request.user
