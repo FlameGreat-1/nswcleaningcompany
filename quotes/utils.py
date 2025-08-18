@@ -72,8 +72,8 @@ def calculate_quote_pricing(quote):
             "gst_amount": gst_amount,
             "final_price": total_price,
             "deposit_amount": deposit_amount,
-            "deposit_percentage": deposit_rates.get(urgency_level, Decimal("0.00"))
-            * 100,
+            "deposit_percentage": deposit_rates.get(urgency_level, Decimal("0.00")) * 100,
+            "deposit_required": deposit_rates.get(urgency_level, Decimal("0.00")) > Decimal("0.00"),
             "remaining_balance": total_price - deposit_amount,
             "quote_valid_until": timezone.now() + timedelta(days=30),
             "breakdown": {
@@ -89,7 +89,6 @@ def calculate_quote_pricing(quote):
     except Exception as e:
         logger.error(f"Quote pricing calculation failed: {str(e)}")
         raise
-
 
 def calculate_base_price(service, cleaning_type, number_of_rooms, square_meters=None):
     if not service:
@@ -970,26 +969,51 @@ def generate_quote_pdf(quote):
             ["TOTAL:", format_currency(quote.final_price)],
         ]
 
+        if hasattr(quote, 'deposit_required') and quote.deposit_required:
+            pricing_data.insert(-1, ["", ""])
+            pricing_data.insert(-1, ["DEPOSIT INFORMATION:", ""])
+            pricing_data.insert(-1, ["Deposit Required:", format_currency(quote.deposit_amount)])
+            pricing_data.insert(-1, ["Deposit Percentage:", f"{quote.deposit_percentage}%"])
+            pricing_data.insert(-1, ["Remaining Balance:", format_currency(quote.final_price - quote.deposit_amount)])
+
         pricing_table = Table(pricing_data, colWidths=[3 * inch, 2 * inch])
-        pricing_table.setStyle(
-            TableStyle(
-                [
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    ("ALIGN", (1, 0), (1, -1), "RIGHT"),
-                    ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
-                    ("FONTSIZE", (0, 0), (-1, -2), 10),
-                    ("FONTSIZE", (0, -1), (-1, -1), 14),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-                    ("LINEABOVE", (0, -1), (-1, -1), 2, black),
-                    ("BACKGROUND", (0, -1), (-1, -1), blue),
-                    ("TEXTCOLOR", (0, -1), (-1, -1), white),
-                ]
-            )
-        )
+        
+        table_style = [
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+            ("FONTNAME", (0, 0), (0, -1), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]
+        
+        total_row_index = len(pricing_data) - 1
+        table_style.extend([
+            ("FONTNAME", (0, total_row_index), (-1, total_row_index), "Helvetica-Bold"),
+            ("FONTSIZE", (0, total_row_index), (-1, total_row_index), 14),
+            ("LINEABOVE", (0, total_row_index), (-1, total_row_index), 2, black),
+            ("BACKGROUND", (0, total_row_index), (-1, total_row_index), blue),
+            ("TEXTCOLOR", (0, total_row_index), (-1, total_row_index), white),
+        ])
+        
+        if hasattr(quote, 'deposit_required') and quote.deposit_required:
+            deposit_info_row = total_row_index - 4  
+            table_style.extend([
+                ("FONTNAME", (0, deposit_info_row), (-1, deposit_info_row), "Helvetica-Bold"),
+                ("BACKGROUND", (0, deposit_info_row), (-1, deposit_info_row), red),
+                ("TEXTCOLOR", (0, deposit_info_row), (-1, deposit_info_row), white),
+                ("LINEABOVE", (0, deposit_info_row - 1), (-1, deposit_info_row - 1), 1, black),
+            ])
+
+        pricing_table.setStyle(TableStyle(table_style))
 
         story.append(pricing_table)
         story.append(Spacer(1, 20))
+
+        if hasattr(quote, 'deposit_required') and quote.deposit_required:
+            story.append(Paragraph("DEPOSIT NOTICE", header_style))
+            deposit_notice = f"This quote requires a deposit of {format_currency(quote.deposit_amount)} ({quote.deposit_percentage}%) due to the urgency level of this service. The deposit must be paid before work commences. The remaining balance of {format_currency(quote.final_price - quote.deposit_amount)} will be due upon completion of the service."
+            story.append(Paragraph(deposit_notice, normal_style))
+            story.append(Spacer(1, 12))
 
         if quote.special_requirements:
             story.append(Paragraph("SPECIAL REQUIREMENTS", header_style))
@@ -1013,6 +1037,13 @@ def generate_quote_pdf(quote):
             "• We reserve the right to refuse service if property conditions are unsafe.",
         ]
 
+        if hasattr(quote, 'deposit_required') and quote.deposit_required:
+            terms.extend([
+                "• Deposit payment is required before work commences for urgent bookings.",
+                "• Deposit payments are non-refundable once work has begun.",
+                "• Remaining balance must be paid upon completion of service.",
+            ])
+
         for term in terms:
             story.append(Paragraph(term, normal_style))
 
@@ -1025,7 +1056,6 @@ def generate_quote_pdf(quote):
     except Exception as e:
         logger.error(f"PDF generation failed for quote {quote.quote_number}: {str(e)}")
         raise
-
 
 def export_quotes_data(export_params, user):
     from .models import Quote

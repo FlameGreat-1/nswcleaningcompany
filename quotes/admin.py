@@ -51,6 +51,10 @@ class QuoteRevisionInline(admin.TabularInline):
         "previous_price",
         "new_price",
         "price_change_display",
+        "previous_deposit_required",    
+        "new_deposit_required",        
+        "previous_deposit_amount",     
+        "new_deposit_amount",
         "revised_by",
         "created_at",
     ]
@@ -122,9 +126,6 @@ class QuoteAdmin(admin.ModelAdmin):
         "days_until_expiry",
         "can_be_accepted",
         "total_items_cost",
-        "deposit_required",
-        "deposit_amount",
-        "deposit_percentage",
         "quote_actions",
     ]
 
@@ -461,6 +462,9 @@ class QuoteAdmin(admin.ModelAdmin):
                 "Postcode",
                 "Urgency Level",
                 "NDIS Client",
+                "Deposit Required",
+                "Deposit Amount",
+                "Deposit Percentage",
             ]
         )
 
@@ -479,6 +483,10 @@ class QuoteAdmin(admin.ModelAdmin):
                     quote.postcode,
                     quote.urgency_level,
                     "Yes" if quote.is_ndis_client else "No",
+                    "Yes" if getattr(quote, 'deposit_required', False) else "No",  
+                    getattr(quote, 'deposit_amount', 0),                          
+                    f"{getattr(quote, 'deposit_percentage', 0):.0f}%",  
+
                 ]
             )
 
@@ -510,30 +518,23 @@ class QuoteAdmin(admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
     def deposit_display(self, obj):
-        if not obj.deposit_required:
+        if not getattr(obj, 'deposit_required', False):
             return format_html('<span style="color: #6c757d;">No deposit</span>')
         
         try:
-            if hasattr(obj.deposit_amount, '__str__'):
-                deposit_amount = float(str(obj.deposit_amount))
-            else:
-                deposit_amount = float(obj.deposit_amount) if obj.deposit_amount else 0
-                
-            if hasattr(obj.deposit_percentage, '__str__'):
-                deposit_percentage = int(str(obj.deposit_percentage))
-            else:
-                deposit_percentage = int(obj.deposit_percentage) if obj.deposit_percentage else 0
-        except (ValueError, TypeError):
+            deposit_amount = float(getattr(obj, 'deposit_amount', 0) or 0)
+            deposit_percentage = float(getattr(obj, 'deposit_percentage', 0) or 0)
+            
+            return format_html(
+                '<span style="color: #dc3545; font-weight: bold;">${} ({}%)</span>',
+                f"{deposit_amount:.2f}",
+                f"{deposit_percentage:.0f}",
+            )
+        except (ValueError, TypeError, AttributeError):
             return format_html('<span style="color: #dc3545;">Error in deposit data</span>')
-        
-        return format_html(
-            '<span style="color: #dc3545; font-weight: bold;">${} ({}%)</span>',
-            f"{deposit_amount:.2f}",
-            deposit_percentage,
-        )
 
     deposit_display.short_description = "Deposit Required"
-    deposit_display.admin_order_field = "deposit_required" 
+    deposit_display.admin_order_field = "deposit_required"    
 
 @admin.register(QuoteItem)
 class QuoteItemAdmin(admin.ModelAdmin):
@@ -709,6 +710,10 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
                     "new_price",
                     "price_change_amount",
                     "price_change_percent",
+                    "previous_deposit_required",
+                    "new_deposit_required",  
+                    "previous_deposit_amount",
+                    "new_deposit_amount",
                 )
             },
         ),
@@ -741,7 +746,7 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     price_change_display.short_description = "Price Change"
 
     def price_change_amount(self, obj):
-    
+
         if obj.new_price is None or obj.previous_price is None:
             return "N/A"
         return obj.new_price - obj.previous_price
@@ -749,7 +754,7 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     price_change_amount.short_description = "Change Amount"
 
     def price_change_percent(self, obj):
-    
+
         if (
             obj.new_price is None
             or obj.previous_price is None

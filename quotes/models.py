@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import Max
 from decimal import Decimal
+from io import StringIO
 import uuid
 import re
 from .managers import QuoteManager, QuoteItemManager
@@ -341,12 +342,12 @@ class Quote(models.Model):
         return self.items.aggregate(
             total=models.Sum(models.F("quantity") * models.F("unit_price"))
         )["total"] or Decimal("0.00")
-
+    
     @property
     def requires_deposit(self):
         """Check if quote requires deposit based on urgency level"""
-        return self.urgency_level in [3, 4, 5]
-
+        return self.deposit_required  
+    
     def calculate_pricing(self):
         from .utils import calculate_quote_pricing
 
@@ -363,7 +364,7 @@ class Quote(models.Model):
         self.gst_amount = pricing_data["gst_amount"]
         self.final_price = pricing_data["final_price"]
         self.estimated_total = pricing_data["final_price"]
-        self.deposit_required = pricing_data["deposit_amount"] > Decimal("0.00")
+        self.deposit_required = pricing_data.get("deposit_required", False)
         self.deposit_amount = pricing_data.get("deposit_amount", Decimal("0.00"))
         self.deposit_percentage = pricing_data.get("deposit_percentage", Decimal("0.00"))
         self.remaining_balance = pricing_data.get("remaining_balance", Decimal("0.00"))
@@ -665,6 +666,15 @@ class QuoteRevision(models.Model):
 
     new_price = models.DecimalField(
         max_digits=10, decimal_places=2, help_text="Price after revision"
+    )
+
+    previous_deposit_required = models.BooleanField(default=False)
+    new_deposit_required = models.BooleanField(default=False)
+    previous_deposit_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+    new_deposit_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
 
     reason = models.TextField(help_text="Reason for the revision")
