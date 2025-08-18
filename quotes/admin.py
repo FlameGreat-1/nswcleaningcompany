@@ -512,20 +512,28 @@ class QuoteAdmin(admin.ModelAdmin):
     def deposit_display(self, obj):
         if not obj.deposit_required:
             return format_html('<span style="color: #6c757d;">No deposit</span>')
-
-        deposit_amount = float(obj.deposit_amount) if obj.deposit_amount else 0
-        deposit_percentage = (
-            float(obj.deposit_percentage) if obj.deposit_percentage else 0
-        )
-
+        
+        try:
+            if hasattr(obj.deposit_amount, '__str__'):
+                deposit_amount = float(str(obj.deposit_amount))
+            else:
+                deposit_amount = float(obj.deposit_amount) if obj.deposit_amount else 0
+                
+            if hasattr(obj.deposit_percentage, '__str__'):
+                deposit_percentage = int(str(obj.deposit_percentage))
+            else:
+                deposit_percentage = int(obj.deposit_percentage) if obj.deposit_percentage else 0
+        except (ValueError, TypeError):
+            return format_html('<span style="color: #dc3545;">Error in deposit data</span>')
+        
         return format_html(
-            '<span style="color: #dc3545; font-weight: bold;">${:.2f} ({}%)</span>',
-            deposit_amount,
+            '<span style="color: #dc3545; font-weight: bold;">${} ({}%)</span>',
+            f"{deposit_amount:.2f}",
             deposit_percentage,
         )
 
     deposit_display.short_description = "Deposit Required"
-    deposit_display.admin_order_field = "deposit_required"
+    deposit_display.admin_order_field = "deposit_required" 
 
 @admin.register(QuoteItem)
 class QuoteItemAdmin(admin.ModelAdmin):
