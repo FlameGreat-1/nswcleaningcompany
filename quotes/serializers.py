@@ -845,17 +845,16 @@ class QuoteCalculatorResponseSerializer(serializers.Serializer):
     travel_cost = serializers.DecimalField(max_digits=8, decimal_places=2)
     urgency_surcharge = serializers.DecimalField(max_digits=8, decimal_places=2)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discount_amount = serializers.DecimalField(max_digits=8, decimal_places=2)
     gst_amount = serializers.DecimalField(max_digits=8, decimal_places=2)
-    total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    final_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     deposit_required = serializers.BooleanField()
     deposit_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
     deposit_percentage = serializers.DecimalField(max_digits=5, decimal_places=2)
-    quote_valid_until = serializers.DateTimeField()
+    remaining_balance = serializers.DecimalField(max_digits=10, decimal_places=2)  
     quote_valid_until = serializers.DateTimeField()
     breakdown = serializers.DictField()
     recommendations = serializers.ListField(required=False)
-
-
 class QuoteItemCreateSerializer(serializers.ModelSerializer):
 
     class Meta:

@@ -84,6 +84,7 @@ from services.models import Service, ServiceAddOn
 from django.db import transaction
 import logging
 from django.http import Http404
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -442,46 +443,134 @@ class QuoteCalculatorView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
-        serializer = QuoteCalculatorSerializer(data=request.data)
+        try:
+            # Log incoming request data
+            logger.info(f"🔍 Calculator request from {request.META.get('REMOTE_ADDR')}")
+            logger.info(f"🔍 Request data: {request.data}")
+            
+            serializer = QuoteCalculatorSerializer(data=request.data)
 
-        if serializer.is_valid():
-            try:
-                service = Service.objects.get(
-                    service_type=serializer.validated_data["service_id"], is_active=True
-                )
+            if serializer.is_valid():
+                logger.info(f"🔍 Serializer validation passed")
+                logger.info(f"🔍 Validated data: {serializer.validated_data}")
+                
+                try:
+                    # Check if service exists
+                    service_id = serializer.validated_data["service_id"]
+                    logger.info(f"🔍 Looking for service with service_type: {service_id}")
+                    
+                    service = Service.objects.get(
+                        service_type=service_id, 
+                        is_active=True
+                    )
+                    logger.info(f"🔍 Service found: {service.name} (ID: {service.id})")
 
-                addon_ids = serializer.validated_data.get("addon_ids", [])
-                addons = (
-                    ServiceAddOn.objects.filter(id__in=addon_ids, is_active=True)
-                    if addon_ids
-                    else []
-                )
+                    # Get addons
+                    addon_ids = serializer.validated_data.get("addon_ids", [])
+                    logger.info(f"🔍 Addon IDs requested: {addon_ids}")
+                    
+                    addons = []
+                    if addon_ids:
+                        addons = ServiceAddOn.objects.filter(id__in=addon_ids, is_active=True)
+                        logger.info(f"🔍 Addons found: {[addon.name for addon in addons]}")
 
-                pricing_data = calculate_quote_pricing({
-                    "service": service,
-                    "cleaning_type": serializer.validated_data["cleaning_type"],
-                    "number_of_rooms": serializer.validated_data["number_of_rooms"],
-                    "square_meters": serializer.validated_data.get("square_meters"),
-                    "urgency_level": serializer.validated_data["urgency_level"],
-                    "postcode": serializer.validated_data["postcode"],
-                    "addons": addons,
-                    "is_ndis_client": serializer.validated_data.get("is_ndis_client", False),
-                })
+                    # Prepare pricing calculation data
+                    pricing_input = {
+                        "service": service,
+                        "cleaning_type": serializer.validated_data["cleaning_type"],
+                        "number_of_rooms": serializer.validated_data["number_of_rooms"],
+                        "square_meters": serializer.validated_data.get("square_meters"),
+                        "urgency_level": serializer.validated_data["urgency_level"],
+                        "postcode": serializer.validated_data["postcode"],
+                        "addons": addons,
+                        "is_ndis_client": serializer.validated_data.get("is_ndis_client", False),
+                    }
+                    logger.info(f"🔍 Pricing calculation input: {pricing_input}")
 
-                response_serializer = QuoteCalculatorResponseSerializer(pricing_data)
-                return Response(response_serializer.data)
+                    # Calculate pricing
+                    logger.info("🔍 Starting pricing calculation...")
+                    pricing_data = calculate_quote_pricing(pricing_input)
+                    logger.info(f"🔍 Pricing calculation result: {pricing_data}")
 
-            except Service.DoesNotExist:
+                    # Serialize response
+                    response_serializer = QuoteCalculatorResponseSerializer(pricing_data)
+                    logger.info(f"🔍 Response serializer data: {response_serializer.data}")
+                    
+                    return Response(response_serializer.data)
+
+                except Service.DoesNotExist:
+                    error_msg = f"Service not found for service_type: {service_id}"
+                    logger.error(f"🚨 {error_msg}")
+                    
+                    # List available services for debugging
+                    available_services = Service.objects.filter(is_active=True).values_list('service_type', 'name')
+                    logger.error(f"🔍 Available services: {list(available_services)}")
+                    
+                    return Response(
+                        {
+                            "error": "Service not found",
+                            "details": f"No active service found with service_type: {service_id}",
+                            "available_services": list(available_services)
+                        }, 
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                    
+                except ImportError as e:
+                    error_msg = f"Missing function or module: {str(e)}"
+                    logger.error(f"🚨 Import Error: {error_msg}")
+                    logger.error(f"🚨 Traceback: {traceback.format_exc()}")
+                    
+                    return Response(
+                        {
+                            "error": "Calculation function not available",
+                            "details": error_msg
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+                    
+                except Exception as e:
+                    error_msg = f"Calculation failed: {str(e)}"
+                    logger.error(f"🚨 Calculation Error: {error_msg}")
+                    logger.error(f"🚨 Error type: {type(e).__name__}")
+                    logger.error(f"🚨 Traceback: {traceback.format_exc()}")
+                    
+                    return Response(
+                        {
+                            "error": "Calculation failed",
+                            "details": str(e),
+                            "error_type": type(e).__name__
+                        },
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
+            else:
+                logger.error(f"🚨 Serializer validation failed")
+                logger.error(f"🚨 Serializer errors: {serializer.errors}")
+                logger.error(f"🚨 Request data was: {request.data}")
+                
                 return Response(
-                    {"error": "Service not found"}, status=status.HTTP_404_NOT_FOUND
-                )
-            except Exception as e:
-                return Response(
-                    {"error": "Calculation failed"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    {
+                        "error": "Invalid request data",
+                        "details": serializer.errors
+                    }, 
+                    status=status.HTTP_400_BAD_REQUEST
                 )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            # Catch any unexpected errors
+            error_msg = f"Unexpected error in calculator view: {str(e)}"
+            logger.error(f"🚨 Unexpected Error: {error_msg}")
+            logger.error(f"🚨 Error type: {type(e).__name__}")
+            logger.error(f"🚨 Traceback: {traceback.format_exc()}")
+            logger.error(f"🚨 Request data: {getattr(request, 'data', 'No data')}")
+            
+            return Response(
+                {
+                    "error": "Internal server error",
+                    "details": "An unexpected error occurred. Please try again.",
+                    "error_type": type(e).__name__
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 class QuoteItemViewSet(viewsets.ModelViewSet):
     queryset = QuoteItem.objects.all()
