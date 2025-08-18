@@ -953,24 +953,7 @@ class QuotesByClientView(ListAPIView):
             .select_related("client", "service", "assigned_to")
             .prefetch_related("items", "attachments")
         )
-
-class MyQuotesRequiringDepositView(ListAPIView):
-    serializer_class = QuoteListSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    ordering = ["-created_at"]
-
-    def get_queryset(self):
-        return (
-            Quote.objects.filter(
-                client=self.request.user,
-                deposit_required=True, 
-                status="approved"
-            )
-            .select_related("service", "assigned_to")
-            .prefetch_related("items", "attachments")
-        )
-
-
+        
 class QuoteConversionRateView(APIView):
     permission_classes = [CanViewQuoteAnalytics]
 

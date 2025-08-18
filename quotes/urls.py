@@ -11,7 +11,6 @@ from .views import (
     QuoteExportView,
     QuoteNotificationView,
     MyQuotesView,
-    MyQuotesRequiringDepositView,
     PendingQuotesView,
     ExpiringQuotesView,
     UrgentQuotesView,
@@ -27,8 +26,7 @@ from .views import (
 app_name = "quotes"
 
 urlpatterns = [
-    path("my-quotes/", MyQuotesView.as_view(), name="my-quotes"),
-    path("my-quotes/deposits/", MyQuotesRequiringDepositView.as_view(), name="my-quotes-deposits"),  
+    path("my-quotes/", MyQuotesView.as_view(), name="my-quotes"),  
     path("pending/", PendingQuotesView.as_view(), name="pending-quotes"),
     path("expiring/", ExpiringQuotesView.as_view(), name="expiring-quotes"),
     path("urgent/", UrgentQuotesView.as_view(), name="urgent-quotes"),
