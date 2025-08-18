@@ -510,13 +510,19 @@ class QuoteAdmin(admin.ModelAdmin):
         return super().has_delete_permission(request, obj)
 
     def deposit_display(self, obj):
-        if obj.deposit_required:
-            return format_html(
-                '<span style="color: #dc3545; font-weight: bold;">${:.2f} ({}%)</span>',
-                obj.deposit_amount,
-                obj.deposit_percentage,
-            )
-        return format_html('<span style="color: #6c757d;">No deposit</span>')
+        if not obj.deposit_required:
+            return format_html('<span style="color: #6c757d;">No deposit</span>')
+
+        deposit_amount = float(obj.deposit_amount) if obj.deposit_amount else 0
+        deposit_percentage = (
+            float(obj.deposit_percentage) if obj.deposit_percentage else 0
+        )
+
+        return format_html(
+            '<span style="color: #dc3545; font-weight: bold;">${:.2f} ({}%)</span>',
+            deposit_amount,
+            deposit_percentage,
+        )
 
     deposit_display.short_description = "Deposit Required"
     deposit_display.admin_order_field = "deposit_required"
