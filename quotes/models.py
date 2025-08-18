@@ -179,6 +179,18 @@ class Quote(models.Model):
         default=Decimal("0.00"),
     )
 
+    deposit_required = models.BooleanField(default=False)
+    deposit_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+    deposit_percentage = models.DecimalField(
+        max_digits=5, decimal_places=2, default=Decimal("0.00")
+    )
+
+    remaining_balance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+
     status = models.CharField(
         max_length=20,
         choices=QUOTE_STATUS_CHOICES,
@@ -239,6 +251,7 @@ class Quote(models.Model):
             models.Index(fields=["expires_at"]),
             models.Index(fields=["is_ndis_client"]),
         ]
+
         constraints = [
             models.CheckConstraint(
                 check=models.Q(final_price__gte=0),
@@ -255,6 +268,18 @@ class Quote(models.Model):
             models.CheckConstraint(
                 check=models.Q(estimated_total__gte=0),
                 name="quotes_quote_positive_estimated_total",
+            ),
+            models.CheckConstraint(
+                check=models.Q(deposit_amount__gte=0),
+                name="quotes_quote_positive_deposit_amount",
+            ),
+            models.CheckConstraint(
+                check=models.Q(deposit_percentage__gte=0, deposit_percentage__lte=100),
+                name="quotes_quote_valid_deposit_percentage",
+            ),
+            models.CheckConstraint(
+                check=models.Q(remaining_balance__gte=0),
+                name="quotes_quote_positive_remaining_balance",
             ),
         ]
 
@@ -317,6 +342,11 @@ class Quote(models.Model):
             total=models.Sum(models.F("quantity") * models.F("unit_price"))
         )["total"] or Decimal("0.00")
 
+    @property
+    def requires_deposit(self):
+        """Check if quote requires deposit based on urgency level"""
+        return self.urgency_level in [3, 4, 5]
+
     def calculate_pricing(self):
         from .utils import calculate_quote_pricing
 
@@ -333,8 +363,13 @@ class Quote(models.Model):
         self.gst_amount = pricing_data["gst_amount"]
         self.final_price = pricing_data["final_price"]
         self.estimated_total = pricing_data["final_price"]
+        self.deposit_required = pricing_data["deposit_amount"] > Decimal("0.00")
+        self.deposit_amount = pricing_data.get("deposit_amount", Decimal("0.00"))
+        self.deposit_percentage = pricing_data.get("deposit_percentage", Decimal("0.00"))
+        self.remaining_balance = pricing_data.get("remaining_balance", Decimal("0.00"))
 
         self.save(
+
             update_fields=[
                 "base_price",
                 "extras_cost",
@@ -344,6 +379,10 @@ class Quote(models.Model):
                 "gst_amount",
                 "final_price",
                 "estimated_total",
+                "deposit_required",
+                "deposit_amount",
+                "deposit_percentage",
+                "remaining_balance",
             ]
         )
 
@@ -476,6 +515,7 @@ class QuoteItem(models.Model):
             models.Index(fields=["quote", "item_type"]),
             models.Index(fields=["display_order"]),
         ]
+
         constraints = [
             models.CheckConstraint(
                 check=models.Q(quantity__gt=0),

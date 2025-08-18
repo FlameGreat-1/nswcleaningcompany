@@ -21,19 +21,16 @@ logger = logging.getLogger(__name__)
 
 def calculate_quote_pricing(quote):
     try:
-        # Handle both Quote objects and dictionaries
-        if hasattr(quote, 'service'):
-            # It's a Quote model instance
+        if hasattr(quote, "service"):
             service = quote.service
             cleaning_type = quote.cleaning_type
             number_of_rooms = quote.number_of_rooms
             square_meters = quote.square_meters
             urgency_level = quote.urgency_level
             postcode = quote.postcode
-            addons = list(quote.items.all()) if hasattr(quote, 'items') else []
+            addons = list(quote.items.all()) if hasattr(quote, "items") else []
             is_ndis_client = quote.is_ndis_client
         else:
-            # It's a dictionary (from calculator)
             service = quote.get("service")
             cleaning_type = quote.get("cleaning_type", "general")
             number_of_rooms = quote.get("number_of_rooms", 1)
@@ -56,6 +53,15 @@ def calculate_quote_pricing(quote):
         gst_amount = calculate_gst(taxable_amount)
         total_price = taxable_amount + gst_amount
 
+        deposit_amount = calculate_deposit_amount(total_price, urgency_level)
+        deposit_rates = {
+            1: Decimal("0.00"),
+            2: Decimal("0.00"),
+            3: Decimal("0.30"),
+            4: Decimal("0.30"),
+            5: Decimal("0.50"),
+        }
+
         return {
             "base_price": base_price,
             "extras_cost": extras_cost,
@@ -65,6 +71,10 @@ def calculate_quote_pricing(quote):
             "discount_amount": discount_amount,
             "gst_amount": gst_amount,
             "final_price": total_price,
+            "deposit_amount": deposit_amount,
+            "deposit_percentage": deposit_rates.get(urgency_level, Decimal("0.00"))
+            * 100,
+            "remaining_balance": total_price - deposit_amount,
             "quote_valid_until": timezone.now() + timedelta(days=30),
             "breakdown": {
                 "service_name": service.name if service else "Unknown",
@@ -79,6 +89,7 @@ def calculate_quote_pricing(quote):
     except Exception as e:
         logger.error(f"Quote pricing calculation failed: {str(e)}")
         raise
+
 
 def calculate_base_price(service, cleaning_type, number_of_rooms, square_meters=None):
     if not service:
@@ -211,20 +222,30 @@ def calculate_travel_cost(postcode, service):
     except (ValueError, TypeError):
         return Decimal("25.00")
 
-
 def calculate_urgency_surcharge(base_price, urgency_level):
     surcharge_rates = {
         1: Decimal("0.00"),
         2: Decimal("0.00"),
-        3: Decimal("0.15"),
-        4: Decimal("0.30"),
-        5: Decimal("0.50"),
+        3: Decimal("0.00"),
+        4: Decimal("0.00"),
+        5: Decimal("0.00"),
     }
 
     rate = surcharge_rates.get(urgency_level, Decimal("0.00"))
     surcharge = base_price * rate
 
     return surcharge.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+def calculate_deposit_amount(final_price, urgency_level):
+    deposit_rates = {
+        1: Decimal("0.00"),  
+        2: Decimal("0.00"),
+        3: Decimal("0.30"),
+        4: Decimal("0.30"),  
+        5: Decimal("0.50"),  
+    }
+    rate = deposit_rates.get(urgency_level, Decimal("0.00"))
+    return (final_price * rate).quantize(Decimal("0.01"))
 
 
 def calculate_discount(subtotal, quote_data):
@@ -306,7 +327,6 @@ def format_currency(amount):
 
     return f"${amount:,.2f}"
 
-
 def format_quote_data_for_display(quote):
     return {
         "quote_number": quote.quote_number,
@@ -318,6 +338,9 @@ def format_quote_data_for_display(quote):
         "formatted_price": format_currency(quote.final_price),
         "formatted_base_price": format_currency(quote.base_price),
         "formatted_gst": format_currency(quote.gst_amount),
+        "formatted_deposit": format_currency(quote.deposit_amount),
+        "deposit_percentage": f"{quote.deposit_percentage}%",
+        "formatted_remaining_balance": format_currency(quote.remaining_balance),
         "property_summary": f"{quote.property_address}, {quote.suburb} {quote.postcode}",
         "room_summary": f"{quote.number_of_rooms} rooms",
         "created_date": quote.created_at.strftime("%d/%m/%Y"),

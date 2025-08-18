@@ -210,6 +210,9 @@ class QuoteViewSet(viewsets.ModelViewSet):
                         "message": "Quote approved successfully",
                         "status": quote.status,
                         "expires_at": quote.expires_at,
+                        "deposit_required": quote.deposit_required,
+                        "deposit_amount": quote.deposit_amount,
+                        "deposit_percentage": quote.deposit_percentage,
                     }
                 )
 
@@ -369,6 +372,18 @@ class QuoteViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             queryset = self.get_queryset()
 
+            requires_deposit = serializer.validated_data.get("requires_deposit")
+            if requires_deposit is not None:
+                queryset = queryset.filter(deposit_required=requires_deposit)
+
+            deposit_min = serializer.validated_data.get("deposit_amount_min")
+            if deposit_min is not None:
+                queryset = queryset.filter(deposit_amount__gte=deposit_min)
+
+            deposit_max = serializer.validated_data.get("deposit_amount_max")
+            if deposit_max is not None:
+                queryset = queryset.filter(deposit_amount__lte=deposit_max)
+
             query = serializer.validated_data.get("query")
             if query:
                 queryset = queryset.search(query)
@@ -423,7 +438,6 @@ class QuoteViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class QuoteCalculatorView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -443,17 +457,16 @@ class QuoteCalculatorView(APIView):
                     else []
                 )
 
-                pricing_data = calculate_quote_pricing(
-                    {
-                        "service": service,
-                        "cleaning_type": serializer.validated_data["cleaning_type"],
-                        "number_of_rooms": serializer.validated_data["number_of_rooms"],
-                        "square_meters": serializer.validated_data.get("square_meters"),
-                        "urgency_level": serializer.validated_data["urgency_level"],
-                        "postcode": serializer.validated_data["postcode"],
-                        "addons": addons,
-                    }
-                )
+                pricing_data = calculate_quote_pricing({
+                    "service": service,
+                    "cleaning_type": serializer.validated_data["cleaning_type"],
+                    "number_of_rooms": serializer.validated_data["number_of_rooms"],
+                    "square_meters": serializer.validated_data.get("square_meters"),
+                    "urgency_level": serializer.validated_data["urgency_level"],
+                    "postcode": serializer.validated_data["postcode"],
+                    "addons": addons,
+                    "is_ndis_client": serializer.validated_data.get("is_ndis_client", False),
+                })
 
                 response_serializer = QuoteCalculatorResponseSerializer(pricing_data)
                 return Response(response_serializer.data)
@@ -469,6 +482,7 @@ class QuoteCalculatorView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class QuoteItemViewSet(viewsets.ModelViewSet):
     queryset = QuoteItem.objects.all()
     serializer_class = QuoteItemSerializer
@@ -653,7 +667,7 @@ class QuoteTemplateViewSet(viewsets.ModelViewSet):
                 else None
             ),
             "cleaning_type": template.cleaning_type,
-            "urgency_level": template.default_urgency_level,
+            "urgency_level": template.default_urgency_level,  
             "number_of_rooms": template.number_of_rooms,
             "square_meters": template.square_meters,
             "special_requirements": template.special_requirements,
@@ -939,6 +953,23 @@ class QuotesByClientView(ListAPIView):
             .select_related("client", "service", "assigned_to")
             .prefetch_related("items", "attachments")
         )
+
+class MyQuotesRequiringDepositView(ListAPIView):
+    serializer_class = QuoteListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    ordering = ["-created_at"]
+
+    def get_queryset(self):
+        return (
+            Quote.objects.filter(
+                client=self.request.user,
+                deposit_required=True, 
+                status="approved"
+            )
+            .select_related("service", "assigned_to")
+            .prefetch_related("items", "attachments")
+        )
+
 
 class QuoteConversionRateView(APIView):
     permission_classes = [CanViewQuoteAnalytics]

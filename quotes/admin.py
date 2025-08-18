@@ -81,6 +81,7 @@ class QuoteAdmin(admin.ModelAdmin):
         "cleaning_type",
         "status_display",
         "final_price_display",
+        "deposit_display",
         "urgency_display",
         "is_ndis_display",
         "created_at",
@@ -92,6 +93,7 @@ class QuoteAdmin(admin.ModelAdmin):
         "status",
         "cleaning_type",
         "urgency_level",
+        "deposit_required",
         "is_ndis_client",
         "state",
         "created_at",
@@ -120,6 +122,9 @@ class QuoteAdmin(admin.ModelAdmin):
         "days_until_expiry",
         "can_be_accepted",
         "total_items_cost",
+        "deposit_required",
+        "deposit_amount",
+        "deposit_percentage",
         "quote_actions",
     ]
 
@@ -184,6 +189,9 @@ class QuoteAdmin(admin.ModelAdmin):
                     "discount_amount",
                     "gst_amount",
                     "final_price",
+                    "deposit_required",
+                    "deposit_amount",
+                    "deposit_percentage",
                     "total_items_cost",
                 )
             },
@@ -500,6 +508,19 @@ class QuoteAdmin(admin.ModelAdmin):
         if obj:
             return check_quote_permission(request.user, obj, "delete")
         return super().has_delete_permission(request, obj)
+
+    def deposit_display(self, obj):
+        if obj.deposit_required:
+            return format_html(
+                '<span style="color: #dc3545; font-weight: bold;">${:.2f} ({}%)</span>',
+                obj.deposit_amount,
+                obj.deposit_percentage,
+            )
+        return format_html('<span style="color: #6c757d;">No deposit</span>')
+
+    deposit_display.short_description = "Deposit Required"
+    deposit_display.admin_order_field = "deposit_required"
+
 @admin.register(QuoteItem)
 class QuoteItemAdmin(admin.ModelAdmin):
     list_display = [

@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 from .models import Invoice, InvoiceItem
 from .signals import generate_and_send_invoice, send_invoice_email
 import json
@@ -32,6 +33,7 @@ class InvoiceAdmin(admin.ModelAdmin):
         "client_name",
         "status_badge",
         "total_amount",
+        "deposit_status_badge",
         "invoice_date",
         "due_date",
         "is_ndis_invoice",
@@ -42,6 +44,8 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = [
         "status",
         "is_ndis_invoice",
+        "deposit_required",
+        "deposit_paid",
         "email_sent",
         "invoice_date",
         "created_at",
@@ -62,6 +66,10 @@ class InvoiceAdmin(admin.ModelAdmin):
         "subtotal",
         "gst_amount",
         "total_amount",
+        "deposit_required",
+        "deposit_amount",
+        "deposit_percentage",
+        "remaining_balance",
         "pdf_file",
         "email_sent",
         "email_sent_at",
@@ -101,6 +109,20 @@ class InvoiceAdmin(admin.ModelAdmin):
         ),
         ("Financial Details", {"fields": ("subtotal", "gst_amount", "total_amount")}),
         (
+            "Deposit Information",
+            {
+                "fields": (
+                    "deposit_required",
+                    "deposit_amount",
+                    "deposit_percentage",
+                    "remaining_balance",
+                    "deposit_paid",
+                    "deposit_paid_date",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
             "Files & Communication",
             {"fields": ("pdf_file", "email_sent", "email_sent_at", "notes")},
         ),
@@ -118,6 +140,8 @@ class InvoiceAdmin(admin.ModelAdmin):
         "send_invoice_emails",
         "mark_as_sent",
         "recalculate_totals",
+        "mark_deposits_paid",
+        "mark_deposits_unpaid",
     ]
 
     def get_urls(self):
@@ -150,6 +174,10 @@ class InvoiceAdmin(admin.ModelAdmin):
             obj.billing_address = obj.quote.property_address
             obj.service_address = obj.quote.property_address
             obj.is_ndis_invoice = obj.quote.is_ndis_client
+            obj.deposit_required = obj.quote.deposit_required
+            obj.deposit_amount = obj.quote.deposit_amount
+            obj.deposit_percentage = obj.quote.deposit_percentage
+            obj.remaining_balance = obj.quote.remaining_balance
             if obj.quote.is_ndis_client:
                 client_name = ""
                 if hasattr(obj.quote.client, "full_name"):
@@ -250,6 +278,23 @@ class InvoiceAdmin(admin.ModelAdmin):
 
     status_badge.short_description = "Status"
 
+    def deposit_status_badge(self, obj):
+        if not obj.requires_deposit:
+            return format_html('<span style="color: #6c757d;">No Deposit</span>')
+
+        if obj.deposit_paid:
+            return format_html(
+                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Paid</span><br><small>${:.2f}</small>',
+                obj.deposit_amount,
+            )
+        else:
+            return format_html(
+                '<span style="background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Pending</span><br><small>${:.2f}</small>',
+                obj.deposit_amount,
+            )
+
+    deposit_status_badge.short_description = "Deposit Status"
+
     def email_sent_status(self, obj):
         if obj.email_sent:
             return format_html(
@@ -296,6 +341,11 @@ class InvoiceAdmin(admin.ModelAdmin):
                 "subtotal": f"${obj.subtotal:.2f}",
                 "gst_amount": f"${obj.gst_amount:.2f}",
                 "total_amount": f"${obj.total_amount:.2f}",
+                "deposit_required": obj.deposit_required,
+                "deposit_amount": f"${obj.deposit_amount:.2f}",
+                "deposit_percentage": f"{obj.deposit_percentage:.0f}%",
+                "remaining_balance": f"${obj.remaining_balance:.2f}",
+                "deposit_paid": obj.deposit_paid,
                 "items": [],
             }
 
@@ -365,6 +415,18 @@ class InvoiceAdmin(admin.ModelAdmin):
             </div>
             """
 
+        if data['deposit_required']:
+            deposit_status = "PAID" if data['deposit_paid'] else "PENDING"
+            status_color = "#28a745" if data['deposit_paid'] else "#ffc107"
+            html += f"""
+            <div style="background: #e9ecef; padding: 15px; margin-bottom: 20px; border-left: 4px solid {status_color};">
+                <strong>Deposit Information:</strong><br>
+                Deposit Required: {data['deposit_amount']} ({data['deposit_percentage']})<br>
+                Deposit Status: <span style="color: {status_color}; font-weight: bold;">{deposit_status}</span><br>
+                Remaining Balance: {data['remaining_balance']}
+            </div>
+            """
+
         html += """
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <thead>
@@ -401,6 +463,17 @@ class InvoiceAdmin(admin.ModelAdmin):
                     <div style="font-size: 18px; border-top: 2px solid #34495e; padding-top: 10px;">
                         <strong>Total: {data['total_amount']}</strong>
                     </div>
+        """
+
+        if data['deposit_required']:
+            html += f"""
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+                        <div style="margin-bottom: 5px;"><strong>Deposit: {data['deposit_amount']}</strong></div>
+                        <div style="font-size: 16px;"><strong>Balance Due: {data['remaining_balance']}</strong></div>
+                    </div>
+            """
+
+        html += """
                 </div>
             </div>
         </div>
@@ -499,6 +572,34 @@ class InvoiceAdmin(admin.ModelAdmin):
 
     recalculate_totals.short_description = "Recalculate totals for selected invoices"
 
+    def mark_deposits_paid(self, request, queryset):
+        invoices_with_deposits = queryset.filter(deposit_required=True, deposit_paid=False)
+        updated_count = 0
+        
+        for invoice in invoices_with_deposits:
+            invoice.deposit_paid = True
+            invoice.deposit_paid_date = timezone.now().date()
+            invoice.save(update_fields=["deposit_paid", "deposit_paid_date"])
+            updated_count += 1
+
+        messages.success(request, f"Marked deposits as paid for {updated_count} invoices")
+
+    mark_deposits_paid.short_description = "Mark deposits as paid for selected invoices"
+
+    def mark_deposits_unpaid(self, request, queryset):
+        invoices_with_deposits = queryset.filter(deposit_required=True, deposit_paid=True)
+        updated_count = 0
+        
+        for invoice in invoices_with_deposits:
+            invoice.deposit_paid = False
+            invoice.deposit_paid_date = None
+            invoice.save(update_fields=["deposit_paid", "deposit_paid_date"])
+            updated_count += 1
+
+        messages.success(request, f"Marked deposits as unpaid for {updated_count} invoices")
+
+    mark_deposits_unpaid.short_description = "Mark deposits as unpaid for selected invoices"
+
 
 @admin.register(InvoiceItem)
 class InvoiceItemAdmin(admin.ModelAdmin):
@@ -513,3 +614,4 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     list_filter = ["is_taxable", "created_at"]
     search_fields = ["invoice__invoice_number", "description"]
     readonly_fields = ["total_price", "gst_amount", "total_with_gst"]
+

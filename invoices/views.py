@@ -29,14 +29,26 @@ logger = logging.getLogger(__name__)
 class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated, InvoiceViewPermission]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ["status", "is_ndis_invoice", "email_sent"]
+    filterset_fields = [
+        "status",
+        "is_ndis_invoice",
+        "email_sent",
+        "deposit_required",
+        "deposit_paid",
+    ]
     search_fields = [
         "invoice_number",
         "client__first_name",
         "client__last_name",
         "participant_name",
     ]
-    ordering_fields = ["invoice_date", "due_date", "total_amount", "created_at"]
+    ordering_fields = [
+        "invoice_date",
+        "due_date",
+        "total_amount",
+        "created_at",
+        "deposit_amount",
+    ]
     ordering = ["-created_at"]
 
     def get_queryset(self):
@@ -178,7 +190,94 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @action(detail=False, methods=["get"], url_path='my-invoices')
+    @action(detail=True, methods=["post"])
+    def mark_deposit_paid(self, request, pk=None):
+        invoice = self.get_object()
+
+        if not (request.user.is_admin_user or request.user.is_staff):
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        if not invoice.requires_deposit:
+            return Response(
+                {"error": "This invoice does not require a deposit"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if invoice.deposit_paid:
+            return Response(
+                {"error": "Deposit has already been marked as paid"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            from django.utils import timezone
+
+            invoice.deposit_paid = True
+            invoice.deposit_paid_date = timezone.now().date()
+            invoice.save(update_fields=["deposit_paid", "deposit_paid_date"])
+
+            return Response(
+                {
+                    "message": f"Deposit marked as paid for invoice {invoice.invoice_number}",
+                    "deposit_paid": True,
+                    "deposit_paid_date": invoice.deposit_paid_date,
+                    "deposit_amount": str(invoice.deposit_amount),
+                }
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to mark deposit as paid for invoice {invoice.invoice_number}: {str(e)}"
+            )
+            return Response(
+                {"error": "Failed to mark deposit as paid"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=True, methods=["post"])
+    def mark_deposit_unpaid(self, request, pk=None):
+        invoice = self.get_object()
+
+        if not (request.user.is_admin_user or request.user.is_staff):
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        if not invoice.requires_deposit:
+            return Response(
+                {"error": "This invoice does not require a deposit"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not invoice.deposit_paid:
+            return Response(
+                {"error": "Deposit is already marked as unpaid"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            invoice.deposit_paid = False
+            invoice.deposit_paid_date = None
+            invoice.save(update_fields=["deposit_paid", "deposit_paid_date"])
+
+            return Response(
+                {
+                    "message": f"Deposit marked as unpaid for invoice {invoice.invoice_number}",
+                    "deposit_paid": False,
+                    "deposit_paid_date": None,
+                }
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to mark deposit as unpaid for invoice {invoice.invoice_number}: {str(e)}"
+            )
+            return Response(
+                {"error": "Failed to mark deposit as unpaid"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @action(detail=False, methods=["get"], url_path="my-invoices")
     def my_invoices(self, request):
         if not request.user.is_client:
             return Response(
@@ -212,6 +311,16 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         email_sent = request.query_params.get("email_sent")
         if email_sent is not None and email_sent != "null":
             invoices = invoices.filter(email_sent=email_sent.lower() == "true")
+
+        deposit_required = request.query_params.get("deposit_required")
+        if deposit_required is not None and deposit_required != "null":
+            invoices = invoices.filter(
+                deposit_required=deposit_required.lower() == "true"
+            )
+
+        deposit_paid = request.query_params.get("deposit_paid")
+        if deposit_paid is not None and deposit_paid != "null":
+            invoices = invoices.filter(deposit_paid=deposit_paid.lower() == "true")
 
         ordering = request.query_params.get("ordering", "-created_at")
         invoices = invoices.order_by(ordering)
@@ -255,11 +364,53 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             sent_count=Count("id", filter=Q(status="sent")),
             ndis_count=Count("id", filter=Q(is_ndis_invoice=True)),
             emails_sent=Count("id", filter=Q(email_sent=True)),
+            deposit_required_count=Count("id", filter=Q(deposit_required=True)),
+            deposit_paid_count=Count("id", filter=Q(deposit_paid=True)),
+            total_deposit_amount=Sum("deposit_amount"),
+            pending_deposits_count=Count(
+                "id", filter=Q(deposit_required=True, deposit_paid=False)
+            ),
         )
 
         stats["total_amount"] = stats["total_amount"] or Decimal("0.00")
+        stats["total_deposit_amount"] = stats["total_deposit_amount"] or Decimal("0.00")
 
         return Response(stats)
+
+    @action(detail=False, methods=["get"])
+    def deposit_summary(self, request):
+        if not (request.user.is_admin_user or request.user.is_staff):
+            return Response(
+                {"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN
+            )
+
+        deposit_stats = Invoice.objects.filter(deposit_required=True).aggregate(
+            total_deposits_required=Count("id"),
+            total_deposits_paid=Count("id", filter=Q(deposit_paid=True)),
+            total_deposit_amount=Sum("deposit_amount"),
+            paid_deposit_amount=Sum("deposit_amount", filter=Q(deposit_paid=True)),
+            pending_deposit_amount=Sum("deposit_amount", filter=Q(deposit_paid=False)),
+        )
+
+        deposit_stats["total_deposit_amount"] = deposit_stats[
+            "total_deposit_amount"
+        ] or Decimal("0.00")
+        deposit_stats["paid_deposit_amount"] = deposit_stats[
+            "paid_deposit_amount"
+        ] or Decimal("0.00")
+        deposit_stats["pending_deposit_amount"] = deposit_stats[
+            "pending_deposit_amount"
+        ] or Decimal("0.00")
+
+        if deposit_stats["total_deposits_required"] > 0:
+            deposit_stats["payment_rate"] = (
+                deposit_stats["total_deposits_paid"]
+                / deposit_stats["total_deposits_required"]
+            ) * 100
+        else:
+            deposit_stats["payment_rate"] = 0
+
+        return Response(deposit_stats)
 
 
 class InvoiceItemViewSet(viewsets.ReadOnlyModelViewSet):

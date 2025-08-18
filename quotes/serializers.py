@@ -46,6 +46,9 @@ class QuoteSerializer(serializers.ModelSerializer):
             "urgency_level",
             "final_price",
             "is_ndis_client",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
             "created_at",
             "updated_at",
         ]
@@ -54,6 +57,9 @@ class QuoteSerializer(serializers.ModelSerializer):
             "quote_number",
             "client_name",
             "service_name",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
             "created_at",
             "updated_at",
         )
@@ -246,6 +252,9 @@ class QuoteListSerializer(serializers.ModelSerializer):
             "urgency_level",
             "final_price",
             "is_ndis_client",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
             "assigned_to",
             "assigned_to_name",
             "is_expired",
@@ -308,6 +317,9 @@ class QuoteDetailSerializer(serializers.ModelSerializer):
             "discount_amount",
             "gst_amount",
             "final_price",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
             "status",
             "assigned_to",
             "reviewed_by",
@@ -493,7 +505,7 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 'ndis_participant_number': 'NDIS participant number is required for NDIS clients.'
             })
-        
+
         QuoteValidator.validate_quote_update(self.instance, attrs)
         return attrs
 
@@ -505,17 +517,34 @@ class QuoteUpdateSerializer(serializers.ModelSerializer):
         instance.update_pricing()
         return instance
 
+
 class QuoteStatusUpdateSerializer(serializers.ModelSerializer):
+    deposit_required = serializers.BooleanField(read_only=True)
+    deposit_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    deposit_percentage = serializers.DecimalField(
+        max_digits=5, decimal_places=2, read_only=True
+    )
 
     class Meta:
         model = Quote
-        fields = ["status", "admin_notes", "client_notes", "rejection_reason"]
+        fields = [
+            "status",
+            "admin_notes",
+            "client_notes",
+            "rejection_reason",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+        ]
 
     def validate(self, attrs):
         new_status = attrs.get("status")
         if new_status and new_status != self.instance.status:
             QuoteValidator.validate_quote_update(self.instance, {"status": new_status})
         return attrs
+
 class QuoteCalculatorSerializer(serializers.Serializer):
     service_id = serializers.CharField()
     cleaning_type = serializers.ChoiceField(choices=Quote.CLEANING_TYPE_CHOICES)
@@ -527,6 +556,13 @@ class QuoteCalculatorSerializer(serializers.Serializer):
     postcode = serializers.CharField(max_length=4)
     addon_ids = serializers.ListField(
         child=serializers.IntegerField(), required=False, allow_empty=True
+    )
+    deposit_required = serializers.BooleanField(read_only=True)
+    deposit_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    deposit_percentage = serializers.DecimalField(
+        max_digits=5, decimal_places=2, read_only=True
     )
 
     def validate_postcode(self, value):
@@ -577,16 +613,29 @@ class QuoteAssignmentSerializer(serializers.ModelSerializer):
 
 
 class QuoteApprovalSerializer(serializers.ModelSerializer):
+    deposit_required = serializers.BooleanField(read_only=True)
+    deposit_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True
+    )
+    deposit_percentage = serializers.DecimalField(
+        max_digits=5, decimal_places=2, read_only=True
+    )
 
     class Meta:
         model = Quote
-        fields = ["admin_notes", "client_notes", "expires_at"]
+        fields = [
+            "admin_notes",
+            "client_notes",
+            "expires_at",
+            "deposit_required",
+            "deposit_amount",
+            "deposit_percentage",
+        ]
 
     def validate_expires_at(self, value):
         if value and value <= timezone.now():
             raise serializers.ValidationError("Expiry date must be in the future.")
         return value
-
 
 class QuoteRejectionSerializer(serializers.ModelSerializer):
 
@@ -723,6 +772,13 @@ class QuoteSearchSerializer(serializers.Serializer):
         max_digits=10, decimal_places=2, required=False
     )
     assigned_to = serializers.IntegerField(required=False)
+    requires_deposit = serializers.BooleanField(required=False)
+    deposit_amount_min = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False
+    )
+    deposit_amount_max = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False
+    )
 
     def validate_postcode(self, value):
         if value:
@@ -762,6 +818,9 @@ class QuoteStatisticsSerializer(serializers.Serializer):
     with_attachments_count = serializers.IntegerField()
     approval_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
     conversion_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
+    quotes_requiring_deposit = serializers.IntegerField()
+    total_deposit_amount = serializers.DecimalField(max_digits=15, decimal_places=2)
+    approval_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
     rejection_rate = serializers.DecimalField(max_digits=5, decimal_places=2)
 
 
@@ -777,7 +836,8 @@ class QuoteDashboardSerializer(serializers.Serializer):
     urgent_quotes = serializers.IntegerField()
     ndis_quotes = serializers.IntegerField()
     expiring_soon = serializers.IntegerField()
-
+    quotes_requiring_deposit = serializers.IntegerField()
+    pending_deposits_value = serializers.DecimalField(max_digits=15, decimal_places=2)
 
 class QuoteCalculatorResponseSerializer(serializers.Serializer):
     base_price = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -787,6 +847,10 @@ class QuoteCalculatorResponseSerializer(serializers.Serializer):
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
     gst_amount = serializers.DecimalField(max_digits=8, decimal_places=2)
     total_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    deposit_required = serializers.BooleanField()
+    deposit_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    deposit_percentage = serializers.DecimalField(max_digits=5, decimal_places=2)
+    quote_valid_until = serializers.DateTimeField()
     quote_valid_until = serializers.DateTimeField()
     breakdown = serializers.DictField()
     recommendations = serializers.ListField(required=False)

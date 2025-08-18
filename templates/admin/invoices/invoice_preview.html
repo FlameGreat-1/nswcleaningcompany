@@ -92,6 +92,29 @@
     color: #1565c0;
 }
 
+.deposit-info {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    padding: 20px;
+    margin-bottom: 35px;
+    border-left: 5px solid #ff9800;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.1);
+}
+
+.deposit-info h3 {
+    color: #f57c00;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.deposit-info p {
+    margin: 6px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: #ef6c00;
+}
+
 .service-address {
     background: #fff3e0;
     padding: 20px;
@@ -329,7 +352,6 @@
 }
 </style>
 {% endblock %}
-
 {% block breadcrumbs %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
@@ -398,6 +420,18 @@
         </div>
         {% endif %}
 
+        {% if invoice.requires_deposit %}
+        <div class="deposit-info">
+            <h3>Deposit Information</h3>
+            <p><strong>Deposit Required:</strong> {{ invoice.formatted_deposit_amount }} ({{ invoice.deposit_percentage|floatformat:0 }}%)</p>
+            <p><strong>Deposit Status:</strong> {{ invoice.deposit_status|title }}</p>
+            {% if invoice.deposit_paid_date %}
+            <p><strong>Deposit Paid:</strong> {{ invoice.deposit_paid_date|date:"d/m/Y" }}</p>
+            {% endif %}
+            <p><strong>Remaining Balance:</strong> {{ invoice.formatted_remaining_balance }}</p>
+        </div>
+        {% endif %}
+
         {% if invoice.service_address and invoice.service_address != invoice.billing_address %}
         <div class="service-address">
             <h3>Service Address</h3>
@@ -446,6 +480,16 @@
                     <span>TOTAL:</span>
                     <span><strong>${{ invoice.total_amount|floatformat:2 }}</strong></span>
                 </div>
+                {% if invoice.requires_deposit %}
+                <div class="total-line" style="border-top: 2px solid #ff9800; margin-top: 15px; padding-top: 15px;">
+                    <span>Deposit:</span>
+                    <span><strong>{{ invoice.formatted_deposit_amount }}</strong></span>
+                </div>
+                <div class="total-line" style="color: #f57c00;">
+                    <span>Balance Due:</span>
+                    <span><strong>{{ invoice.formatted_remaining_balance }}</strong></span>
+                </div>
+                {% endif %}
             </div>
         </div>
 
@@ -459,11 +503,6 @@
         <div class="footer-section">
             <p><strong>Thank you for your business!</strong></p>
             <p>For any questions regarding this invoice, please contact us.</p>
-            {% if invoice.email_sent %}
-            <p style="color: #28a745; font-weight: 600;">
-                <strong>✓ Email sent:</strong> {{ invoice.email_sent_at|date:"d/m/Y H:i" }}
-            </p>
-            {% endif %}
             {% if invoice.is_overdue %}
             <div class="overdue-notice">
                 <strong>PAYMENT OVERDUE:</strong> This invoice is {{ invoice.days_overdue }} days past due. Please remit payment immediately to avoid service interruption.
