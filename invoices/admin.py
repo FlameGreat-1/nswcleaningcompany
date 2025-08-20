@@ -278,22 +278,23 @@ class InvoiceAdmin(admin.ModelAdmin):
 
     status_badge.short_description = "Status"
 
+
     def deposit_status_badge(self, obj):
         if not obj.requires_deposit:
             return format_html('<span style="color: #6c757d;">No Deposit</span>')
 
+        formatted_amount = f"${obj.deposit_amount:.2f}"
+
         if obj.deposit_paid:
             return format_html(
-                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Paid</span><br><small>${0:.2f}</small>',
-                obj.deposit_amount,
+                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Paid</span><br><small>{}</small>',
+                formatted_amount,
             )
         else:
             return format_html(
-                '<span style="background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Pending</span><br><small>${0:.2f}</small>',
-                obj.deposit_amount,
+                '<span style="background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Pending</span><br><small>{}</small>',
+                formatted_amount,
             )
-
-    deposit_status_badge.short_description = "Deposit Status"
 
     def email_sent_status(self, obj):
         if obj.email_sent:
