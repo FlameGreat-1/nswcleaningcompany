@@ -284,12 +284,12 @@ class InvoiceAdmin(admin.ModelAdmin):
 
         if obj.deposit_paid:
             return format_html(
-                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Paid</span><br><small>${:.2f}</small>',
+                '<span style="background-color: #28a745; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Paid</span><br><small>${0:.2f}</small>',
                 obj.deposit_amount,
             )
         else:
             return format_html(
-                '<span style="background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Pending</span><br><small>${:.2f}</small>',
+                '<span style="background-color: #ffc107; color: black; padding: 3px 8px; border-radius: 3px; font-size: 11px;">Pending</span><br><small>${0:.2f}</small>',
                 obj.deposit_amount,
             )
 
@@ -575,7 +575,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     def mark_deposits_paid(self, request, queryset):
         invoices_with_deposits = queryset.filter(deposit_required=True, deposit_paid=False)
         updated_count = 0
-        
+
         for invoice in invoices_with_deposits:
             invoice.deposit_paid = True
             invoice.deposit_paid_date = timezone.now().date()
@@ -589,7 +589,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     def mark_deposits_unpaid(self, request, queryset):
         invoices_with_deposits = queryset.filter(deposit_required=True, deposit_paid=True)
         updated_count = 0
-        
+
         for invoice in invoices_with_deposits:
             invoice.deposit_paid = False
             invoice.deposit_paid_date = None
@@ -614,4 +614,3 @@ class InvoiceItemAdmin(admin.ModelAdmin):
     list_filter = ["is_taxable", "created_at"]
     search_fields = ["invoice__invoice_number", "description"]
     readonly_fields = ["total_price", "gst_amount", "total_with_gst"]
-
