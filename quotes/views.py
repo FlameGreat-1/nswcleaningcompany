@@ -150,8 +150,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
             "client", "service", "assigned_to", "reviewed_by"
         ).prefetch_related("items", "attachments", "revisions")
 
-        if not self.request.user.is_staff:
-            return queryset.filter(client=self.request.user)
+        # if not self.request.user.is_staff:
+        #    return queryset.filter(client=self.request.user)
 
         return queryset
 
@@ -886,11 +886,12 @@ class MyQuotesView(ListAPIView):
 
     def get_queryset(self):
         return (
-            Quote.objects.filter(client=self.request.user)
-            .select_related("service", "assigned_to")
-            .prefetch_related("items", "attachments")
+            Quote.objects.all()
+            # Quote.objects.filter(client=self.request.user)  # Commented out
+            .select_related("service", "assigned_to").prefetch_related(
+                "items", "attachments"
+            )
         )
-
 
 class PendingQuotesView(ListAPIView):
     serializer_class = QuoteListSerializer
@@ -1003,7 +1004,7 @@ class QuotesByClientView(ListAPIView):
             .select_related("client", "service", "assigned_to")
             .prefetch_related("items", "attachments")
         )
-        
+
 class QuoteConversionRateView(APIView):
     permission_classes = [CanViewQuoteAnalytics]
 
