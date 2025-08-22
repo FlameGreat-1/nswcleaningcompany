@@ -150,8 +150,8 @@ class QuoteViewSet(viewsets.ModelViewSet):
             "client", "service", "assigned_to", "reviewed_by"
         ).prefetch_related("items", "attachments", "revisions")
 
-        # if not self.request.user.is_staff:
-        #    return queryset.filter(client=self.request.user)
+        if not self.request.user.is_staff:
+            return queryset.filter(client=self.request.user)
 
         return queryset
 
@@ -875,19 +875,30 @@ class QuoteNotificationView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 class MyQuotesView(ListAPIView):
     serializer_class = QuoteListSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [OrderingFilter]  
-    
     ordering = ["-created_at"]
-    pagination_class = None
+    pagination_class = None  
 
     def get_queryset(self):
+        user = self.request.user
         all_quotes = Quote.objects.all()
-        print(f"DEBUG MyQuotesView: Found {all_quotes.count()} quotes")
-        return all_quotes.select_related("service", "assigned_to").prefetch_related(
+
+        print(f"DEBUG MyQuotesView: Found {all_quotes.count()} quotes in database")
+
+        if user.is_staff or user.is_superuser:
+
+            queryset = all_quotes
+        else:
+            queryset = all_quotes.filter(client=user)
+
+        print(
+            f"DEBUG MyQuotesView: Returning {queryset.count()} quotes after filtering"
+        )
+
+        return queryset.select_related("service", "assigned_to").prefetch_related(
             "items", "attachments"
         )
 
