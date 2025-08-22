@@ -885,12 +885,10 @@ class MyQuotesView(ListAPIView):
     ordering = ["-created_at"]
 
     def get_queryset(self):
-        return (
-            Quote.objects.all()
-            # Quote.objects.filter(client=self.request.user)  # Commented out
-            .select_related("service", "assigned_to").prefetch_related(
-                "items", "attachments"
-            )
+        all_quotes = Quote.objects.all()
+        print(f"DEBUG MyQuotesView: Found {all_quotes.count()} quotes")
+        return all_quotes.select_related("service", "assigned_to").prefetch_related(
+            "items", "attachments"
         )
 
 class PendingQuotesView(ListAPIView):
