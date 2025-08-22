@@ -876,13 +876,13 @@ class QuoteNotificationView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class MyQuotesView(ListAPIView):
     serializer_class = QuoteListSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    filterset_class = QuoteFilter
+    filter_backends = [OrderingFilter]  
+    
     ordering = ["-created_at"]
+    pagination_class = None
 
     def get_queryset(self):
         all_quotes = Quote.objects.all()
@@ -890,6 +890,7 @@ class MyQuotesView(ListAPIView):
         return all_quotes.select_related("service", "assigned_to").prefetch_related(
             "items", "attachments"
         )
+
 
 class PendingQuotesView(ListAPIView):
     serializer_class = QuoteListSerializer
