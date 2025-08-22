@@ -330,6 +330,14 @@ class QuoteViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @action(detail=True, methods=["get"])
+    def addons(self, request, pk=None):
+        quote = self.get_object()
+        addon_items = quote.items.filter(item_type="addon")
+ 
+        serializer = QuoteItemSerializer(addon_items, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=["post"])
     def recalculate_pricing(self, request, pk=None):
         quote = self.get_object()

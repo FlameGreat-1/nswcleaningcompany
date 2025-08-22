@@ -922,8 +922,6 @@ class QuoteAttachmentCreateSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         validated_data["uploaded_by"] = request.user
         return super().create(validated_data)
-
-
 class QuoteRevisionCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
