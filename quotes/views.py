@@ -634,12 +634,17 @@ class QuoteAttachmentViewSet(viewsets.ModelViewSet):
                 {"error": "File not found"}, status=status.HTTP_404_NOT_FOUND
             )
 
-
 class QuoteRevisionViewSet(viewsets.ModelViewSet):
     queryset = QuoteRevision.objects.all()
     serializer_class = QuoteRevisionSerializer
-    permission_classes = [CanCreateQuoteRevision]
     ordering = ["-revision_number"]
+
+    def get_permissions(self):
+        if self.action in ["list", "retrieve"]:
+            permission_classes = [CanViewQuoteRevision]
+        else:
+            permission_classes = [CanCreateQuoteRevision]
+        return [permission() for permission in permission_classes]
 
     def get_queryset(self):
         queryset = QuoteRevision.objects.select_related("quote", "revised_by")
