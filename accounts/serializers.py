@@ -188,7 +188,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate_old_password(self, value):
         user = self.context["request"].user
-        if user.is_google_user:
+        if user.auth_provider == "google":
             raise serializers.ValidationError("Google users cannot change password.")
         if not user.check_password(value):
             raise serializers.ValidationError("Old password is incorrect.")
@@ -214,7 +214,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     def validate_email(self, value):
         try:
             user = User.objects.get(email=value, is_active=True)
-            if user.is_google_user:
+            if user.auth_provider == "google":
                 raise serializers.ValidationError("Google users cannot reset password.")
         except User.DoesNotExist:
             raise serializers.ValidationError(

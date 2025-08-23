@@ -75,8 +75,11 @@ from .utils import (
     send_account_locked_email,
     get_client_ip,
 )
-from .google_auth import GoogleOAuthHandler
 from .social_auth import SocialAuthBackend
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GoogleAuthView(APIView):
@@ -90,8 +93,15 @@ class GoogleAuthView(APIView):
             user_type = serializer.validated_data.get("user_type", "client")
             client_type = serializer.validated_data.get("client_type", "general")
 
-            google_handler = GoogleOAuthHandler()
-            google_user_data = google_handler.get_user_info(access_token)
+            # Use SocialAuthBackend instead of GoogleOAuthHandler
+            social_backend = SocialAuthBackend()
+
+            # Add debugging to identify issues
+            logger.debug(f"Google auth attempt with token: {access_token[:10]}...")
+            google_user_data = social_backend.get_provider_user_data(
+                "google", access_token
+            )
+            logger.debug(f"Google user data: {google_user_data}")
 
             if not google_user_data:
                 return Response(
@@ -101,7 +111,7 @@ class GoogleAuthView(APIView):
 
             try:
                 user = User.objects.get(email=google_user_data["email"])
-                if not user.is_google_user:
+                if user.auth_provider != "google":
                     return Response(
                         {
                             "error": "Email already exists with different authentication method"
@@ -120,21 +130,10 @@ class GoogleAuthView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            social_profile, created = SocialAuthProfile.objects.get_or_create(
-                user=user,
-                provider="google",
-                defaults={
-                    "provider_id": google_user_data["id"],
-                    "provider_email": google_user_data["email"],
-                    "access_token": access_token,
-                    "profile_data": google_user_data,
-                },
+            # Update or create social profile using SocialAuthBackend
+            social_backend._update_or_create_social_profile(
+                user, "google", access_token, google_user_data
             )
-
-            if not created:
-                social_profile.access_token = access_token
-                social_profile.profile_data = google_user_data
-                social_profile.save()
 
             token, created = Token.objects.get_or_create(user=user)
 
@@ -168,7 +167,7 @@ class GoogleAuthView(APIView):
                         "user_type": user.user_type,
                         "client_type": user.client_type,
                         "is_verified": user.is_verified,
-                        "is_google_user": user.is_google_user,
+                        "is_google_user": user.auth_provider == "google",
                         "avatar_url": user.avatar_url,
                     },
                 },
@@ -176,8 +175,6 @@ class GoogleAuthView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class GoogleRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = GoogleRegistrationSerializer
@@ -190,8 +187,15 @@ class GoogleRegistrationView(APIView):
             client_type = serializer.validated_data.get("client_type", "general")
             phone_number = serializer.validated_data.get("phone_number", "")
 
-            google_handler = GoogleOAuthHandler()
-            google_user_data = google_handler.get_user_info(access_token)
+            social_backend = SocialAuthBackend()
+
+            logger.debug(
+                f"Google registration attempt with token: {access_token[:10]}..."
+            )
+            google_user_data = social_backend.get_provider_user_data(
+                "google", access_token
+            )
+            logger.debug(f"Google user data: {google_user_data}")
 
             if not google_user_data:
                 return Response(
@@ -205,51 +209,35 @@ class GoogleRegistrationView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            with transaction.atomic():
-                user = User.objects.create_user(
-                    email=google_user_data["email"],
-                    first_name=google_user_data.get("given_name", ""),
-                    last_name=google_user_data.get("family_name", ""),
-                    phone_number=phone_number,
-                    user_type=user_type,
-                    client_type=client_type,
-                    auth_provider="google",
-                    google_id=google_user_data["id"],
-                    avatar_url=google_user_data.get("picture", ""),
-                    is_verified=True,
-                )
+            user = social_backend.register_social_user(
+                provider="google",
+                access_token=access_token,
+                user_type=user_type,
+                client_type=client_type,
+                phone_number=phone_number,
+            )
 
-                user.set_unusable_password()
-                user.save()
-
-                SocialAuthProfile.objects.create(
-                    user=user,
-                    provider="google",
-                    provider_id=google_user_data["id"],
-                    provider_email=google_user_data["email"],
-                    access_token=access_token,
-                    profile_data=google_user_data,
-                )
-
-                send_welcome_email(user)
-
-                token, created = Token.objects.get_or_create(user=user)
-
+            if not user:
                 return Response(
-                    {
-                        "message": "Google registration successful",
-                        "user_id": user.id,
-                        "email": user.email,
-                        "token": token.key,
-                        "user_type": user.user_type,
-                        "is_verified": user.is_verified,
-                    },
-                    status=status.HTTP_201_CREATED,
+                    {"error": "Failed to register user with Google"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            token, created = Token.objects.get_or_create(user=user)
+
+            return Response(
+                {
+                    "message": "Google registration successful",
+                    "user_id": user.id,
+                    "email": user.email,
+                    "token": token.key,
+                    "user_type": user.user_type,
+                    "is_verified": user.is_verified,
+                },
+                status=status.HTTP_201_CREATED,
+            )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class SocialLoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = SocialLoginSerializer
@@ -377,8 +365,6 @@ class AccountLinkingView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class AccountUnlinkingView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = AccountUnlinkingSerializer
@@ -405,11 +391,6 @@ class AccountUnlinkingView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-import logging
-
-logger = logging.getLogger(__name__)
 class UserRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegistrationSerializer
@@ -448,6 +429,7 @@ class UserRegistrationView(APIView):
                 )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = UserLoginSerializer
@@ -492,7 +474,7 @@ class UserLoginView(APIView):
                         "auth_provider": user.auth_provider,
                         "is_verified": user.is_verified,
                         "is_ndis_client": user.is_ndis_client,
-                        "is_google_user": user.is_google_user,
+                        "is_google_user": user.auth_provider == "google",
                         "avatar_url": user.avatar_url,
                     },
                 },
@@ -519,8 +501,6 @@ class UserLogoutView(APIView):
             return Response(
                 {"error": "Logout failed"}, status=status.HTTP_400_BAD_REQUEST
             )
-
-
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated, IsOwner]
@@ -562,14 +542,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class PasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PasswordChangeSerializer
 
     def post(self, request):
-        if request.user.is_google_user:
+        if request.user.auth_provider == "google":
             return Response(
                 {
                     "error": "Google users cannot change password. Use Google account settings."
@@ -605,7 +583,7 @@ class PasswordResetRequestView(APIView):
             email = serializer.validated_data["email"]
             user = User.objects.get(email=email, is_active=True)
 
-            if user.is_google_user:
+            if user.auth_provider == "google":
                 return Response(
                     {
                         "error": "Google users cannot reset password. Use Google account recovery."
@@ -637,7 +615,7 @@ class PasswordResetConfirmView(APIView):
 
             user = PasswordReset.objects.use_token(token, new_password)
             if user:
-                if user.is_google_user:
+                if user.auth_provider == "google":
                     return Response(
                         {"error": "Cannot reset password for Google users"},
                         status=status.HTTP_400_BAD_REQUEST,
@@ -673,7 +651,7 @@ class EmailVerificationView(APIView):
 
             if user:
                 send_welcome_email(user)
-                
+
                 return Response(
                     {
                         "message": "Email verified successfully",
@@ -692,6 +670,8 @@ class EmailVerificationView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class ResendVerificationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = ResendVerificationSerializer
@@ -702,7 +682,7 @@ class ResendVerificationView(APIView):
             email = serializer.validated_data["email"]
             user = User.objects.get(email=email, is_active=True)
 
-            if user.is_google_user:
+            if user.auth_provider == "google":
                 return Response(
                     {"message": "Google users are automatically verified"},
                     status=status.HTTP_200_OK,
