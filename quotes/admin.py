@@ -744,15 +744,16 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     revised_by_name.short_description = "Revised By"
     revised_by_name.admin_order_field = "revised_by__last_name"
 
-    def price_change_display(self, obj):
+    def price_change_display(self, obj): 
         if obj.new_price is None or obj.previous_price is None:
             return "N/A"
 
         change = obj.new_price - obj.previous_price
         if change > 0:
-            return format_html('<span style="color: green;">+${:.2f}</span>', change)
+            return format_html('<span style="color: green;">+${}</span>', "{:.2f}".format(change))
+   
         elif change < 0:
-            return format_html('<span style="color: red;">${:.2f}</span>', change)
+            return format_html('<span style="color: red;">${}</span>', "{:.2f}".format(change))
         return "$0.00"
 
     price_change_display.short_description = "Price Change"
