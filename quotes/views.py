@@ -58,6 +58,7 @@ from .permissions import (
     CanViewAttachment,
     CanDeleteAttachment,
     CanCreateQuoteRevision,
+    CanViewQuoteRevision,
     CanManageQuoteTemplate,
     CanViewQuoteAnalytics,
     CanExportQuotes,
