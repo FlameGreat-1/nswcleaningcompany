@@ -587,8 +587,6 @@ class QuoteItemAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("quote", "service", "addon")
-
-
 @admin.register(QuoteAttachment)
 class QuoteAttachmentAdmin(admin.ModelAdmin):
     list_display = [
@@ -668,7 +666,6 @@ class QuoteAttachmentAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("quote", "uploaded_by")
-
 @admin.register(QuoteRevision)
 class QuoteRevisionAdmin(admin.ModelAdmin):
     list_display = [
@@ -711,7 +708,7 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
                     "price_change_amount",
                     "price_change_percent",
                     "previous_deposit_required",
-                    "new_deposit_required",  
+                    "new_deposit_required",
                     "previous_deposit_amount",
                     "new_deposit_amount",
                 )
@@ -719,6 +716,21 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
         ),
         ("Timestamp", {"fields": ("created_at",)}),
     )
+
+    def save_model(self, request, obj, form, change):
+        if not change:  
+            
+            last_revision = (
+                QuoteRevision.objects.filter(quote=obj.quote)
+                .order_by("-revision_number")
+                .first()
+            )
+
+            obj.revision_number = (
+                (last_revision.revision_number + 1) if last_revision else 1
+            )
+
+        super().save_model(request, obj, form, change)
 
     def quote_number(self, obj):
         return obj.quote.quote_number
@@ -732,7 +744,7 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     revised_by_name.short_description = "Revised By"
     revised_by_name.admin_order_field = "revised_by__last_name"
 
-    def price_change_display(self, obj): 
+    def price_change_display(self, obj):
         if obj.new_price is None or obj.previous_price is None:
             return "N/A"
 
@@ -746,7 +758,6 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     price_change_display.short_description = "Price Change"
 
     def price_change_amount(self, obj):
-
         if obj.new_price is None or obj.previous_price is None:
             return "N/A"
         return obj.new_price - obj.previous_price
@@ -754,7 +765,6 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
     price_change_amount.short_description = "Change Amount"
 
     def price_change_percent(self, obj):
-
         if (
             obj.new_price is None
             or obj.previous_price is None
@@ -769,7 +779,6 @@ class QuoteRevisionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related("quote", "revised_by")
-
 @admin.register(QuoteTemplate)
 class QuoteTemplateAdmin(admin.ModelAdmin):
     list_display = [
