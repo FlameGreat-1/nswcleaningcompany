@@ -93,10 +93,8 @@ class GoogleAuthView(APIView):
             user_type = serializer.validated_data.get("user_type", "client")
             client_type = serializer.validated_data.get("client_type", "general")
 
-            # Use SocialAuthBackend instead of GoogleOAuthHandler
             social_backend = SocialAuthBackend()
 
-            # Add debugging to identify issues
             logger.debug(f"Google auth attempt with token: {access_token[:10]}...")
             google_user_data = social_backend.get_provider_user_data(
                 "google", access_token
@@ -130,7 +128,6 @@ class GoogleAuthView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Update or create social profile using SocialAuthBackend
             social_backend._update_or_create_social_profile(
                 user, "google", access_token, google_user_data
             )

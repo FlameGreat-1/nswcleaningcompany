@@ -61,9 +61,21 @@ def validate_google_access_token(access_token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def get_google_user_info(access_token: str) -> Optional[Dict[str, Any]]:
+def get_google_user_info(token: str) -> Optional[Dict[str, Any]]:
     try:
-        headers = {"Authorization": f"Bearer {access_token}"}
+        id_token_info = verify_google_id_token(token)
+        if id_token_info:
+            return {
+                "id": id_token_info.get("sub"),
+                "email": id_token_info.get("email"),
+                "given_name": id_token_info.get("given_name", ""),
+                "family_name": id_token_info.get("family_name", ""),
+                "name": id_token_info.get("name", ""),
+                "picture": id_token_info.get("picture", ""),
+                "verified_email": id_token_info.get("email_verified", False),
+            }
+
+        headers = {"Authorization": f"Bearer {token}"}
         response = requests.get(
             "https://www.googleapis.com/oauth2/v2/userinfo", headers=headers, timeout=10
         )
@@ -80,6 +92,7 @@ def get_google_user_info(access_token: str) -> Optional[Dict[str, Any]]:
                 "verified_email": user_data.get("verified_email", False),
             }
 
+        logger.error(f"Failed to get Google user info: {response.status_code}")
         return None
 
     except Exception as e:

@@ -14,9 +14,10 @@ from .models import (
 )
 from .validators import validate_australian_phone, validate_postcode
 
-
 class GoogleAuthSerializer(serializers.Serializer):
-    access_token = serializers.CharField(required=True)
+    access_token = serializers.CharField(
+        required=True, help_text="Google ID token or access token"
+    )
     user_type = serializers.ChoiceField(choices=User.USER_TYPES, default="client")
     client_type = serializers.ChoiceField(
         choices=User.CLIENT_TYPES, default="general", required=False
@@ -26,7 +27,6 @@ class GoogleAuthSerializer(serializers.Serializer):
         if attrs.get("user_type") == "client" and not attrs.get("client_type"):
             attrs["client_type"] = "general"
         return attrs
-
 
 class GoogleRegistrationSerializer(serializers.Serializer):
     access_token = serializers.CharField(required=True)
