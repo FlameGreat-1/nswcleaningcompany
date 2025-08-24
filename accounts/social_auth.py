@@ -142,9 +142,6 @@ class SocialAuthBackend(BaseBackend):
                 user.set_unusable_password()
                 user.save()
 
-                if user.is_client:
-                    ClientProfile.objects.create(user=user)
-
                 self._create_social_profile(user, provider, access_token, user_data)
 
                 send_welcome_email(user)

@@ -16,6 +16,23 @@ pip install -r requirements.txt
 echo "🎨 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
+# Clear problematic database entries
+echo "🧹 Cleaning up database..."
+python -c "
+from django.db import connection
+try:
+    with connection.cursor() as cursor:
+        print('Deleting problematic client profiles...')
+        cursor.execute('DELETE FROM client_profiles WHERE user_id IN (25, 26)')
+        print('Deleting problematic social auth profiles...')
+        cursor.execute('DELETE FROM social_auth_profiles WHERE user_id IN (25, 26)')
+        print('Deleting problematic user accounts...')
+        cursor.execute('DELETE FROM accounts_user WHERE id IN (25, 26)')
+        print('Database cleanup completed successfully')
+except Exception as e:
+    print(f'Database cleanup failed: {str(e)}')
+"
+
 # Create and run database migrations
 echo "🗄️ Creating new migrations..."
 python manage.py makemigrations --noinput
