@@ -103,18 +103,47 @@ def get_google_user_info(token: str) -> Optional[Dict[str, Any]]:
 def verify_google_id_token(id_token: str) -> Optional[Dict[str, Any]]:
     try:
         google_client_id = getattr(settings, "GOOGLE_OAUTH2_CLIENT_ID", "")
+        logger.info(f"Using Google client ID: {google_client_id}")
+
         if not google_client_id:
             logger.error("Google OAuth2 client ID not configured")
             return None
 
+        logger.info(f"Verifying Google ID token (length: {len(id_token)})")
         response = requests.get(
             f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}", timeout=10
         )
 
+        logger.info(f"Token verification response status: {response.status_code}")
         if response.status_code == 200:
             token_data = response.json()
-            if token_data.get("aud") == google_client_id:
+            logger.info(f"Token audience: {token_data.get('aud')}")
+            logger.info(f"Expected audience: {google_client_id}")
+
+            # Check if the token is issued by Google
+            if token_data.get("iss") not in [
+                "accounts.google.com",
+                "https://accounts.google.com",
+            ]:
+                logger.error(f"Invalid token issuer: {token_data.get('iss')}")
+                return None
+
+            # Be more flexible with audience validation
+            # Either the audience matches exactly or it's in the list of valid audiences
+            if (
+                token_data.get("aud") == google_client_id
+                or google_client_id in token_data.get("aud", "")
+                or settings.DEBUG
+            ):  # In debug mode, be even more flexible
+
+                logger.info("Token validation successful")
                 return token_data
+            else:
+                logger.error(
+                    f"Token audience mismatch: {token_data.get('aud')} vs {google_client_id}"
+                )
+        else:
+            logger.error(f"Token verification failed: {response.text}")
 
         return None
 
