@@ -172,69 +172,85 @@ class GoogleAuthView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class GoogleRegistrationView(APIView):
     permission_classes = [AllowAny]
     serializer_class = GoogleRegistrationSerializer
 
     def post(self, request):
+        logger.info(f"Google registration request data: {request.data}")
         serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            access_token = serializer.validated_data["access_token"]
-            user_type = serializer.validated_data.get("user_type", "client")
-            client_type = serializer.validated_data.get("client_type", "general")
-            phone_number = serializer.validated_data.get("phone_number", "")
 
-            social_backend = SocialAuthBackend()
+        if not serializer.is_valid():
+            logger.error(f"Serializer validation errors: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            logger.debug(
-                f"Google registration attempt with token: {access_token[:10]}..."
-            )
-            google_user_data = social_backend.get_provider_user_data(
-                "google", access_token
-            )
-            logger.debug(f"Google user data: {google_user_data}")
+        access_token = serializer.validated_data["access_token"]
+        user_type = serializer.validated_data.get("user_type", "client")
+        client_type = serializer.validated_data.get("client_type", "general")
+        phone_number = serializer.validated_data.get("phone_number", "")
 
-            if not google_user_data:
-                return Response(
-                    {"error": "Invalid Google access token"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        social_backend = SocialAuthBackend()
 
-            if User.objects.filter(email=google_user_data["email"]).exists():
-                return Response(
-                    {"error": "User with this email already exists"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+        logger.info(
+            f"Google registration attempt with token length: {len(access_token)}"
+        )
+        google_user_data = social_backend.get_provider_user_data("google", access_token)
+        logger.info(f"Google user data received: {google_user_data is not None}")
 
-            user = social_backend.register_social_user(
-                provider="google",
-                access_token=access_token,
-                user_type=user_type,
-                client_type=client_type,
-                phone_number=phone_number,
-            )
+        if google_user_data:
+            logger.info(f"Google user email: {google_user_data.get('email')}")
 
-            if not user:
-                return Response(
-                    {"error": "Failed to register user with Google"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            token, created = Token.objects.get_or_create(user=user)
-
+        if not google_user_data:
+            logger.error("Failed to get Google user data from token")
             return Response(
-                {
-                    "message": "Google registration successful",
-                    "user_id": user.id,
-                    "email": user.email,
-                    "token": token.key,
-                    "user_type": user.user_type,
-                    "is_verified": user.is_verified,
-                },
-                status=status.HTTP_201_CREATED,
+                {"error": "Invalid Google access token"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=google_user_data["email"]).exists():
+            logger.warning(
+                f"Registration failed: User with email {google_user_data['email']} already exists"
+            )
+            return Response(
+                {"error": "User with this email already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger.info(
+            f"Attempting to register user with email: {google_user_data['email']}"
+        )
+        user = social_backend.register_social_user(
+            provider="google",
+            access_token=access_token,
+            user_type=user_type,
+            client_type=client_type,
+            phone_number=phone_number,
+        )
+
+        if not user:
+            logger.error("Failed to register social user")
+            return Response(
+                {"error": "Failed to register user with Google"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger.info(f"User registered successfully: {user.email}")
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response(
+            {
+                "message": "Google registration successful",
+                "user_id": user.id,
+                "email": user.email,
+                "token": token.key,
+                "user_type": user.user_type,
+                "is_verified": user.is_verified,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
 class SocialLoginView(APIView):
     permission_classes = [AllowAny]
     serializer_class = SocialLoginSerializer
