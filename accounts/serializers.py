@@ -35,7 +35,9 @@ class GoogleRegistrationSerializer(serializers.Serializer):
         choices=User.CLIENT_TYPES, default="general", required=False
     )
     phone_number = serializers.CharField(
-       ## required=False, validators=[validate_australian_phone]
+        required=False,
+        allow_blank=True,
+        ## validators=[validate_australian_phone]  
     )
 
     def validate(self, attrs):
