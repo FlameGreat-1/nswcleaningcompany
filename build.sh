@@ -11,6 +11,12 @@ npm ci || npm install
 echo "🏗️ Building frontend application..."
 npm run build
 
+echo "🔧 Updating asset paths in index.html..."
+sed -i 's|href="assets/|href="/static/assets/|g' dist/index.html
+sed -i 's|src="assets/|src="/static/assets/|g' dist/index.html
+sed -i 's|"./assets/|"/static/assets/|g' dist/index.html
+sed -i 's|"/assets/|"/static/assets/|g' dist/index.html
+
 # Upgrade pip to latest version
 echo "📦 Upgrading pip..."
 python -m pip install --upgrade pip

@@ -132,14 +132,9 @@ if (BASE_DIR / "static").exists():
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Use Django's default static files storage
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-AUTH_USER_MODEL = "accounts.User"
-SITE_ID = 1
-
-WHITENOISE_AUTOREFRESH = True
-WHITENOISE_USE_FINDERS = True
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
