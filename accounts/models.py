@@ -217,25 +217,26 @@ class Address(models.Model):
         return f"{self.street_address}, {self.suburb}, {self.state} {self.postcode}, {self.country}"
 
 
-def create_session(self, user, session_key=None, ip_address=None, user_agent=None):
-    import uuid
+class UserSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sessions")
+    session_key = models.CharField(max_length=40, unique=True)
+    ip_address = models.GenericIPAddressField()
+    user_agent = models.TextField()
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_activity = models.DateTimeField(auto_now=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
 
-    new_session_key = str(uuid.uuid4()).replace("-", "")[:32]
+    objects = UserSessionManager()
 
-    session = self.model(
-        user=user,
-        session_key=new_session_key,
-        ip_address=ip_address,
-        user_agent=user_agent,
-    )
+    class Meta:
+        db_table = "user_sessions"
+        verbose_name = "User Session"
+        verbose_name_plural = "User Sessions"
 
-    try:
-        session.save(using=self._db)
-    except:
-        session.session_key = str(uuid.uuid4()).replace("-", "")[:32]
-        session.save(using=self._db)
+    def __str__(self):
+        return f"{self.user.email} - {self.session_key[:8]}..."
 
-    return session
 
 class EmailVerification(models.Model):
     user = models.ForeignKey(
