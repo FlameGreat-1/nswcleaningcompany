@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = '';
+const API_BASE_URL = '/api';
 const API_VERSION = 'v1';
 
 export const API_ENDPOINTS = {
