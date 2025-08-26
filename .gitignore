@@ -1,360 +1,100 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
-*.local
-
-# Environment variables
-.env
-.env.local
-.env.production.local
-
-# Editor
-.vscode/
-.DS_Store
-
-# Logs
-*.log
-
-# Vercel
-.vercel
-
-# Cache
-.cache/
-
-
-
 # =============================================================================
 # ENVIRONMENT VARIABLES & SECRETS
 # =============================================================================
 .env
-.env.local
-.env.production
-.env.staging
-.env.development
-*.env
+.env.*
+!.env.example
 secrets.json
 config.json
 
 # =============================================================================
-# PYTHON
+# BUILD & DISTRIBUTION
 # =============================================================================
+# Frontend build
+dist/
+build/
+*.local
+
+# Backend build
+staticfiles/
+static_collected/
+collected_static/
+
+# =============================================================================
+# DEPENDENCIES & PACKAGE MANAGERS
+# =============================================================================
+# Python/Django
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# =============================================================================
-# DJANGO
-# =============================================================================
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-static_collected/
-
-# Django migrations (uncomment if you want to ignore them)
-# */migrations/*.py
-# */migrations/*.pyc
-# !*/migrations/__init__.py
-
-# =============================================================================
-# VIRTUAL ENVIRONMENTS
-# =============================================================================
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
 .venv/
-.ENV/
-.env/
-pyvenv.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# JavaScript/Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # =============================================================================
-# IDE & EDITORS
+# DATABASES & MEDIA
 # =============================================================================
-# VSCode
-.vscode/
-*.code-workspace
-
-# PyCharm
-.idea/
-*.iws
-*.iml
-*.ipr
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# Vim
-*.swp
-*.swo
-*~
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# =============================================================================
-# OPERATING SYSTEM
-# =============================================================================
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
-
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# =============================================================================
-# LOGS & DEBUGGING
-# =============================================================================
-logs/
-*.log
-*.log.*
-log/
-debug.log
-error.log
-access.log
-django.log
-celery.log
-
-# =============================================================================
-# DATABASES
-# =============================================================================
+db.sqlite3
+db.sqlite3-journal
 *.sqlite
-*.sqlite3
 *.db
-*.db-journal
-*.db-wal
-*.db-shm
-dump.rdb
+media/
+!media/.gitkeep
 
 # =============================================================================
-# CACHE & TEMPORARY FILES
+# CACHES & LOGS
 # =============================================================================
 .cache/
 .pytest_cache/
 .coverage
-.coverage.*
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.tox/
-.nox/
-.mypy_cache/
-.dmypy.json
-dmypy.json
-.pyre/
-.pytype/
-cython_debug/
-
-# =============================================================================
-# TESTING
-# =============================================================================
 htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-test-results/
-test-reports/
-
-# =============================================================================
-# DOCUMENTATION
-# =============================================================================
-docs/_build/
-site/
-.mkdocs.yml.bak
-
-# =============================================================================
-# BACKUP & ARCHIVES
-# =============================================================================
-backups/
-*.backup
-*.bak
-*.tmp
-*.temp
-*.old
-*.orig
-*.rej
-*.swp
-*.swo
-*.zip
-*.tar
-*.tar.gz
-*.rar
-*.7z
-
-# =============================================================================
-# MEDIA & UPLOADS
-# =============================================================================
-media/uploads/
-media/temp/
-uploads/
-user_uploads/
-profile_pictures/
-avatars/
-
-# =============================================================================
-# STATIC FILES (PRODUCTION)
-# =============================================================================
-staticfiles/
-static_root/
-collected_static/
 .sass-cache/
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# =============================================================================
-# CELERY & REDIS
-# =============================================================================
+*.log
+logs/
 celerybeat-schedule
 celerybeat.pid
-*.pid
 
 # =============================================================================
-# SECURITY & CERTIFICATES
+# IDE & EDITORS
 # =============================================================================
-*.pem
-*.key
-*.crt
-*.csr
-*.p12
-*.pfx
-ssl/
-certificates/
+.idea/
+.vscode/
+*.sublime-*
+*.swp
+*.swo
+*~
 
 # =============================================================================
-# MONITORING & PROFILING
+# OPERATING SYSTEM
 # =============================================================================
-.prof
-*.prof
-.profile
-profile_stats/
+.DS_Store
+Thumbs.db
+desktop.ini
 
 # =============================================================================
-# JUPYTER NOTEBOOKS
-# =============================================================================
-.ipynb_checkpoints
-*/.ipynb_checkpoints/*
-profile_default/
-ipython_config.py
-*.ipynb
-
-# =============================================================================
-# PACKAGE MANAGERS
-# =============================================================================
-# npm
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-package-lock.json
-yarn.lock
-
-# pip
-pip-log.txt
-pip-delete-this-directory.txt
-
-# =============================================================================
-# DOCKER
-# =============================================================================
-.dockerignore
-docker-compose.override.yml
-.docker/
-
-# =============================================================================
-# CLOUD & DEPLOYMENT
+# DEPLOYMENT
 # =============================================================================
 .vercel
 .netlify
-.aws/
-.gcp/
-.azure/
-.heroku/
+.render
 
 # =============================================================================
-# CUSTOM PROJECT FILES
+# TEMPORARY & DEVELOPMENT FILES
 # =============================================================================
-# Add your custom files here
+tmp/
+temp/
+.temp/
 TODO.md
 NOTES.md
-scratch.py
-test_data/
-sample_data/
-fixtures/local/
-
-# =============================================================================
-# TEMPORARY DEVELOPMENT FILES
-# =============================================================================
-temp/
-tmp/
-scratch/
-playground/
-experiments/
-dev_tools/

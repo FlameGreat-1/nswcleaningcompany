@@ -53,7 +53,7 @@ ROOT_URLCONF = "cleaning_service.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [BASE_DIR / "templates", BASE_DIR / "dist"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -122,13 +122,11 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = (
-    [
-        BASE_DIR / "static",
-    ]
-    if (BASE_DIR / "static").exists()
-    else []
-)
+STATICFILES_DIRS = [
+    BASE_DIR / "dist/assets",
+]
+if (BASE_DIR / "static").exists():
+    STATICFILES_DIRS.append(BASE_DIR / "static")
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -368,6 +366,7 @@ if DEBUG:
 
 os.makedirs(BASE_DIR / "media", exist_ok=True)
 os.makedirs(BASE_DIR / "staticfiles", exist_ok=True)
+os.makedirs(BASE_DIR / "dist", exist_ok=True)
 
 APPEND_SLASH = True
 PREPEND_WWW = False

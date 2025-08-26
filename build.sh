@@ -4,6 +4,13 @@ set -o errexit
 
 echo "🚀 Starting build process..."
 
+# Install Node.js dependencies and build frontend
+echo "📦 Installing Node.js dependencies..."
+npm ci || npm install
+
+echo "🏗️ Building frontend application..."
+npm run build
+
 # Upgrade pip to latest version
 echo "📦 Upgrading pip..."
 python -m pip install --upgrade pip
