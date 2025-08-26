@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView, RedirectView
+from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
@@ -29,10 +29,10 @@ def api_root(request):
             "message": "Welcome to Professional Cleaning Service API",
             "version": "v1",
             "endpoints": {
-                "accounts": "/api/v1/accounts/",
-                "health": "/api/health/",
+                "accounts": "/v1/accounts/",
+                "health": "/health/",
                 "admin": "/admin/",
-                "docs": "/api/docs/",
+                "docs": "/docs/",
             },
         }
     )
@@ -44,22 +44,15 @@ admin.site.index_title = "Welcome to Cleaning Service Administration"
 
 api_urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/health/", api_health_check, name="api_health_check"),
-    path("api/", api_root, name="api_root"),
-    path("api/v1/accounts/", include("accounts.urls")),
-    path("api/v1/services/", include("services.urls")),
-    path("api/v1/quotes/", include("quotes.urls")),
-    path("api/v1/invoices/", include("invoices.urls")),
+    path("health/", api_health_check, name="api_health_check"),
+    path("", api_root, name="api_root"),
+    path("v1/accounts/", include("accounts.urls")),
+    path("v1/services/", include("services.urls")),
+    path("v1/quotes/", include("quotes.urls")),
+    path("v1/invoices/", include("invoices.urls")),
 ]
 
 urlpatterns = api_urlpatterns
-
-urlpatterns += [
-    re_path(
-        r"^api/api/(?P<path>.*)$",
-        RedirectView.as_view(url="/api/%(path)s", permanent=False),
-    ),
-]
 
 if settings.DEBUG:
     try:
@@ -72,6 +65,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+# This catch-all route must be last
 urlpatterns.append(re_path(r".*", TemplateView.as_view(template_name="index.html")))
 
 handler404 = "django.views.defaults.page_not_found"
