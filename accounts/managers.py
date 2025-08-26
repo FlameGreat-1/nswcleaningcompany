@@ -213,16 +213,21 @@ class PasswordResetManager(BaseUserManager):
 
 class UserSessionManager(BaseUserManager):
 
-    def create_session(self, user, ip_address, device_type, user_agent):
+    def create_session(
+        self, user, session_key=None, ip_address=None, device_type=None, user_agent=None
+    ):
         import uuid
 
-        session_key = str(uuid.uuid4()).replace("-", "")[:32]
+        new_session_key = str(uuid.uuid4()).replace("-", "")[:32]
+
+        if device_type is None and user_agent is not None:
+            device_type = "web"  
 
         session = self.model(
             user=user,
-            session_key=session_key,
+            session_key=new_session_key,
             ip_address=ip_address,
-            device_type=device_type,
+            device_type=device_type or "unknown",
             user_agent=user_agent,
         )
 
