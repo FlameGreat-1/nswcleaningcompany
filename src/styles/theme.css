@@ -1,0 +1,390 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --color-bg-primary: #FFFFFF;
+  --color-bg-secondary: #F8F9FA;
+  --color-bg-card: #FFFFFF;
+  --color-bg-chat: #F1F5F9;
+  
+  --color-text-primary: #180c2e;
+  --color-text-secondary: #333333;
+  --color-text-muted: #6B7280;
+  --color-text-inverse: #FFFFFF;
+  
+  --color-border: #E5E7EB;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  
+  --color-blue: #006da6;
+  --color-blue-hover: #0080c7;
+  --color-blue-dark: #005a8a;
+  --color-indigo: #180c2e;
+  --color-indigo-light: #2d1b4e;
+  
+  --font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 4rem;
+  --spacing-2xl: 6rem;
+  --spacing-3xl: 7.5rem;
+  
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  --radius-full: 9999px;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 20px rgba(0, 109, 166, 0.3);
+  --shadow-glow-strong: 0 0 40px rgba(0, 109, 166, 0.5);
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  --button-padding-sm: 0.5rem 1rem;
+  --button-padding-md: 0.75rem 1.5rem;
+  --button-padding-lg: 1rem 2rem;
+  --button-height-sm: 2rem;
+  --button-height-md: 2.5rem;
+  --button-height-lg: 3rem;
+  
+  --card-padding-sm: 1rem;
+  --card-padding-md: 1.5rem;
+  --card-padding-lg: 2rem;
+  
+  --input-height: 2.5rem;
+  --input-padding: 0.75rem;
+
+  --app-bg-primary: #FFFFFF;
+  --app-bg-secondary: #F8F9FA;
+  --app-bg-card: #FFFFFF;
+  --app-bg-glass: rgba(255, 255, 255, 0.9);
+  --app-text-primary: #180c2e;
+  --app-text-secondary: #333333;
+  --app-text-muted: #6B7280;
+  --app-border: #E5E7EB;
+  --app-border-glass: rgba(255, 255, 255, 0.4);
+  --app-shadow: rgba(0, 0, 0, 0.1);
+  --app-shadow-lg: rgba(0, 0, 0, 0.15);
+  --app-shadow-xl: rgba(0, 0, 0, 0.2);
+  --app-blue: #006da6;
+  --app-blue-hover: #0080c7;
+  --app-blue-dark: #005a8a;
+  --app-indigo: #180c2e;
+  --app-backdrop-blur: blur(12px);
+  --app-glass-bg: rgba(255, 255, 255, 0.8);
+}
+
+.dark, .app-dark {
+  --color-bg-primary: #180c2e;
+  --color-bg-secondary: #2d1b4e;
+  --color-bg-card: #1a0f33;
+  --color-bg-chat: #2d1b4e;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #f5f5f5;
+  --color-text-muted: #CCCCCC;
+  --color-text-inverse: #180c2e;
+  --color-border: #4a3b6b;
+  --color-shadow: rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.6);
+  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.7);
+
+  --app-bg-primary: #180c2e;
+  --app-bg-secondary: #2d1b4e;
+  --app-bg-card: #1a0f33;
+  --app-bg-glass: rgba(255, 255, 255, 0.05);
+  --app-text-primary: #FFFFFF;
+  --app-text-secondary: #f5f5f5;
+  --app-text-muted: #CCCCCC;
+  --app-border: #4a3b6b;
+  --app-border-glass: rgba(255, 255, 255, 0.1);
+  --app-shadow: rgba(0, 0, 0, 0.5);
+  --app-shadow-lg: rgba(0, 0, 0, 0.6);
+  --app-shadow-xl: rgba(0, 0, 0, 0.7);
+  --app-glass-bg: rgba(26, 15, 51, 0.8);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-family-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--app-bg-primary);
+  color: var(--app-text-primary);
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+.theme-bg-primary, .app-bg-primary {
+  background-color: var(--app-bg-primary);
+  transition: background-color var(--transition-normal);
+}
+
+.theme-bg-secondary, .app-bg-secondary {
+  background-color: var(--app-bg-secondary);
+  transition: background-color var(--transition-normal);
+}
+
+.theme-bg-card, .app-bg-card {
+  background-color: var(--app-bg-card);
+  transition: background-color var(--transition-normal);
+}
+
+.theme-bg-chat {
+  background-color: var(--color-bg-chat);
+  transition: background-color var(--transition-normal);
+}
+
+.theme-text-primary, .app-text-primary {
+  color: var(--app-text-primary);
+  transition: color var(--transition-normal);
+}
+
+.theme-text-secondary, .app-text-secondary {
+  color: var(--app-text-secondary);
+  transition: color var(--transition-normal);
+}
+
+.theme-text-muted, .app-text-muted {
+  color: var(--app-text-muted);
+  transition: color var(--transition-normal);
+}
+
+.theme-text-inverse {
+  color: var(--color-text-inverse);
+  transition: color var(--transition-normal);
+}
+
+.theme-border, .app-border {
+  border-color: var(--app-border);
+  transition: border-color var(--transition-normal);
+}
+
+.app-border-glass {
+  border-color: var(--app-border-glass);
+}
+
+.theme-shadow, .app-shadow {
+  box-shadow: 0 4px 12px var(--app-shadow);
+  transition: box-shadow var(--transition-normal);
+}
+
+.theme-shadow-lg, .app-shadow-lg {
+  box-shadow: 0 10px 25px var(--app-shadow-lg);
+  transition: box-shadow var(--transition-normal);
+}
+
+.theme-shadow-xl, .app-shadow-xl {
+  box-shadow: 0 20px 40px var(--app-shadow-xl);
+  transition: box-shadow var(--transition-normal);
+}
+
+.theme-blue, .app-blue {
+  color: var(--app-blue);
+}
+
+.theme-bg-blue, .app-bg-blue {
+  background-color: var(--app-blue);
+}
+
+.theme-border-blue, .app-border-blue {
+  border-color: var(--app-blue);
+}
+
+.theme-button {
+  background-color: var(--app-blue);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-full);
+  padding: var(--button-padding-md);
+  font-weight: 900;
+  font-family: var(--font-family-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.theme-button:hover {
+  background-color: var(--app-blue-hover);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--shadow-glow);
+}
+
+.theme-card {
+  background-color: var(--app-bg-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--radius-xl);
+  padding: var(--card-padding-md);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+
+.theme-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-input {
+  background-color: var(--app-bg-card);
+  border: 2px solid var(--app-border);
+  border-radius: var(--radius-lg);
+  padding: var(--input-padding);
+  height: var(--input-height);
+  color: var(--app-text-primary);
+  font-family: var(--font-family-base);
+  transition: all var(--transition-normal);
+}
+
+.theme-input:focus {
+  outline: none;
+  border-color: var(--app-blue);
+  box-shadow: 0 0 0 4px rgba(0, 109, 166, 0.2);
+  transform: scale(1.02);
+}
+
+.theme-glass, .app-bg-glass {
+  background: var(--app-bg-glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--app-border-glass);
+  transition: all var(--transition-normal);
+}
+
+.theme-glass:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.dark .theme-glass:hover, .app-dark .theme-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.app-glass-card {
+  background: var(--app-glass-bg);
+  backdrop-filter: var(--app-backdrop-blur);
+  border: 2px solid var(--app-border-glass);
+  box-shadow: 0 20px 40px var(--app-shadow-xl);
+  transition: all 0.3s ease;
+}
+
+.app-glass-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 25px 50px var(--app-shadow-xl);
+}
+
+.app-button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(to right, var(--app-blue), var(--app-blue-hover));
+  color: #FFFFFF;
+  font-weight: 900;
+  padding: 1rem 2rem;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 109, 166, 0.3);
+}
+
+.app-button-primary:hover {
+  background: linear-gradient(to right, var(--app-indigo), var(--app-blue-dark));
+  color: #FFFFFF;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(24, 12, 46, 0.4);
+}
+
+.app-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin 20s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+*,
+*::before,
+*::after {
+  transition: background-color var(--transition-normal), 
+              color var(--transition-normal), 
+              border-color var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+.theme-switching * {
+  transition: none !important;
+}
+
+.app-dark .bg-white { background-color: var(--app-bg-card) !important; }
+.app-dark .bg-gray-50 { background-color: var(--app-bg-secondary) !important; }
+.app-dark .text-black { color: var(--app-text-primary) !important; }
+.app-dark .text-gray-600 { color: var(--app-text-secondary) !important; }
+.app-dark .text-gray-500 { color: var(--app-text-muted) !important; }
+.app-dark .border-gray-200 { border-color: var(--app-border) !important; }
+
+.app-light .bg-black { background-color: var(--app-bg-primary) !important; }
+.app-light .text-white { color: var(--app-text-primary) !important; }
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--app-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--app-blue);
+}
+
+::selection {
+  background-color: var(--app-blue);
+  color: #FFFFFF;
+}
+
+:focus-visible {
+  outline: 2px solid var(--app-blue);
+  outline-offset: 2px;
+}

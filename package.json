@@ -1,0 +1,78 @@
+{
+    "name": "nsw-cleaning-company-website",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "description": "Professional cleaning services website for NSW Cleaning Company - supporting homes, rentals & NDIS participants",
+    "keywords": [
+        "cleaning services",
+        "NSW cleaning",
+        "NDIS cleaning",
+        "professional cleaners",
+        "bond cleaning",
+        "home cleaning"
+    ],
+    "author": "NSW Cleaning Company",
+    "license": "MIT",
+    "homepage": "https://nswcleaningcompany.com.au",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/nswcleaningcompany/website.git"
+    },
+    "scripts": {
+        "dev": "vite --host",
+        "build": "vite build",
+        "preview": "vite preview --host",
+        "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+        "lint:fix": "eslint . --ext js,jsx --fix",
+        "format": "prettier --write \"src/**/*.{js,jsx,css,md}\"",
+        "type-check": "tsc --noEmit",
+        "clean": "rm -rf dist node_modules/.vite",
+        "analyze": "npx vite-bundle-analyzer"
+    },
+    "dependencies": {
+        "axios": "^1.11.0",
+        "@heroicons/react": "^2.0.18",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-dropzone": "^14.2.3",
+        "react-helmet-async": "^2.0.4",
+        "react-hot-toast": "^2.4.1",
+        "react-router-dom": "^6.20.1",
+        "@tanstack/react-query": "^5.8.4",
+       "@tanstack/react-query-devtools": "^5.8.4"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.43",
+        "@types/react-dom": "^18.2.17",
+        "@vitejs/plugin-react": "^4.2.1",
+        "autoprefixer": "^10.4.16",
+        "eslint": "^8.55.0",
+        "eslint-plugin-react": "^7.33.2",
+        "eslint-plugin-react-hooks": "^4.6.0",
+        "eslint-plugin-react-refresh": "^0.4.5",
+        "postcss": "^8.4.32",
+        "prettier": "^3.1.1",
+        "tailwindcss": "^3.3.6",
+        "typescript": "^5.3.3",
+        "vite": "^5.0.8",
+        "vite-plugin-pwa": "^0.17.4",
+        "workbox-window": "^7.0.0"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "engines": {
+        "node": ">=18.0.0",
+        "npm": ">=9.0.0"
+    }
+}

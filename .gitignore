@@ -1,3 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.local
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+
+# Editor
+.vscode/
+.DS_Store
+
+# Logs
+*.log
+
+# Vercel
+.vercel
+
+# Cache
+.cache/
+
+
+
 # =============================================================================
 # ENVIRONMENT VARIABLES & SECRETS
 # =============================================================================
