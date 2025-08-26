@@ -122,8 +122,9 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_DIRS = [
-    BASE_DIR / "dist/assets",
+    BASE_DIR / "dist",
 ]
 if (BASE_DIR / "static").exists():
     STATICFILES_DIRS.append(BASE_DIR / "static")
