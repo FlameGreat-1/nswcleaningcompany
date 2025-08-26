@@ -15,7 +15,7 @@ services:
       - key: PYTHON_VERSION
         value: "3.11"
       - key: NODE_VERSION
-        value: "18.0.0"
+        value: "20.10.0"
       - key: DEBUG
         value: "False"
       - key: DJANGO_SETTINGS_MODULE
