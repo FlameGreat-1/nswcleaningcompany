@@ -213,17 +213,25 @@ class PasswordResetManager(BaseUserManager):
 
 class UserSessionManager(BaseUserManager):
 
-    def create_session(self, user, session_key, ip_address, user_agent):
-        if not all([user, session_key, ip_address, user_agent]):
-            raise ValueError("All session parameters are required")
+    def create_session(self, user, ip_address, device_type, user_agent):
+        import uuid
+
+        session_key = str(uuid.uuid4()).replace("-", "")[:32]
 
         session = self.model(
             user=user,
             session_key=session_key,
             ip_address=ip_address,
+            device_type=device_type,
             user_agent=user_agent,
         )
-        session.save(using=self._db)
+
+        try:
+            session.save(using=self._db)
+        except:
+            session.session_key = str(uuid.uuid4()).replace("-", "")[:32]
+            session.save(using=self._db)
+
         return session
 
     def get_active_sessions(self, user):
