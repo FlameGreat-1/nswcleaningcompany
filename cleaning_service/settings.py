@@ -97,6 +97,8 @@ if CLEAR_DATABASE_ON_STARTUP and DEBUG:
     if len(sys.argv) > 1 and sys.argv[1] == "runserver":
         clear_database()
 
+AUTH_USER_MODEL = "accounts.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",

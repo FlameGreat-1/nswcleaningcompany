@@ -36,10 +36,7 @@ cp -r dist/* staticfiles/
 echo "🎨 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
-# Create and run database migrations
-echo "🗄️ Creating new migrations..."
-python manage.py makemigrations --noinput
-
+# Skip makemigrations and just run migrations
 echo "🗄️ Running database migrations..."
 python manage.py migrate --noinput
 
