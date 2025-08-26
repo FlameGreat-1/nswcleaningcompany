@@ -16,6 +16,10 @@ sed -i 's|href="assets/|href="/static/assets/|g' dist/index.html
 sed -i 's|src="assets/|src="/static/assets/|g' dist/index.html
 sed -i 's|"./assets/|"/static/assets/|g' dist/index.html
 sed -i 's|"/assets/|"/static/assets/|g' dist/index.html
+sed -i 's|src="logo.svg"|src="/static/logo.svg"|g' dist/index.html
+sed -i 's|href="favicon.ico"|href="/static/favicon.ico"|g' dist/index.html
+sed -i 's|href="site.webmanifest"|href="/static/site.webmanifest"|g' dist/index.html
+sed -i 's|src="images/|src="/static/images/|g' dist/index.html
 
 # Upgrade pip to latest version
 echo "📦 Upgrading pip..."
@@ -28,9 +32,14 @@ pip install -r requirements.txt
 # Create staticfiles directory if it doesn't exist
 echo "📁 Creating staticfiles directory..."
 mkdir -p staticfiles
+mkdir -p staticfiles/images/gallery
 
 echo "📦 Copying frontend assets to staticfiles..."
 cp -r dist/* staticfiles/
+
+echo "📦 Copying public assets to staticfiles..."
+cp -r public/* staticfiles/ 2>/dev/null || true
+cp -r public/images/* staticfiles/images/ 2>/dev/null || true
 
 # Collect static files
 echo "🎨 Collecting static files..."
