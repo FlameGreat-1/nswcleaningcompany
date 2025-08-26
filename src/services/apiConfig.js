@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '';
 const API_VERSION = 'v1';
 
 export const API_ENDPOINTS = {
@@ -55,7 +55,7 @@ export const API_ENDPOINTS = {
 };
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: '',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

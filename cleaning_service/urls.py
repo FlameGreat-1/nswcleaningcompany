@@ -29,10 +29,10 @@ def api_root(request):
             "message": "Welcome to Professional Cleaning Service API",
             "version": "v1",
             "endpoints": {
-                "accounts": "/v1/accounts/",
-                "health": "/health/",
+                "accounts": "/api/v1/accounts/",
+                "health": "/api/health/",
                 "admin": "/admin/",
-                "docs": "/docs/",
+                "docs": "/api/docs/",
             },
         }
     )
@@ -44,12 +44,12 @@ admin.site.index_title = "Welcome to Cleaning Service Administration"
 
 api_urlpatterns = [
     path("admin/", admin.site.urls),
-    path("health/", api_health_check, name="api_health_check"),
-    path("", api_root, name="api_root"),
-    path("v1/accounts/", include("accounts.urls")),
-    path("v1/services/", include("services.urls")),
-    path("v1/quotes/", include("quotes.urls")),
-    path("v1/invoices/", include("invoices.urls")),
+    path("api/health/", api_health_check, name="api_health_check"),
+    path("api/", api_root, name="api_root"),
+    path("api/v1/accounts/", include("accounts.urls")),
+    path("api/v1/services/", include("services.urls")),
+    path("api/v1/quotes/", include("quotes.urls")),
+    path("api/v1/invoices/", include("invoices.urls")),
 ]
 
 urlpatterns = api_urlpatterns
