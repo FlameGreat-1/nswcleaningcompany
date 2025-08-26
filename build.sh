@@ -19,6 +19,10 @@ python -m pip install --upgrade pip
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
 
+# Create staticfiles directory if it doesn't exist
+echo "📁 Creating staticfiles directory..."
+mkdir -p staticfiles
+
 echo "📦 Copying frontend assets to staticfiles..."
 cp -r dist/* staticfiles/
 
