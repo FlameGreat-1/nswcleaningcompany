@@ -6,8 +6,6 @@ from django.views.generic import TemplateView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from django.contrib.staticfiles.views import serve
-import os
 
 
 @csrf_exempt
@@ -55,20 +53,6 @@ api_urlpatterns = [
 ]
 
 urlpatterns = api_urlpatterns
-
-# Explicit routes for static files with correct MIME types
-urlpatterns += [
-    re_path(
-        r"^assets/(?P<path>.*)$",
-        serve,
-        {"document_root": os.path.join(settings.BASE_DIR, "dist/assets")},
-    ),
-    re_path(
-        r"^(?P<path>.*\.(js|css|svg|png|jpg|jpeg|gif|ico|woff|woff2|ttf|webmanifest))$",
-        serve,
-        {"document_root": settings.BASE_DIR / "dist"},
-    ),
-]
 
 if settings.DEBUG:
     try:

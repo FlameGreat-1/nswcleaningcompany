@@ -19,6 +19,9 @@ python -m pip install --upgrade pip
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
 
+echo "📦 Copying frontend assets to staticfiles..."
+cp -r dist/* staticfiles/
+
 # Collect static files
 echo "🎨 Collecting static files..."
 python manage.py collectstatic --noinput --clear
