@@ -357,13 +357,14 @@ FEATURE_FLAGS = {
 
 if DEBUG:
     INTERNAL_IPS = ["127.0.0.1", "localhost"]
-    try:
-        import debug_toolbar
-
-        INSTALLED_APPS.append("debug_toolbar")
-        MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
-    except ImportError:
-        pass
+    # Debug toolbar disabled
+    # try:
+    #     import debug_toolbar
+    #
+    #     INSTALLED_APPS.append("debug_toolbar")
+    #     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    # except ImportError:
+    #     pass
 
 os.makedirs(BASE_DIR / "media", exist_ok=True)
 os.makedirs(BASE_DIR / "staticfiles", exist_ok=True)
