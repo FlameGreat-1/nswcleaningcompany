@@ -32,6 +32,7 @@ pip install -r requirements.txt
 # Create staticfiles directory if it doesn't exist
 echo "📁 Creating staticfiles directory..."
 mkdir -p staticfiles
+mkdir -p staticfiles/images  # Create the images directory first
 mkdir -p staticfiles/images/gallery
 
 echo "📦 Copying frontend assets to staticfiles..."
