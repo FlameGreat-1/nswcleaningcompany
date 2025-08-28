@@ -114,7 +114,7 @@ const Header = () => {
               >
                 <div className="relative">
                   <img 
-                    src="/logo.svg" 
+                    src="/static/logo.svg" 
                     alt="NSWCC Logo" 
                     className="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg"
                   />
