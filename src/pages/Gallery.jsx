@@ -93,8 +93,8 @@ const Gallery = () => {
       id: 1,
       title: 'End-of-Lease Clean in Box Hill',
       serviceType: 'end-of-lease',
-      beforeImage: '/images/gallery/before-1.jpg',
-      afterImage: '/images/gallery/after-1.jpg',
+      beforeImage: '/static/images/gallery/before-1.jpg',
+      afterImage: '/static/images/gallery/after-1.jpg',
       location: 'Box Hill, NSW',
       description: 'Complete bond cleaning transformation with full house and building restoration'
     },
@@ -102,8 +102,8 @@ const Gallery = () => {
       id: 2,
       title: 'Deep Kitchen Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-6.jpeg',
-      afterImage: '/images/gallery/after-6.jpeg',
+      beforeImage: '/static/images/gallery/before-6.jpeg',
+      afterImage: '/static/images/gallery/after-6.jpeg',
       location: 'Sydney CBD, NSW',
       description: 'Professional deep kitchen restoration including oven, rangehood, and appliances'
     },
@@ -111,8 +111,8 @@ const Gallery = () => {
       id: 3,
       title: 'NDIS Participant Home',
       serviceType: 'ndis',
-      beforeImage: '/images/gallery/before-3.jpg',
-      afterImage: '/images/gallery/after-3.jpg',
+      beforeImage: '/static/images/gallery/before-3.jpg',
+      afterImage: '/static/images/gallery/after-3.jpg',
       location: 'Western Sydney, NSW',
       description: 'Respectful NDIS cleaning service supporting independent living'
     },
@@ -120,8 +120,8 @@ const Gallery = () => {
       id: 4,
       title: 'Bathroom Deep Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-4.jpeg',
-      afterImage: '/images/gallery/after-4.jpeg',
+      beforeImage: '/static/images/gallery/before-4.jpeg',
+      afterImage: '/static/images/gallery/after-4.jpeg',
       location: 'North Shore, NSW',
       description: 'Complete bathroom sanitization with tile and grout restoration'
     },
@@ -129,8 +129,8 @@ const Gallery = () => {
       id: 5,
       title: 'General Home Maintenance',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-5.jpeg',
-      afterImage: '/images/gallery/after-5.jpeg',
+      beforeImage: '/static/images/gallery/before-5.jpeg',
+      afterImage: '/static/images/gallery/after-5.jpeg',
       location: 'Eastern Suburbs, NSW',
       description: 'Regular home cleaning service maintaining cleanliness and hygiene'
     },
@@ -138,8 +138,8 @@ const Gallery = () => {
       id: 6,
       title: 'Rug Steam Cleaning',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-7.jpeg',
-      afterImage: '/images/gallery/after-7.jpeg',
+      beforeImage: '/static/images/gallery/before-7.jpeg',
+      afterImage: '/static/images/gallery/after-7.jpeg',
       location: 'Inner West, NSW',
       description: 'Professional rug restoration removing stains and odors'
     },
@@ -147,8 +147,8 @@ const Gallery = () => {
       id: 7,
       title: 'Post-Construction Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-2.jpg',
-      afterImage: '/images/gallery/after-2.jpg',
+      beforeImage: '/static/images/gallery/before-2.jpg',
+      afterImage: '/static/images/gallery/after-2.jpg',
       location: 'Hills District, NSW',
       description: 'Complete post-renovation cleaning including dust and debris removal'
     },
@@ -156,8 +156,8 @@ const Gallery = () => {
       id: 8,
       title: 'NDIS Weekly Service',
       serviceType: 'ndis',
-      beforeImage: '/images/gallery/before-8.jpg',
-      afterImage: '/images/gallery/after-8.jpg',
+      beforeImage: '/static/images/gallery/before-8.jpg',
+      afterImage: '/static/images/gallery/after-8.jpg',
       location: 'Greater Western Sydney, NSW',
       description: 'Regular NDIS cleaning support maintaining participant independence'
     },
@@ -165,8 +165,8 @@ const Gallery = () => {
       id: 9,
       title: 'Office Deep Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-9.jpg',
-      afterImage: '/images/gallery/after-9.jpg',
+      beforeImage: '/static/images/gallery/before-9.jpg',
+      afterImage: '/static/images/gallery/after-9.jpg',
       location: 'Sydney CBD, NSW',
       description: 'Commercial office space deep cleaning and sanitization'
     },
@@ -174,8 +174,8 @@ const Gallery = () => {
       id: 10,
       title: 'End-of-Lease Apartment',
       serviceType: 'end-of-lease',
-      beforeImage: '/images/gallery/before-10.jpg',
-      afterImage: '/images/gallery/after-10.jpg',
+      beforeImage: '/static/images/gallery/before-10.jpg',
+      afterImage: '/static/images/gallery/after-10.jpg',
       location: 'Northern Beaches, NSW',
       description: 'Full apartment bond cleaning with guaranteed bond return'
     },
@@ -183,8 +183,8 @@ const Gallery = () => {
       id: 11,
       title: 'office and commecial cleaning Service',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-11.jpeg',
-      afterImage: '/images/gallery/after-11.jpeg',
+      beforeImage: '/static/images/gallery/before-11.jpeg',
+      afterImage: '/static/images/gallery/after-11.jpeg',
       location: 'Western Sydney, NSW',
       description: 'Specialized office and commecial cleaning and odor treatment service'
     },
@@ -192,12 +192,12 @@ const Gallery = () => {
       id: 12,
       title: 'Window Cleaning Service',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-12.jpg',
-      afterImage: '/images/gallery/after-12.jpg',
+      beforeImage: '/static/images/gallery/before-12.jpg',
+      afterImage: '/static/images/gallery/after-12.jpg',
       location: 'Eastern Suburbs, NSW',
       description: 'Professional interior and exterior window cleaning service'
     }
-  ];
+  ];  
 
   const applyFilter = () => {
     if (filter === 'all') {

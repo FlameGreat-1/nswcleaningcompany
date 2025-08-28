@@ -65,8 +65,8 @@ const GallerySection = () => {
       id: 1,
       title: 'End-of-Lease Clean in Box Hill',
       serviceType: 'end-of-lease',
-      beforeImage: '/images/gallery/before-1.jpg',
-      afterImage: '/images/gallery/after-1.jpg',
+      beforeImage: '/static/images/gallery/before-1.jpg',
+      afterImage: '/static/images/gallery/after-1.jpg',
       location: 'Box Hill, NSW',
       description: 'Complete bond cleaning transformation'
     },
@@ -74,8 +74,8 @@ const GallerySection = () => {
       id: 2,
       title: 'Deep Kitchen Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-6.jpeg',
-      afterImage: '/images/gallery/after-6.jpeg',
+      beforeImage: '/static/images/gallery/before-6.jpeg',
+      afterImage: '/static/images/gallery/after-6.jpeg',
       location: 'Sydney CBD, NSW',
       description: 'Professional deep kitchen restoration'
     },
@@ -83,8 +83,8 @@ const GallerySection = () => {
       id: 3,
       title: 'NDIS Participant Home',
       serviceType: 'ndis',
-      beforeImage: '/images/gallery/before-3.jpg',
-      afterImage: '/images/gallery/after-3.jpg',
+      beforeImage: '/static/images/gallery/before-3.jpg',
+      afterImage: '/static/images/gallery/after-3.jpg',
       location: 'Western Sydney, NSW',
       description: 'Respectful NDIS cleaning service'
     },
@@ -92,8 +92,8 @@ const GallerySection = () => {
       id: 4,
       title: 'Bathroom Deep Clean',
       serviceType: 'deep',
-      beforeImage: '/images/gallery/before-4.jpeg',
-      afterImage: '/images/gallery/after-4.jpeg',
+      beforeImage: '/static/images/gallery/before-4.jpeg',
+      afterImage: '/static/images/gallery/after-4.jpeg',
       location: 'North Shore, NSW',
       description: 'Complete bathroom sanitization'
     },
@@ -101,8 +101,8 @@ const GallerySection = () => {
       id: 5,
       title: 'General Home Maintenance',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-5.jpeg',
-      afterImage: '/images/gallery/after-5.jpeg',
+      beforeImage: '/static/images/gallery/before-5.jpeg',
+      afterImage: '/static/images/gallery/after-5.jpeg',
       location: 'Eastern Suburbs, NSW',
       description: 'Regular home cleaning service'
     },
@@ -110,12 +110,12 @@ const GallerySection = () => {
       id: 6,
       title: 'Rug Steam Cleaning',
       serviceType: 'general',
-      beforeImage: '/images/gallery/before-7.jpeg',
-      afterImage: '/images/gallery/after-7.jpeg',
+      beforeImage: '/static/images/gallery/before-7.jpeg',
+      afterImage: '/static/images/gallery/after-7.jpeg',
       location: 'Inner West, NSW',
       description: 'Professional rug restoration'
     }
-  ];
+  ];  
 
   const filteredItems = galleryItems.filter(item => 
     filter === 'all' || item.serviceType === filter
