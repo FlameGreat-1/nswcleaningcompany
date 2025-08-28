@@ -29,20 +29,16 @@ python -m pip install --upgrade pip
 echo "📦 Installing Python dependencies..."
 pip install -r requirements.txt
 
-# Create staticfiles directory if it doesn't exist
-echo "📁 Creating staticfiles directory..."
+# Create necessary directories
+echo "📁 Creating necessary directories..."
 mkdir -p staticfiles
-mkdir -p staticfiles/images  # Create the images directory first
-mkdir -p staticfiles/images/gallery
+mkdir -p media
 
-echo "📦 Copying frontend assets to staticfiles..."
-cp -r dist/* staticfiles/
+# Update settings.py to include public directory in STATICFILES_DIRS
+echo "🔧 Ensuring public directory is in STATICFILES_DIRS..."
+# This is handled in your settings.py update
 
-echo "📦 Copying public assets to staticfiles..."
-cp -r public/* staticfiles/ 2>/dev/null || true
-cp -r public/images/* staticfiles/images/ 2>/dev/null || true
-
-# Collect static files
+# Collect static files - this will handle copying from dist and public directories
 echo "🎨 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
