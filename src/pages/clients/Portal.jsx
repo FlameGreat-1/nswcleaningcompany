@@ -414,7 +414,7 @@ const Portal = () => {
               onClick={() => handleNavigation('dashboard')}
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
-              <img src="/logo.svg" alt="NSWCC Logo" className="h-8 w-auto" />
+              <img src="/static/logo.svg" alt="NSWCC Logo" className="h-8 w-auto" />
               <div>
                 <span className="text-lg font-black app-text-primary">
                   Client Portal

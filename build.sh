@@ -36,7 +36,6 @@ mkdir -p media
 
 # Update settings.py to include public directory in STATICFILES_DIRS
 echo "🔧 Ensuring public directory is in STATICFILES_DIRS..."
-# This is handled in your settings.py update
 
 # Collect static files - this will handle copying from dist and public directories
 echo "🎨 Collecting static files..."
