@@ -48,7 +48,7 @@ const LoadingSpinner = ({
       <div className="flex flex-col items-center justify-center">
         <div className={`relative flex items-center justify-center ${sizes.container}`}>
           <img
-            src="/logo.svg"
+            src="/static/logo.svg"
             alt="NSWCC Logo"
             className={`${sizes.logo} object-contain z-10`}
           />
