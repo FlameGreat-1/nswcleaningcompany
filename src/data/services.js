@@ -17,7 +17,6 @@ export const servicesData = [
       'Empty bins & replace liners',
       'Wipe bathroom surfaces (sink, toilet, mirror)',
       'Spot clean marks on walls/doors',
-      'Make beds (optional)'
     ],
     popular: false
   },

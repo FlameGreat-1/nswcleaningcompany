@@ -340,7 +340,7 @@ const QuoteForm = ({
                         <span className="font-medium text-gray-900">{urgency.name}</span>
                         {urgency.multiplier > 1 && (
                           <span className="text-sm text-orange-600 font-medium">
-                            +{Math.round((urgency.multiplier - 1) * 100)}% surcharge
+                            +{Math.round((urgency.multiplier - 1) * 100)}% Downpayment
                           </span>
                         )}
                       </div>
@@ -387,7 +387,7 @@ const QuoteForm = ({
                       onFocus={() => setFocusedField('email')}
                       onBlur={() => setFocusedField('')}
                       className={getInputClasses('email', errors.email)}
-                      placeholder="your.email@example.com"
+                      placeholder="info@nswcleaningcompany.com"
                     />
                     {errors.email && (
                       <p className="text-sm text-red-600 mt-1">{errors.email}</p>

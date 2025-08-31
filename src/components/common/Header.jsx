@@ -119,11 +119,11 @@ const Header = () => {
                     className="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg"
                   />
                 </div>
-                <div className="hidden sm:block">
-                  <h1 className="app-text-primary font-black text-xl leading-tight tracking-tight group-hover:text-[#006da6] transition-colors duration-300">
+                <div className="block">
+                  <h1 className="app-text-primary font-black text-xs sm:text-xl leading-tight tracking-tight group-hover:text-[#006da6] transition-colors duration-300">
                     NSW Cleaning Company
                   </h1>
-                  <p className="app-text-secondary text-xs font-semibold">NDIS APPROVED PROVIDER</p>
+                  <p className="app-text-secondary text-[10px] sm:text-xs font-semibold">NDIS APPROVED PROVIDER</p>
                 </div>
               </Link>
             </div>
@@ -133,7 +133,7 @@ const Header = () => {
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/') 
                     ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                 }`}
               >
                 Home
@@ -144,12 +144,11 @@ const Header = () => {
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/about') 
                     ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                 }`}
               >
                 About
               </Link>
-
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('services')}
@@ -157,7 +156,7 @@ const Header = () => {
                   className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
                     isActivePath('/services') 
                       ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                      : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                   }`}
                 >
                   Services
@@ -176,7 +175,7 @@ const Header = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl transition-all duration-400 group hover:scale-105"
+                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-white rounded-2xl transition-all duration-400 group hover:scale-105"
                           onClick={() => setActiveDropdown(null)}
                         >
                           <span className="text-xl mr-4 group-hover:scale-125 transition-transform duration-400">{item.icon}</span>
@@ -195,7 +194,7 @@ const Header = () => {
                   className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
                     isActivePath('/faq') || isActivePath('/gallery') || isActivePath('/ndis') || isActivePath('/blog')
                       ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                      : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                   }`}
                 >
                   Resources
@@ -203,7 +202,7 @@ const Header = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                
+
                 {activeDropdown === 'resources' && (
                   <div 
                     className="absolute top-full left-0 mt-3 w-64 app-bg-card backdrop-blur-2xl rounded-3xl shadow-2xl app-border-glass border py-4 z-[9999] animate-in slide-in-from-top-3 duration-500"
@@ -214,7 +213,7 @@ const Header = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl transition-all duration-400 group hover:scale-105"
+                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-white rounded-2xl transition-all duration-400 group hover:scale-105"
                           onClick={() => setActiveDropdown(null)}
                         >
                           <span className="text-xl mr-4 group-hover:scale-125 transition-transform duration-400">{item.icon}</span>
@@ -231,7 +230,7 @@ const Header = () => {
                 className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/contact') 
                     ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                 }`}
               >
                 Contact
@@ -244,7 +243,7 @@ const Header = () => {
                   <div className="flex items-center space-x-2">
                     <Link
                       to="/clients/portal"
-                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-white transition-colors duration-300"
                     >
                       {user?.first_name || 'Portal'}
                     </Link>
@@ -271,7 +270,7 @@ const Header = () => {
                   <div className="flex items-center space-x-2">
                     <Link
                       to="/accounts/login"
-                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-white transition-colors duration-300"
                     >
                       Login
                     </Link>
@@ -318,7 +317,7 @@ const Header = () => {
                     className={`block px-6 py-4 rounded-2xl text-base font-bold transition-all duration-400 hover:scale-105 ${
                       isActivePath(link.path)
                         ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30'
-                        : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                        : 'app-text-primary hover:text-white hover:bg-white/60 dark:hover:bg-white/10'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -331,7 +330,7 @@ const Header = () => {
                     <div className="space-y-3">
                       <Link
                         to="/clients/portal"
-                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-white transition-colors duration-300"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {user?.first_name || 'Portal'}
@@ -365,7 +364,7 @@ const Header = () => {
                     <div className="space-y-3">
                       <Link
                         to="/accounts/login"
-                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-white transition-colors duration-300"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Login

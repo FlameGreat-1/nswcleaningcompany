@@ -201,7 +201,7 @@ const HeroSection = () => {
               />
               <button
                 type="submit"
-                className="absolute right-2 top-2 bottom-2 px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                className="absolute right-2 top-2 bottom-2 px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
               >
                 Get Quote
               </button>
@@ -210,7 +210,7 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-20 animate-fade-in-up delay-1400">
             <Button
               onClick={handleGetQuote}
-              className="relative bg-gradient-to-r from-[#006da6] via-[#0080c7] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] text-white font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.4)] transform-gpu group overflow-hidden"
+              className="relative bg-gradient-to-r from-[#006da6] via-[#0080c7] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.4)] transform-gpu group overflow-hidden"
               style={{ transformStyle: 'preserve-3d' }}
             >
               <span className="relative z-10 flex items-center gap-2">
@@ -223,7 +223,7 @@ const HeroSection = () => {
             
             <Button
               onClick={handleSendPhotos}
-              className="relative bg-transparent border-3 border-[#006da6] text-[#006da6] hover:bg-gradient-to-r hover:from-[#180c2e] hover:to-[#2d1b4e] hover:text-white hover:border-[#180c2e] font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:-rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.3)] transform-gpu group overflow-hidden"
+              className="relative bg-transparent border-3 border-[#006da6] text-[#006da6] hover:bg-gradient-to-r hover:from-[#180c2e] hover:to-[#2d1b4e] hover:!text-white hover:border-[#180c2e] font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:-rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.3)] transform-gpu group overflow-hidden"
               style={{ transformStyle: 'preserve-3d' }}
             >
               <span className="relative z-10 flex items-center gap-2">
@@ -235,7 +235,7 @@ const HeroSection = () => {
 
             <Button
               onClick={handleCallNow}
-              className="relative bg-gradient-to-r from-[#180c2e] to-[#2d1b4e] hover:from-[#2d1b4e] hover:to-[#180c2e] text-white hover:text-[#006da6] font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.4)] transform-gpu group overflow-hidden"
+              className="relative bg-gradient-to-r from-[#180c2e] to-[#2d1b4e] hover:from-[#2d1b4e] hover:to-[#180c2e] !text-white hover:!text-white font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(24,12,46,0.4)] transform-gpu group overflow-hidden"
               style={{ transformStyle: 'preserve-3d' }}
             >
               <span className="relative z-10 flex items-center gap-2">

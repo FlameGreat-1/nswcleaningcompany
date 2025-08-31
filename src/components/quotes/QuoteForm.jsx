@@ -522,7 +522,7 @@ const QuoteForm = ({
               )}
               {calculation.urgency_surcharge > 0 && (
                 <div className="flex justify-between">
-                  <span>Urgency Surcharge:</span>
+                  <span>Urgency Downpayment:</span>
                   <span>{formatCurrency(calculation.urgency_surcharge)}</span>
                 </div>
               )}

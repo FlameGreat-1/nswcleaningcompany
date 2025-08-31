@@ -559,7 +559,7 @@ const QuoteDetail = () => {
 
                     {quote.urgency_surcharge > 0 && (
                       <div className="flex justify-between">
-                        <span className="app-text-secondary">Urgency Surcharge:</span>
+                        <span className="app-text-secondary">Urgency Downpayment:</span>
                         <span className="font-medium">{formatCurrency(quote.urgency_surcharge)}</span>
                       </div>
                     )}
