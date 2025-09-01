@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import useQuoteCalculator from '../../hooks/useQuoteCalculator.js';
 import Button from '../common/Button.jsx';
 import LoadingSpinner from '../common/LoadingSpinner.jsx';
 import { CLEANING_TYPES, ROOM_TYPES, EXTRAS, URGENCY_MULTIPLIERS } from '../../utils/constants.js';
 import { formatCurrency } from '../../utils/helpers.js';
+
 
 const QuoteForm = ({ 
   className = '',
@@ -11,6 +13,8 @@ const QuoteForm = ({
   showPricing = true,
   embedded = false
 }) => {
+  const navigate = useNavigate();
+  
   const {
     quoteData,
     pricing,
@@ -193,10 +197,13 @@ const QuoteForm = ({
             <Button
               variant="primary"
               className="flex-1"
-              onClick={finalizeQuote}
+              onClick={() => {
+                setShowQuoteModal(false);
+                navigate('/accounts/login');
+              }}
             >
               LOGIN TO PORTAL
-            </Button>
+            </Button>            
           </div>
         </div>
       </div>

@@ -42,6 +42,10 @@ class Quote(models.Model):
         ("carpet", "Carpet Cleaning"),
         ("window", "Window Cleaning"),
         ("pressure_washing", "Pressure Washing"),
+        ("airbnb", "Airbnb Turnover"),
+        ("post_renovation", "Post Renovation"),
+        ("after_builders", "After Builders Clean"),
+        ("custom_one_off", "Custom One Off"),
     )
 
     URGENCY_LEVEL_CHOICES = (
@@ -342,12 +346,12 @@ class Quote(models.Model):
         return self.items.aggregate(
             total=models.Sum(models.F("quantity") * models.F("unit_price"))
         )["total"] or Decimal("0.00")
-    
+
     @property
     def requires_deposit(self):
         """Check if quote requires deposit based on urgency level"""
         return self.deposit_required  
-    
+
     def calculate_pricing(self):
         from .utils import calculate_quote_pricing
 
