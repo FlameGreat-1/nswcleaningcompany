@@ -12,21 +12,29 @@ export const COMPANY_INFO = {
       country: 'Australia'
     }
   };
-  
+
   export const SERVICES = {
     GENERAL: 'general',
     DEEP: 'deep',
     END_OF_LEASE: 'end-of-lease',
     NDIS: 'ndis',
+    AIRBNB: 'airbnb',
+    POST_RENOVATION: 'post-renovation',
+    AFTER_BUILDERS: 'after-builders',
+    CUSTOM_ONE_OFF: 'custom-one-off',
     PET_TREATMENT: 'pet-treatment',
     WINDOW_CARPET: 'window-carpet'
   };
-  
+
   export const CLEANING_TYPES = [
     { id: SERVICES.GENERAL, name: 'Regular / General House Cleaning', basePrice: 120 },
     { id: SERVICES.DEEP, name: 'Deep Cleaning', basePrice: 180 },
     { id: SERVICES.END_OF_LEASE, name: 'End-of-Lease Cleaning', basePrice: 250 },
-    { id: SERVICES.NDIS, name: 'NDIS Cleaning Services', basePrice: 140 }
+    { id: SERVICES.NDIS, name: 'NDIS Cleaning Services', basePrice: 140 },
+    { id: SERVICES.AIRBNB, name: 'Airbnb Turnover', basePrice: 160 },
+    { id: SERVICES.POST_RENOVATION, name: 'Post Renovation', basePrice: 280 },
+    { id: SERVICES.AFTER_BUILDERS, name: 'After Builders Clean', basePrice: 300 },
+    { id: SERVICES.CUSTOM_ONE_OFF, name: 'Custom One Off', basePrice: 150 }
   ];
   
   export const ROOM_TYPES = {
@@ -45,11 +53,11 @@ export const COMPANY_INFO = {
     GARAGE: { name: 'Garage Clean', price: 50 },
     BALCONY: { name: 'Balcony/Patio Clean', price: 30 }
   };
-  
+
   export const URGENCY_MULTIPLIERS = {
-    STANDARD: { name: 'Standard (2-3 days)', multiplier: 1.0 },
-    URGENT: { name: 'Urgent (Next day)', multiplier: 1.2 },
-    SAME_DAY: { name: 'Same Day', multiplier: 1.5 }
+    STANDARD: { name: 'Standard (2-3 days)', multiplier: 1.0, depositRequired: false },
+    URGENT: { name: 'Urgent (Next day)', multiplier: 1.2, depositRequired: true, depositPercentage: 30 },
+    SAME_DAY: { name: 'Same Day', multiplier: 1.5, depositRequired: true, depositPercentage: 30 }
   };
   
   export const NDIS_INFO = {

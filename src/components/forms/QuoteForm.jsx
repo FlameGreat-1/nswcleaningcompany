@@ -32,6 +32,7 @@ const QuoteForm = ({
 
   const [currentStep, setCurrentStep] = useState(1);
   const [focusedField, setFocusedField] = useState('');
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
 
   const steps = [
     { id: 1, title: 'Service Type', icon: '🏠' },
@@ -43,6 +44,8 @@ const QuoteForm = ({
   const handleNext = () => {
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
+    } else if (currentStep === steps.length && isValid) {
+      setShowQuoteModal(true);
     }
   };
 
@@ -54,10 +57,24 @@ const QuoteForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (currentStep === steps.length && isValid) {
+      setShowQuoteModal(true);
+    } else {
+      const result = await submitQuote();
+      
+      if (result.success) {
+        onQuoteComplete?.(result);
+        setCurrentStep(steps.length + 1);
+      }
+    }
+  };
+
+  const finalizeQuote = async () => {
     const result = await submitQuote();
     
     if (result.success) {
       onQuoteComplete?.(result);
+      setShowQuoteModal(false);
       setCurrentStep(steps.length + 1);
     }
   };
@@ -92,6 +109,98 @@ const QuoteForm = ({
       default:
         return false;
     }
+  };
+
+  const QuoteModal = () => {
+    if (!showQuoteModal) return null;
+    
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">Your Quote Summary</h3>
+            <button 
+              onClick={() => setShowQuoteModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="bg-blue-50 p-4 rounded-lg mb-6">
+            <div className="text-2xl font-bold text-[#006da6] mb-2">
+              {formatCurrency(pricing.total)}
+            </div>
+            <p className="text-gray-600">Estimated Total (including GST)</p>
+          </div>
+          <div className="space-y-4 mb-6">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Service Type:</span>
+              <span className="font-medium">{CLEANING_TYPES.find(type => type.id === quoteData.cleaningType)?.name}</span>
+            </div>
+            
+            {totalRooms > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Rooms:</span>
+                <span className="font-medium">{totalRooms} rooms</span>
+              </div>
+            )}
+            
+            {quoteData.extras.length > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Extras:</span>
+                <span className="font-medium">{quoteData.extras.length} services</span>
+              </div>
+            )}
+            
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Location:</span>
+              <span className="font-medium">{quoteData.location.suburb}</span>
+            </div>
+            
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Timing:</span>
+              <span className="font-medium">
+                {Object.entries(URGENCY_MULTIPLIERS).find(([key, urgency]) => 
+                  key.toLowerCase() === quoteData.urgency
+                )?.[1].name}
+              </span>
+            </div>
+            
+            {(quoteData.urgency === 'urgent' || quoteData.urgency === 'same_day') && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm text-orange-800">
+                <p className="font-medium">30% Deposit Required</p>
+                <p>This booking requires a 30% deposit to confirm your appointment.</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="border-t pt-4 mb-6">
+            <p className="text-center font-medium text-gray-800 mb-2">Ready to proceed?</p>
+            <p className="text-center text-gray-600 text-sm mb-4">
+              Login to our portal to generate an official quote and book your service.
+            </p>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setShowQuoteModal(false)}
+            >
+              Back to Form
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1"
+              onClick={finalizeQuote}
+            >
+              LOGIN TO PORTAL
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   if (submitStatus === 'success') {
@@ -152,13 +261,12 @@ const QuoteForm = ({
             </div>
           ))}
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           {currentStep === 1 && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  What type of cleaning do you need?
+                  What type of cleaning do you need? <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {CLEANING_TYPES.map((service) => (
@@ -209,7 +317,7 @@ const QuoteForm = ({
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  How many rooms need cleaning?
+                  How many rooms need cleaning? <span className="text-red-500">*</span>
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {Object.entries(ROOM_TYPES).map(([key, room]) => (
@@ -285,7 +393,7 @@ const QuoteForm = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={getLabelClasses('suburb', errors.suburb)}>
-                      Suburb *
+                      Suburb <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -295,6 +403,7 @@ const QuoteForm = ({
                       onBlur={() => setFocusedField('')}
                       className={getInputClasses('suburb', errors.suburb)}
                       placeholder="Enter your suburb"
+                      required
                     />
                     {errors.suburb && (
                       <p className="text-sm text-red-600 mt-1">{errors.suburb}</p>
@@ -320,7 +429,7 @@ const QuoteForm = ({
 
               <div>
                 <label className={getLabelClasses('urgency')}>
-                  When do you need this service? *
+                  When do you need this service? <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-2">
                   {Object.entries(URGENCY_MULTIPLIERS).map(([key, urgency]) => (
@@ -335,12 +444,13 @@ const QuoteForm = ({
                         checked={quoteData.urgency === key.toLowerCase()}
                         onChange={(e) => updateUrgency(e.target.value)}
                         className="mr-3 text-[#006da6] focus:ring-[#006da6]"
+                        required
                       />
                       <div className="flex-1 flex justify-between items-center">
                         <span className="font-medium text-gray-900">{urgency.name}</span>
                         {urgency.multiplier > 1 && (
                           <span className="text-sm text-orange-600 font-medium">
-                            +{Math.round((urgency.multiplier - 1) * 100)}% Downpayment
+                            30% Deposit Required
                           </span>
                         )}
                       </div>
@@ -360,7 +470,7 @@ const QuoteForm = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className={getLabelClasses('name', errors.name)}>
-                      Full Name *
+                      Full Name <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
@@ -370,6 +480,7 @@ const QuoteForm = ({
                       onBlur={() => setFocusedField('')}
                       className={getInputClasses('name', errors.name)}
                       placeholder="Enter your full name"
+                      required
                     />
                     {errors.name && (
                       <p className="text-sm text-red-600 mt-1">{errors.name}</p>
@@ -378,7 +489,7 @@ const QuoteForm = ({
 
                   <div>
                     <label className={getLabelClasses('email', errors.email)}>
-                      Email Address *
+                      Email Address <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="email"
@@ -388,6 +499,7 @@ const QuoteForm = ({
                       onBlur={() => setFocusedField('')}
                       className={getInputClasses('email', errors.email)}
                       placeholder="info@nswcleaningcompany.com"
+                      required
                     />
                     {errors.email && (
                       <p className="text-sm text-red-600 mt-1">{errors.email}</p>
@@ -396,7 +508,7 @@ const QuoteForm = ({
 
                   <div>
                     <label className={getLabelClasses('phone', errors.phone)}>
-                      Phone Number *
+                      Phone Number <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="tel"
@@ -406,6 +518,7 @@ const QuoteForm = ({
                       onBlur={() => setFocusedField('')}
                       className={getInputClasses('phone', errors.phone)}
                       placeholder="0400 000 000"
+                      required
                     />
                     {errors.phone && (
                       <p className="text-sm text-red-600 mt-1">{errors.phone}</p>
@@ -470,8 +583,8 @@ const QuoteForm = ({
                 )}
                 {pricing.urgencyMultiplier > 1 && (
                   <div className="flex justify-between text-orange-600">
-                    <span>Urgency surcharge</span>
-                    <span>+{Math.round((pricing.urgencyMultiplier - 1) * 100)}%</span>
+                    <span>30% Deposit Required</span>
+                    <span>{formatCurrency(pricing.total * 0.3)}</span>
                   </div>
                 )}
                 <div className="border-t pt-2 flex justify-between font-semibold text-lg">
@@ -518,6 +631,7 @@ const QuoteForm = ({
           </div>
         </form>
       </div>
+      <QuoteModal />
     </div>
   );
 };
