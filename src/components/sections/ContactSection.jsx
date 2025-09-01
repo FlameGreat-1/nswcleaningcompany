@@ -126,7 +126,7 @@ const ContactSection = () => {
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#006da6] rounded-full opacity-0 group-hover/icon:opacity-100 animate-ping transition-opacity duration-700"></div>
                           </div>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h4 className="font-black text-gray-900 dark:text-white mb-2 group-hover/contact-item:text-[#006da6] dark:group-hover/contact-item:text-[#0080c7] transition-colors duration-500">Phone</h4>
                           <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium group-hover/contact-item:text-gray-800 dark:group-hover/contact-item:text-gray-200 transition-colors duration-500">{formatPhone(COMPANY_INFO.phone)}</p>
                           <Button
@@ -153,16 +153,16 @@ const ContactSection = () => {
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#006da6] rounded-full opacity-0 group-hover/icon:opacity-100 animate-ping transition-opacity duration-700"></div>
                           </div>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h4 className="font-black text-gray-900 dark:text-white mb-2 group-hover/contact-item:text-[#006da6] dark:group-hover/contact-item:text-[#0080c7] transition-colors duration-500">Email</h4>
                           <div className="space-y-3">
                             <div className="relative group/email">
                               <p className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">General Support:</p>
                               <button
                                 onClick={handleEmailSupport}
-                                className="relative text-[#006da6] dark:text-[#0080c7] hover:text-white font-black transition-all duration-500 hover:scale-105 inline-block transform-gpu"
+                                className="relative text-[#006da6] dark:text-[#0080c7] hover:text-white font-black transition-all duration-500 hover:scale-105 inline-block transform-gpu break-all text-sm sm:text-base"
                               >
-                                <span className="relative z-10">{COMPANY_INFO.email.support}</span>
+                                <span className="relative z-10 break-all">{COMPANY_INFO.email.support}</span>
                                 <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-lg opacity-0 group-hover/email:opacity-100 transition-opacity duration-500 -z-10"></div>
                               </button>
                             </div>
@@ -170,9 +170,9 @@ const ContactSection = () => {
                               <p className="text-gray-600 dark:text-gray-300 text-sm font-medium mb-1">Bookings:</p>
                               <button
                                 onClick={handleEmailBookings}
-                                className="relative text-[#006da6] dark:text-[#0080c7] hover:text-white font-black transition-all duration-500 hover:scale-105 inline-block transform-gpu"
+                                className="relative text-[#006da6] dark:text-[#0080c7] hover:text-white font-black transition-all duration-500 hover:scale-105 inline-block transform-gpu break-all text-sm sm:text-base"
                               >
-                                <span className="relative z-10">{COMPANY_INFO.email.bookings}</span>
+                                <span className="relative z-10 break-all">{COMPANY_INFO.email.bookings}</span>
                                 <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-lg opacity-0 group-hover/email:opacity-100 transition-opacity duration-500 -z-10"></div>
                               </button>
                             </div>
@@ -180,7 +180,6 @@ const ContactSection = () => {
                         </div>
                       </div>
                     </div>
-
                     <div className="relative group/contact-item">
                       <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-2xl blur opacity-0 group-hover/contact-item:opacity-20 transition-all duration-500"></div>
                       <div className="relative flex items-start space-x-6 bg-white/80 dark:bg-gray-700/80 backdrop-blur-lg border border-white/40 dark:border-gray-600/40 rounded-2xl p-6 hover:bg-white/90 dark:hover:bg-gray-700/90 transition-all duration-500 hover:scale-105 transform-gpu shadow-lg hover:shadow-xl">
@@ -193,7 +192,7 @@ const ContactSection = () => {
                             <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#006da6] rounded-full opacity-0 group-hover/icon:opacity-100 animate-ping transition-opacity duration-700"></div>
                           </div>
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h4 className="font-black text-gray-900 dark:text-white mb-2 group-hover/contact-item:text-[hsl(201,100%,33%)] dark:group-hover/contact-item:text-[#0080c7] transition-colors duration-500">Business Details</h4>
                           <p className="text-gray-600 dark:text-gray-300 font-medium group-hover/contact-item:text-gray-800 dark:group-hover/contact-item:text-gray-200 transition-colors duration-500">ABN: {COMPANY_INFO.abn}</p>
                           <p className="text-gray-600 dark:text-gray-300 font-medium group-hover/contact-item:text-gray-800 dark:group-hover/contact-item:text-gray-200 transition-colors duration-500">{COMPANY_INFO.address.state}, {COMPANY_INFO.address.country}</p>

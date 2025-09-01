@@ -75,7 +75,7 @@ const Login = () => {
               <div className="absolute -inset-2 bg-gradient-to-r from-[#006da6]/20 to-[#005a8a]/20 rounded-2xl blur opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
               <Link to="/" className="relative inline-block transform hover:scale-105 transition-transform duration-300">
                 <img
-                  src="/logo.svg"
+                  src="/static/logo.svg"
                   alt="NSWCC Logo"
                   className="h-12 w-auto mx-auto filter drop-shadow-lg"
                 />

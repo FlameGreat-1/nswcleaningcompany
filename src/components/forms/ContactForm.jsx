@@ -363,27 +363,25 @@ const ContactForm = ({
           <div className="relative group/submit animate-fade-in-up" style={{ animationDelay: `${isVisible ? 800 : 0}ms` }}>
             <div className="absolute -inset-2 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-2xl blur opacity-0 group-hover/submit:opacity-30 transition-all duration-500"></div>
             <div className="relative flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                type="submit"
-                disabled={!isFormValid || isSubmitting}
-                className="relative bg-gradient-to-r from-[#006da6] via-[#0080c7] to-[#005a8a] hover:from-[#180c2e] hover:to-[#2d1b4e] text-white disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed font-black px-8 py-4 rounded-full text-lg transition-all duration-700 hover:scale-110 hover:-translate-y-2 shadow-xl hover:shadow-2xl transform-gpu group/btn overflow-hidden min-w-[200px]"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  {isSubmitting ? (
-                    <>
-                      <LoadingSpinner size="sm" className="text-white" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <span className="text-xl group-hover/btn:animate-bounce"></span>
-                      Send Message
-                    </>
-                  )}
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-700 transform group-hover/btn:translate-x-full"></div>
-              </Button>
-              
+            <Button
+              type="submit"
+              disabled={!isFormValid || isSubmitting}
+              className="px-8 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu py-4 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed min-w-[200px]"
+            >
+              <span className="!text-white hover:!text-white flex items-center justify-center gap-3">
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" className="text-white" />
+                    <span className="!text-white hover:!text-white">Sending...</span>
+                  </>
+                 ) : (
+                   <>
+                     <span className="text-xl !text-white hover:!text-white">📧</span>
+                     <span className="!text-white hover:!text-white">Send us a Message</span>
+                   </>
+                 )}
+               </span>
+            </Button>
               <div className="relative group/info">
                 <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-xl blur opacity-0 group-hover/info:opacity-20 transition-all duration-500"></div>
                 <div className="relative bg-white/80 backdrop-blur-lg border border-[#006da6]/20 rounded-xl px-4 py-3 hover:bg-white/90 transition-all duration-500 hover:scale-105 transform-gpu shadow-lg hover:shadow-xl">
