@@ -292,7 +292,7 @@ const Header = () => {
                     </Link>
                     <Link
                       to="/accounts/register"
-                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                      className="px-4 py-2 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
                     >
                       <span className="!text-white hover:!text-white">Register</span>
                     </Link>
@@ -301,7 +301,7 @@ const Header = () => {
                 
                 <button
                   onClick={() => window.location.href = '/quote'}
-                  className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                  className="px-6 py-2.5 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
                 >
                   <span className="!text-white hover:!text-white">Get Quote</span>
                 </button>

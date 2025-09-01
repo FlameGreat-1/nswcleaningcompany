@@ -351,19 +351,15 @@ const FAQ = () => {
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                      <Button
-                        onClick={handleCallNow}
-                        className="relative bg-gradient-to-r from-[#006da6] via-[#0080c7] to-[#180c2e] hover:from-black hover:to-gray-800 text-white hover:text-white font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transform-gpu group/btn overflow-hidden"
-                        style={{ transformStyle: 'preserve-3d' }}
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          <span className="text-xl group-hover/btn:animate-bounce">📞</span>
-                          Call {COMPANY_INFO.phone}
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-700 transform group-hover/btn:translate-x-full"></div>
-                        <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#0080c7] rounded-full blur opacity-30 group-hover/btn:opacity-60 transition-opacity duration-700"></div>
-                      </Button>
-                      
+                    <Button
+                      onClick={handleCallNow}
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                    >
+                      <span className="!text-white hover:!text-white flex items-center gap-2">
+                        <span className="text-xl !text-white hover:!text-white">📞</span>
+                        Call {COMPANY_INFO.phone}
+                      </span>
+                    </Button>
                       <Button
                         onClick={handleContact}
                         className="relative bg-transparent border-3 border-[#006da6] text-[#006da6] hover:bg-gradient-to-r hover:from-black hover:to-gray-800 hover:text-white hover:border-black font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:-rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)] transform-gpu group/btn overflow-hidden"
@@ -378,15 +374,14 @@ const FAQ = () => {
 
                       <Button
                         onClick={handleGetQuote}
-                        className="relative bg-gradient-to-r from-black to-gray-800 hover:from-gray-800 hover:to-black text-white hover:text-[#006da6] font-black px-8 py-4 rounded-full text-base transition-all duration-700 hover:scale-110 hover:-translate-y-3 hover:rotate-1 shadow-2xl hover:shadow-[0_20px_40px_rgba(0,0,0,0.4)] transform-gpu group/btn overflow-hidden"
-                        style={{ transformStyle: 'preserve-3d' }}
+                        className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
                       >
-                        <span className="relative z-10 flex items-center gap-2">
-                          <span className="text-xl group-hover/btn:animate-spin">💰</span>
+                        <span className="!text-white hover:!text-white flex items-center gap-2">
+                          <span className="text-xl !text-white hover:!text-white">💰</span>
                           Get Quote
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#006da6]/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-700"></div>
                       </Button>
+
                     </div>
                   </div>
                   

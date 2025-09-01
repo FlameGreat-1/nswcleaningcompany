@@ -67,8 +67,8 @@ const Footer = () => {
           </div>
 
           <div className="animate-fade-in-up delay-200">
-            <h4 className="text-xl font-black text-white mb-8 relative group">
-              <span className="relative z-10 group-hover:text-[#006da6] transition-colors duration-500">Quick Links</span>
+            <h4 className="text-2xl font-black text-[#006da6] mb-8 relative group drop-shadow-md">
+              <span className="relative z-10 group-hover:text-white transition-colors duration-500">Quick Links</span>
               <div className="absolute -bottom-2 left-0 w-0 h-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] group-hover:w-full transition-all duration-700 rounded-full"></div>
             </h4>
             <ul className="space-y-4">
@@ -76,7 +76,7 @@ const Footer = () => {
                 <li key={link.name} className="group/link">
                   <Link 
                     to={link.path}
-                    className="relative inline-flex items-center text-[#CCCCCC] hover:text-[#006da6] transition-all duration-500 text-sm font-medium group-hover/link:translate-x-2 group-hover/link:scale-105 transform-gpu"
+                    className="relative inline-flex items-center text-white hover:text-[#006da6] transition-all duration-500 text-base font-medium group-hover/link:translate-x-2 group-hover/link:scale-105 transform-gpu"
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
                     <div className="w-0 h-0.5 bg-gradient-to-r from-[#006da6] to-[#005a8a] group-hover/link:w-4 transition-all duration-500 mr-0 group-hover/link:mr-2 rounded-full"></div>
@@ -162,7 +162,7 @@ const Footer = () => {
                 <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-700 hover:-translate-y-1 hover:scale-105 transform-gpu">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#006da6]/5 via-transparent to-[#005a8a]/5 opacity-0 group-hover/contact:opacity-100 transition-opacity duration-700 rounded-xl"></div>
                   <div className="relative z-10">
-                    <p className="text-sm font-black mb-2 text-white group-hover/contact:text-[#006da6] transition-colors duration-500">Phone</p>
+                    <p className="text-base font-black mb-2 text-[#006da6] group-hover/contact:text-white transition-colors duration-500">Phone</p>
                     <a 
                       href={`tel:${COMPANY_INFO.phone}`}
                       className="text-[#006da6] hover:text-white transition-all duration-500 font-black text-lg group-hover/contact:scale-110 inline-block transform-gpu"
@@ -194,8 +194,8 @@ const Footer = () => {
                 <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-700 hover:-translate-y-1 hover:scale-105 transform-gpu">
                   <div className="absolute inset-0 bg-gradient-to-br from-[#006da6]/5 via-transparent to-[#005a8a]/5 opacity-0 group-hover/hours:opacity-100 transition-opacity duration-700 rounded-xl"></div>
                   <div className="relative z-10">
-                    <p className="text-sm font-black mb-3 text-white group-hover/hours:text-[#006da6] transition-colors duration-500">Business Hours</p>
-                    <div className="text-xs text-[#CCCCCC] space-y-2 font-medium">
+                  <p className="text-base font-black mb-3 text-[#006da6] group-hover/hours:text-white transition-colors duration-500">Business Hours</p>
+                  <div className="text-sm text-white space-y-2 font-medium">
                       <div className="flex justify-between items-center group/day hover:text-[#006da6] transition-colors duration-300">
                         <span>Mon - Fri:</span>
                         <span className="font-black">{BUSINESS_HOURS.monday}</span>
@@ -262,8 +262,8 @@ const Footer = () => {
                   </div>
                   
                   <div className="text-center sm:text-left">
-                    <p className="text-white font-black text-lg mb-2 group-hover:text-[#006da6] transition-colors duration-500">Follow Us</p>
-                    <p className="text-[#CCCCCC] text-sm font-medium">Stay updated with our latest work</p>
+                  <p className="text-[#006da6] font-black text-xl mb-2 group-hover:text-white transition-colors duration-500">Follow Us</p>
+                  <p className="text-white text-base font-medium">Stay updated with our latest work</p>
                   </div>
                 </div>
 
@@ -298,7 +298,7 @@ const Footer = () => {
         <div className="relative">
           <div className="absolute inset-0 bg-gradient-to-r from-[#006da6]/20 via-transparent to-[#005a8a]/20 blur-xl"></div>
           <div className="relative border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex flex-col sm:flex-row items-center gap-4 text-sm text-[#CCCCCC] font-medium">
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-base text-white font-medium">
               <p className="group hover:text-[#006da6] transition-colors duration-500">
                 © {currentYear} {COMPANY_INFO.name}. All rights reserved.
               </p>

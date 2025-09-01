@@ -376,7 +376,7 @@ const ContactForm = ({
                     </>
                   ) : (
                     <>
-                      <span className="text-xl group-hover/btn:animate-bounce">📨</span>
+                      <span className="text-xl group-hover/btn:animate-bounce"></span>
                       Send Message
                     </>
                   )}

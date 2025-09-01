@@ -182,13 +182,12 @@ const Contact = () => {
                       
                       <Button
                         onClick={method.action}
-                        className={`relative bg-gradient-to-r ${method.gradient} hover:from-[#180c2e] hover:to-[#2d1b4e] text-white hover:text-white font-black px-6 py-3 rounded-full text-sm transition-all duration-700 hover:scale-110 hover:-translate-y-2 shadow-lg hover:shadow-2xl transform-gpu group/btn overflow-hidden mt-auto`}
+                        className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu mt-auto"
                       >
-                        <span className="relative z-10 flex items-center justify-center gap-2">
-                          <span className="text-lg group-hover/btn:animate-pulse">{method.icon}</span>
-                          {method.buttonText}
+                        <span className="!text-white hover:!text-white flex items-center justify-center gap-2">
+                          <span className="text-lg !text-white hover:!text-white">{method.icon}</span>
+                           {method.buttonText}
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/btn:opacity-100 transition-opacity duration-700 transform group-hover/btn:translate-x-full"></div>
                       </Button>
                     </div>
                     
@@ -345,27 +344,26 @@ const Contact = () => {
                     </p>
                     
                     <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-                      <Button
-                        onClick={handleGetQuote}
-                        className="relative bg-gradient-to-r from-[#006da6] to-[#0080c7] hover:from-[#180c2e] hover:to-[#2d1b4e] text-white font-black px-8 py-4 rounded-full text-lg transition-all duration-700 hover:scale-110 hover:-translate-y-2 shadow-lg hover:shadow-2xl transform-gpu group/quote-btn overflow-hidden"
-                      >
-                        <span className="relative z-10 flex items-center gap-3">
-                          <span className="text-2xl group-hover/quote-btn:animate-pulse">💰</span>
-                          Get Free Quote
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/quote-btn:opacity-100 transition-opacity duration-700 transform group-hover/quote-btn:translate-x-full"></div>
-                      </Button>
+                    <Button
+                      onClick={handleGetQuote}
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                    >
+                      <span className="!text-white hover:!text-white flex items-center gap-3">
+                        <span className="text-2xl !text-white hover:!text-white">💰</span>
+                        Get Free Quote
+                      </span>
+                    </Button>
                       
-                      <Button
-                        onClick={handleCallNow}
-                        className="relative bg-transparent border-2 border-[#006da6] text-[#006da6] hover:bg-gradient-to-r hover:from-[#006da6] hover:to-[#005a8a] hover:text-white hover:border-transparent font-black px-8 py-4 rounded-full text-lg transition-all duration-700 hover:scale-110 hover:-translate-y-2 shadow-lg hover:shadow-2xl transform-gpu group/call-btn overflow-hidden"
-                      >
-                        <span className="relative z-10 flex items-center gap-3">
-                          <span className="text-2xl group-hover/call-btn:animate-pulse">📞</span>
-                          Call {formatPhone(COMPANY_INFO.phone)}
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#006da6]/10 to-[#005a8a]/10 opacity-0 group-hover/call-btn:opacity-100 transition-opacity duration-700 rounded-full"></div>
-                      </Button>
+                    <Button
+                      onClick={handleCallNow}
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
+                    >
+                      <span className="!text-white hover:!text-white flex items-center gap-3">
+                        <span className="text-2xl !text-white hover:!text-white">📞</span>
+                        Call {formatPhone(COMPANY_INFO.phone)}
+                      </span>
+                    </Button>
+
                     </div>
                     
                     <div className="mt-10 pt-8 border-t border-[#006da6]/20">
@@ -417,26 +415,25 @@ const Contact = () => {
                       Our cleaning experts are here to help you find the perfect cleaning solution for your needs and budget.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <a 
-                        href="/services" 
-                        className="relative inline-flex items-center justify-center gap-2 bg-transparent border-2 border-[#006da6] text-[#006da6] hover:bg-gradient-to-r hover:from-[#006da6] hover:to-[#005a8a] hover:text-white hover:border-transparent font-black px-6 py-3 rounded-full text-sm transition-all duration-700 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl transform-gpu group/services-btn overflow-hidden"
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          <span className="text-lg group-hover/services-btn:animate-pulse">🧹</span>
-                          View All Services
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-[#006da6]/10 to-[#005a8a]/10 opacity-0 group-hover/services-btn:opacity-100 transition-opacity duration-700 rounded-full"></div>
-                      </a>
-                      <a 
-                        href="/about" 
-                        className="relative inline-flex items-center justify-center gap-2 bg-gradient-to-r from-[#180c2e] to-[#2d1b4e] hover:from-[#006da6] hover:to-[#0080c7] text-white font-black px-6 py-3 rounded-full text-sm transition-all duration-700 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl transform-gpu group/about-btn overflow-hidden"
-                      >
-                        <span className="relative z-10 flex items-center gap-2">
-                          <span className="text-lg group-hover/about-btn:animate-pulse">ℹ️</span>
-                          Learn About Us
-                        </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover/about-btn:opacity-100 transition-opacity duration-700 transform group-hover/about-btn:translate-x-full"></div>
-                      </a>
+                    <a 
+                      href="/services" 
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu inline-flex items-center justify-center py-3"
+                    >
+                      <span className="!text-white hover:!text-white flex items-center gap-2">
+                        <span className="text-lg !text-white hover:!text-white">🧹</span>
+                        View All Services
+                      </span>
+                    </a>
+
+                    <a 
+                      href="/about" 
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu inline-flex items-center justify-center py-3"
+                    >
+                      <span className="!text-white hover:!text-white flex items-center gap-2">
+                        <span className="text-lg !text-white hover:!text-white">ℹ️</span>
+                        Learn About Us
+                      </span>
+                    </a> 
                     </div>
                   </div>
                 </div>

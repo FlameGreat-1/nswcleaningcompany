@@ -131,13 +131,12 @@ const ContactSection = () => {
                           <p className="text-gray-600 dark:text-gray-300 mb-4 font-medium group-hover/contact-item:text-gray-800 dark:group-hover/contact-item:text-gray-200 transition-colors duration-500">{formatPhone(COMPANY_INFO.phone)}</p>
                           <Button
                             onClick={handleCallNow}
-                            className="relative bg-transparent border-2 border-[#006da6] text-[#006da6] dark:text-[#0080c7] dark:border-[#0080c7] hover:bg-gradient-to-r hover:from-[#006da6] hover:to-[#005a8a] hover:text-white font-black px-6 py-3 rounded-full text-sm transition-all duration-700 hover:scale-110 hover:-translate-y-1 shadow-lg hover:shadow-2xl transform-gpu group/btn overflow-hidden"
+                            className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu py-3"
                           >
-                            <span className="relative z-10 flex items-center gap-2">
-                              <span className="text-lg group-hover/btn:animate-pulse">📞</span>
+                            <span className="!text-white hover:!text-white flex items-center gap-2">
+                              <span className="text-lg !text-white hover:!text-white">📞</span>
                               Call Now
                             </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-[#006da6]/10 to-[#005a8a]/10 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-700 rounded-full"></div>
                           </Button>
                         </div>
                       </div>
@@ -270,17 +269,15 @@ const ContactSection = () => {
                     <div className="absolute -inset-1 bg-gradient-to-r from-[#006da6] to-[#005a8a] rounded-2xl blur opacity-0 group-hover/map-btn:opacity-20 transition-all duration-500"></div>
                     <Button
                       onClick={toggleMap}
-                      className="relative w-full bg-gradient-to-r from-[#006da6] to-[#0080c7] hover:from-[#180c2e] hover:to-[#2d1b4e] text-white font-black py-4 px-6 rounded-2xl transition-all duration-700 hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-2xl transform-gpu group/map-btn-inner overflow-hidden"
+                      className="w-full px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu py-4"
                     >
-                      <span className="relative z-10 flex items-center justify-center gap-3">
-                        <span className="text-xl group-hover/map-btn-inner:animate-pulse">🗺️</span>
+                      <span className="!text-white hover:!text-white flex items-center justify-center gap-3">
+                        <span className="text-xl !text-white hover:!text-white">🗺️</span>
                         {showMap ? 'Hide Service Area Map' : 'View Service Area Map'}
                       </span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-[#180c2e]/10 to-[#2d1b4e]/10 opacity-0 group-hover/map-btn-inner:opacity-100 transition-opacity duration-700 rounded-2xl"></div>
                     </Button>
                   </div>
                 </div>
-                
                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-[#006da6] to-[#005a8a] transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 rounded-b-3xl"></div>
               </div>
             </div>
