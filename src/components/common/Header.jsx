@@ -119,7 +119,7 @@ const Header = () => {
                     className="w-12 h-12 object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-lg"
                   />
                 </div>
-                <div className="hidden sm:block">
+                <div className="block">
                   <h1 className="app-text-primary font-black text-xl leading-tight tracking-tight group-hover:text-[#006da6] transition-colors duration-300">
                     NSW Cleaning Company
                   </h1>
@@ -130,10 +130,10 @@ const Header = () => {
             <nav className="hidden lg:flex items-center space-x-1 app-bg-glass backdrop-blur-lg rounded-2xl px-3 py-1.5 app-border-glass border shadow-lg overflow-visible">
               <Link
                 to="/"
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
+                className={`px-4 py-2.5 text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/') 
-                    ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu' 
+                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-xl'
                 }`}
               >
                 Home
@@ -141,23 +141,22 @@ const Header = () => {
 
               <Link
                 to="/about"
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
+                className={`px-4 py-2.5 text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/about') 
-                    ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu' 
+                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-xl'
                 }`}
               >
                 About
               </Link>
-
               <div className="relative">
                 <button
                   onClick={() => toggleDropdown('services')}
                   onMouseEnter={() => setActiveDropdown('services')}
-                  className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
+                  className={`flex items-center px-4 py-2.5 text-sm font-bold transition-all duration-400 hover:scale-105 ${
                     isActivePath('/services') 
-                      ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                      ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu' 
+                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-xl'
                   }`}
                 >
                   Services
@@ -176,7 +175,11 @@ const Header = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl transition-all duration-400 group hover:scale-105"
+                          className={`flex items-center px-5 py-4 text-sm font-semibold transition-all duration-400 group hover:scale-105 ${
+                            location.hash === item.path.split('#')[1] && isActivePath('/services')
+                              ? 'bg-gradient-to-r from-[#006da6] to-[#180c2e] !text-white hover:!text-white rounded-2xl'
+                              : 'app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl'
+                          }`}
                           onClick={() => setActiveDropdown(null)}
                         >
                           <span className="text-xl mr-4 group-hover:scale-125 transition-transform duration-400">{item.icon}</span>
@@ -192,10 +195,10 @@ const Header = () => {
                 <button
                   onClick={() => toggleDropdown('resources')}
                   onMouseEnter={() => setActiveDropdown('resources')}
-                  className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
+                  className={`flex items-center px-4 py-2.5 text-sm font-bold transition-all duration-400 hover:scale-105 ${
                     isActivePath('/faq') || isActivePath('/gallery') || isActivePath('/ndis') || isActivePath('/blog')
-                      ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                      ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu' 
+                      : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-xl'
                   }`}
                 >
                   Resources
@@ -214,7 +217,11 @@ const Header = () => {
                         <Link
                           key={item.path}
                           to={item.path}
-                          className="flex items-center px-5 py-4 text-sm font-semibold app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl transition-all duration-400 group hover:scale-105"
+                          className={`flex items-center px-5 py-4 text-sm font-semibold transition-all duration-400 group hover:scale-105 ${
+                            isActivePath(item.path)
+                              ? 'bg-gradient-to-r from-[#006da6] to-[#180c2e] !text-white hover:!text-white rounded-2xl'
+                              : 'app-text-secondary hover:bg-gradient-to-r hover:from-[#006da6]/10 hover:to-[#006da6]/5 hover:text-[#006da6] rounded-2xl'
+                          }`}
                           onClick={() => setActiveDropdown(null)}
                         >
                           <span className="text-xl mr-4 group-hover:scale-125 transition-transform duration-400">{item.icon}</span>
@@ -228,10 +235,10 @@ const Header = () => {
 
               <Link
                 to="/contact"
-                className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-400 hover:scale-105 ${
+                className={`px-4 py-2.5 text-sm font-bold transition-all duration-400 hover:scale-105 ${
                   isActivePath('/contact') 
-                    ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30' 
-                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                    ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu' 
+                    : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-xl'
                 }`}
               >
                 Contact
@@ -244,7 +251,11 @@ const Header = () => {
                   <div className="flex items-center space-x-2">
                     <Link
                       to="/clients/portal"
-                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                      className={`px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
+                        isActivePath('/clients/portal')
+                          ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu'
+                          : 'app-text-primary hover:text-[#006da6]'
+                      }`}
                     >
                       {user?.first_name || 'Portal'}
                     </Link>
@@ -271,25 +282,28 @@ const Header = () => {
                   <div className="flex items-center space-x-2">
                     <Link
                       to="/accounts/login"
-                      className="px-4 py-2 text-sm font-semibold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                      className={`px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
+                        isActivePath('/accounts/login')
+                          ? 'px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu'
+                          : 'app-text-primary hover:text-[#006da6]'
+                      }`}
                     >
                       Login
                     </Link>
                     <Link
                       to="/accounts/register"
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#0080c7] hover:to-[#2d1b4e] rounded-xl transition-all duration-300 hover:scale-105"
+                      className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
                     >
-                      Register
+                      <span className="!text-white hover:!text-white">Register</span>
                     </Link>
                   </div>
                 ) : null}
                 
                 <button
                   onClick={() => window.location.href = '/quote'}
-                  className="relative px-6 py-2.5 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#0080c7] hover:to-[#2d1b4e] text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-[#006da6]/40 transition-all duration-500 hover:scale-110 hover:-translate-y-1 text-sm overflow-hidden group"
+                  className="px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu"
                 >
-                  <span className="relative z-10">Get Quote</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#0080c7] to-[#2d1b4e] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <span className="!text-white hover:!text-white">Get Quote</span>
                 </button>
               </div>
 
@@ -315,10 +329,10 @@ const Header = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`block px-6 py-4 rounded-2xl text-base font-bold transition-all duration-400 hover:scale-105 ${
+                    className={`block px-6 py-4 text-base font-bold transition-all duration-400 hover:scale-105 ${
                       isActivePath(link.path)
-                        ? 'text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] shadow-lg shadow-[#006da6]/30'
-                        : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10'
+                        ? 'bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu'
+                        : 'app-text-primary hover:text-[#006da6] hover:bg-white/60 dark:hover:bg-white/10 rounded-2xl'
                     }`}
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -331,7 +345,11 @@ const Header = () => {
                     <div className="space-y-3">
                       <Link
                         to="/clients/portal"
-                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                        className={`block w-full px-6 py-3 text-center text-base font-bold transition-colors duration-300 ${
+                          isActivePath('/clients/portal')
+                            ? 'bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu'
+                            : 'app-text-primary hover:text-[#006da6]'
+                        }`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {user?.first_name || 'Portal'}
@@ -365,26 +383,30 @@ const Header = () => {
                     <div className="space-y-3">
                       <Link
                         to="/accounts/login"
-                        className="block w-full px-6 py-3 text-center text-base font-bold app-text-primary hover:text-[#006da6] transition-colors duration-300"
+                        className={`block w-full px-6 py-3 text-center text-base font-bold transition-colors duration-300 ${
+                          isActivePath('/accounts/login')
+                            ? 'bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white rounded-full hover:shadow-2xl hover:-translate-y-1 transform-gpu'
+                            : 'app-text-primary hover:text-[#006da6]'
+                        }`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Login
                       </Link>
                       <Link
                         to="/accounts/register"
-                        className="block w-full px-6 py-3 text-center text-base font-bold text-white bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#0080c7] hover:to-[#2d1b4e] rounded-2xl transition-all duration-300"
+                        className="block w-full px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu text-center py-3"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        Register
+                        <span className="!text-white hover:!text-white">Register</span>
                       </Link>
                     </div>
                   ) : null}
                   
                   <button
                     onClick={() => window.location.href = '/quote'}
-                    className="w-full px-8 py-4 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#0080c7] hover:to-[#2d1b4e] text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-[#006da6]/40 transition-all duration-500 hover:scale-105"
+                    className="w-full px-6 bg-gradient-to-r from-[#006da6] to-[#180c2e] hover:from-[#180c2e] hover:to-[#2d1b4e] !text-white hover:!text-white font-bold rounded-full transition-all duration-500 hover:scale-110 hover:shadow-2xl hover:-translate-y-1 transform-gpu py-3"
                   >
-                    Get Free Quote
+                    <span className="!text-white hover:!text-white">Get Free Quote</span>
                   </button>
                 </div>
               </div>
